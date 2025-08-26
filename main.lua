@@ -25,9 +25,36 @@ local TopRightTimer = 0
    --     utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec))
 local utcPrintString = ""
 
+local timer = {
+  mode = "countup",   -- "countup" or "countdown"
+  duration = 90,      -- only used in countdown mode (seconds)
+  t = 0,              -- current time (seconds)
+  running = true
+}
+
+local font
+
+local function format_time(s)
+  if s < 0 then s = 0 end
+  local minutes = math.floor(s / 60)
+  local seconds = math.floor(s % 60)
+  local ms = math.floor((s - math.floor(s)) * 100)
+  return string.format("%02d:%02d.%02d", minutes, seconds, ms)
+end
+
 function love.load ()
 
 	page_switch ("IntialBooting", 3, 2, false)
+
+	font = love.graphics.newFont(20)
+	love.graphics.setFont(font)
+
+	-- initialize starting time based on mode
+	if timer.mode == "countdown" then
+	  timer.t = timer.duration
+	else
+	  timer.t = 0
+	end
 
 end
 
@@ -39,6 +66,21 @@ function love.update (dt)
     utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
 )
 	jpGUI_update (dt)
+
+	--topright timer
+	if not timer.running then return end
+
+	if timer.mode == "countup" then
+	  timer.t = timer.t + dt
+	else -- countdown
+	  timer.t = timer.t - dt
+	  if timer.t <= 0 then
+	    timer.t = 0
+	    timer.running = false
+	    -- do something when countdown finishes:
+	    -- e.g., play a sound, change state, etc.
+	  end
+	end
 
 end
 
@@ -163,8 +205,10 @@ function mainMenuDisplay()
 								--TEXT BOXES
 	------------------------------------------------------------------------
 
+
+	---UTC TOP LEFT
 	local UTCString = utcPrintString
-	outputTxtBox_draw ("title",--[[Label name]]
+	outputTxtBox_draw ("utcData",--[[Label name]]
 		thisPageName, --[[strg page]]
 		"Sprites/invisibleBox.png", --[[image to be used as bg]]
 		.05, --[[x percentage of screen]]
@@ -176,6 +220,53 @@ function mainMenuDisplay()
 		UTCString, --[[string of label display 1]]
 		math.floor(smartFontScaling (0.03, 0.05))--[[font size]])
 
+
+	--TIMER TOP RIGHT CORNER
+	  -- timer text
+	  local text = format_time(timer.t)
+
+	  -- small help text
+	  -- love.graphics.setNewFont(14)
+	  -- love.graphics.print(
+	  --   string.format("Mode: %s  |  Space: Pause/Resume  R: Reset  C: Toggle Mode", timer.mode),
+	  --   10, h - 28
+	  -- )
+	  -- love.graphics.setFont(font)
+
+	  outputTxtBox_draw ("timerTopRight",--[[Label name]]
+	  	thisPageName, --[[strg page]]
+	  	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	  	.95, --[[x percentage of screen]]
+	  	.05, --[[y percentage of screen]]
+	  	"RT", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
+	  	smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"width"),--[[width]]
+	  	smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"height"), --[[height]]
+	  	{1,1,1,1},--[[rgba]]
+	  	text, --[[string of label display 1]]
+	  	math.floor(smartFontScaling (0.03, 0.05))--[[font size]])
+
+
 end
 
 
+function love.keypressed(key)
+  if key == "space" then
+    timer.running = not timer.running
+  elseif key == "r" then
+    if timer.mode == "countup" then
+      timer.t = 0
+    else
+      timer.t = timer.duration
+    end
+    timer.running = true
+  elseif key == "c" then
+    -- toggle modes and re-init time
+    timer.mode = (timer.mode == "countup") and "countdown" or "countup"
+    if timer.mode == "countdown" then
+      timer.t = timer.duration
+    else
+      timer.t = 0
+    end
+    timer.running = true
+  end
+end
