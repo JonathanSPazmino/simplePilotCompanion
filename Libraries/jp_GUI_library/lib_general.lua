@@ -1075,12 +1075,14 @@ end
 
 function readAboutPageFile ()
 	local aboutFileExits = doesAboutPageFileExist ("about.txt")
-	local isAboutFileEmpty = isAboutTextFileEmpty ("about.txt")
-	local contents = "NO ABOUT.TXT FILE FOUND"
-	if aboutFileExits == true and isAboutFileEmpty == false then
-		contents = love.filesystem.read( "about.txt" )
+	if aboutFileExits == true then
+		local isAboutFileEmpty = isAboutTextFileEmpty ("about.txt")
+		local contents = "NO ABOUT.TXT FILE FOUND"
+		if aboutFileExits == true and isAboutFileEmpty == false then
+			contents = love.filesystem.read( "about.txt" )
+		end
+		return contents
 	end
-	return contents
 end
 
 

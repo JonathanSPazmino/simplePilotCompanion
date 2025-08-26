@@ -89,7 +89,7 @@ function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, hei
 end
 
 
-function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize)
+function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
 
 	for i, updtLbl in ipairs(lib_labels) do 
 
@@ -113,6 +113,7 @@ function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize)
 				end
 				
 				updtLbl.text.font = love.graphics.newFont(fontSize)
+				updtLbl.text.text = text
 
 				updtLbl.text.width= updtLbl.frame.width * 0.8
 				updtLbl.text.maxTextLineCount = findMaxNumOfLinesNeeded (updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
@@ -211,33 +212,38 @@ function outputTxtBox_draw (id, page, bgSprite,  x,y,anchorPoint,width,height, t
 
 		elseif labelExists == true and globApp.resizeDetected == true then --[[updates only if window is resized]]
 
-			outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize)
+			outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
 
 		end
 
-		for i,x in ipairs(lib_labels) do
-			
-			if x.bgSprite.sprite ~= nil then --[[draw the background before the text]]
+		for i,t in ipairs(lib_labels) do
 
-				love.graphics.draw(x.bgSprite.sprite, x.bgSprite.x, x.bgSprite.y, 0, x.bgSprite.width, x.bgSprite.height, ox, oy, kx, ky)
+			--UPDATES TEXTBOX IF TEXT CHANGED FROM LAST ON RECORDED
+			if t.text.text ~= text then
+				outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
+			end
+			
+			if t.bgSprite.sprite ~= nil then --[[draw the background before the text]]
+
+				love.graphics.draw(t.bgSprite.sprite, t.bgSprite.x, t.bgSprite.y, 0, t.bgSprite.width, t.bgSprite.height, ox, oy, kx, ky)
 
 			end
 
 
-			if x.name == id and x.state == 0  then
+			if t.name == id and t.state == 0  then
 				
 
 
 
-			elseif x.name == id and x.state == 1  then
+			elseif t.name == id and t.state == 1  then
 
 
 				--FRAME
-				love.graphics.rectangle("line", x.frame.x, x.frame.y, x.frame.width, x.frame.height, rx, ry, segments)
-				love.graphics.setFont(x.text.font)
-				for y , z in ipairs (x.text.lines) do
+				love.graphics.rectangle("line", t.frame.x, t.frame.y, t.frame.width, t.frame.height, rx, ry, segments)
+				love.graphics.setFont(t.text.font)
+				for y , z in ipairs (t.text.lines) do
 					if z.isVisible == true then
-						love.graphics.setColor(x.text.color[1], x.text.color[2], x.text.color[3], x.text.color[4])
+						love.graphics.setColor(t.text.color[1], t.text.color[2], t.text.color[3], t.text.color[4])
 						love.graphics.printf(z.text, z.x, z.y, z.width, "center", 0, nil, nil, nil, nil, nil, nil)
 					end
 
@@ -247,17 +253,17 @@ function outputTxtBox_draw (id, page, bgSprite,  x,y,anchorPoint,width,height, t
 
 
 
-			elseif x.name == id and x.state == 2  then
+			elseif t.name == id and t.state == 2  then
 
-				if x.labelText2 ~= nil then 
+				if t.labelText2 ~= nil then 
 
-					love.graphics.setColor(x.text.color[1], x.text.color[2], x.text.color[3], x.text.color[4])
+					love.graphics.setColor(t.text.color[1], t.text.color[2], t.text.color[3], t.text.color[4])
 					--FRAME
-					love.graphics.rectangle("line", x.frame.x, x.frame.y, x.frame.width, x.frame.height, rx, ry, segments)
+					love.graphics.rectangle("line", t.frame.x, t.frame.y, t.frame.width, t.frame.height, rx, ry, segments)
 
 					--TEXT
-					love.graphics.setFont(x.text.font)
-					love.graphics.printf(x.text.text, x.text.x, x.text.y, x.text.width, "center", 0, nil, nil, nil, nil, nil, nil)
+					love.graphics.setFont(t.text.font)
+					love.graphics.printf(t.text.text, t.text.x, t.text.y, t.text.width, "center", 0, nil, nil, nil, nil, nil, nil)
 					love.graphics.reset()
 
 				end
