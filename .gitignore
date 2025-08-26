@@ -1,0 +1,61 @@
+allVariables.csv
+projectData.csv
+
+
+#bash scripts for development
+
+# packer.sh
+# logBug.sh
+# bugs.txt
+# logBugs.csv
+# devAdmin/
+# devTools.sh
+
+# commented out due to need for back up
+
+# lua sources
+luac.out
+
+# Gateway Dynamic Software
+*.gds
+
+build files
+*.src.rock
+*.zip
+*.tar.gz
+
+# Object files
+*.o
+*.os
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+*.def
+*.exp
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+
+# End of https://www.toptal.com/developers/gitignore/api/lua
