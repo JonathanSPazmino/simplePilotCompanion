@@ -26,8 +26,8 @@ local TopRightTimer = 0
 local utcPrintString = ""
 
 local timer = {
-  mode = "countup",   -- "countup" or "countdown"
-  duration = 90,      -- only used in countdown mode (seconds)
+  mode = "COUNT UP",   -- "COUNT UP" or "COUNT DOWN"
+  duration = 90,      -- only used in COUNT DOWN mode (seconds)
   t = 0,              -- current time (seconds)
   running = true
 }
@@ -38,8 +38,7 @@ local function format_time(s)
   if s < 0 then s = 0 end
   local minutes = math.floor(s / 60)
   local seconds = math.floor(s % 60)
-  local ms = math.floor((s - math.floor(s)) * 100)
-  return string.format("%02d:%02d.%02d", minutes, seconds, ms)
+  return string.format("%02d:%02d", minutes, seconds)
 end
 
 function love.load ()
@@ -50,7 +49,7 @@ function love.load ()
 	love.graphics.setFont(font)
 
 	-- initialize starting time based on mode
-	if timer.mode == "countdown" then
+	if timer.mode == "COUNT DOWN" then
 	  timer.t = timer.duration
 	else
 	  timer.t = 0
@@ -70,14 +69,14 @@ function love.update (dt)
 	--topright timer
 	if not timer.running then return end
 
-	if timer.mode == "countup" then
+	if timer.mode == "COUNT UP" then
 	  timer.t = timer.t + dt
-	else -- countdown
+	else -- COUNT DOWN
 	  timer.t = timer.t - dt
 	  if timer.t <= 0 then
 	    timer.t = 0
 	    timer.running = false
-	    -- do something when countdown finishes:
+	    -- do something when COUNT DOWN finishes:
 	    -- e.g., play a sound, change state, etc.
 	  end
 	end
@@ -117,88 +116,55 @@ function mainMenuDisplay()
 	local thisPageName = "MainMenu"
 
 	--BUTONS:
-	-- local thisPageButtons = {}
-	-- 	thisPageButtons[1] = "newTrip"
-	-- 	thisPageButtons[2] = "loadTrip"
-	-- 	thisPageButtons[3] = "Learn"
+	local thisPageButtons = {}
+		thisPageButtons[1] = "resetRHTopTimer"
+		thisPageButtons[2] = "pauseRHTopTimer"
+		thisPageButtons[3] = "modeSelectRHTopTimer"
 	-- 	thisPageButtons[4] = "Settings"
 	-- 	thisPageButtons[5] = "About"
 
-	-- drawButtons(thisPageButtons[1]--[[ButtonLable]], 
-	-- 	"MainMenu"--[[page]], 
-	-- 	"pushonoff"--[[buttonType]],
-	-- 	"Sprites/newTripButton_pushed.png"--[[sprite: released]],
-	-- 	"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
-	-- 	"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
-	-- 	.5--[[x coordinate]],
-	-- 	.18--[[y coordinate]],
-	-- 	"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-	-- 	"OpenNewProjectPage"--[[callback function]],
-	-- 	1--[[button initial status]])
-
-	-- if globApp.projectAvailable == false then
-	-- 	deactiveButton (thisPageButtons[2])
-	-- end
-	-- drawButtons(thisPageButtons[2]--[[ButtonLable]], 
-	-- 	"MainMenu"--[[page]], 
-	-- 	"pushonoff"--[[buttonType]],
-	-- 	"Sprites/loadTripButton_pushed.png"--[[sprite: pressed]],
-	-- 	"Sprites/loadTripButton_released.png"--[[sprite: released]],
-	-- 	"Sprites/loadTripButton_deactivated.png"--[[sprite:deactivated]],
-	-- 	.5--[[x coordinate]],
-	-- 	.34--[[y coordinate]],
-	-- 	"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-	-- 	"OpenLoadProjectPage"--[[callback function]],
-	-- 	1--[[button initial status]])
+	drawButtons(thisPageButtons[1]--[[ButtonLable]], 
+		"MainMenu"--[[page]], 
+		"pushonoff"--[[buttonType]],
+		"Sprites/newTripButton_pushed.png"--[[sprite: released]],
+		"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
+		"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
+		.95, --[[x position]]
+		.3, --[[y position]]
+		"RT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"width" )--[[width]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
+		"resetRHTopTimer"--[[callback function]],
+		1--[[button initial status]])
 
 
-	-- drawButtons(thisPageButtons[3]--[[ButtonLable]], 
-	-- 	"MainMenu"--[[page]], 
-	-- 	"pushonoff"--[[buttonType]],
-	-- 	"Sprites/learnButton_selected.png"--[[sprite: pressed]],
-	-- 	"Sprites/learnButton_deselected.png"--[[sprite: released]],
-	-- 	"Sprites/learnButton_deactivated.png"--[[sprite:deactivated]],
-	-- 	.5--[[x coordinate]],
-	-- 	.50--[[y coordinate]],
-	-- 	"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-	-- 	"OpenLearnPage"--[[callback function]],
-	-- 	1--[[button initial status]])
+	drawButtons(thisPageButtons[2]--[[ButtonLable]], 
+		"MainMenu"--[[page]], 
+		"pushonoff"--[[buttonType]],
+		"Sprites/newTripButton_pushed.png"--[[sprite: released]],
+		"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
+		"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
+		.725, --[[x position]]
+		.3, --[[y position]]
+		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"width" )--[[width]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
+		"pauseRHTopTimer"--[[callback function]],
+		1--[[button initial status]])
 
-
-	-- drawButtons(thisPageButtons[4]--[[ButtonLable]], 
-	-- 	"MainMenu"--[[page]], 
-	-- 	"pushonoff"--[[buttonType]],
-	-- 	"Sprites/SettingsButtonPushed.png"--[[sprite: pressed]],
-	-- 	"Sprites/SettingsButtonReleased.png"--[[sprite: released]],
-	-- 	"Sprites/SettingsButton_deactivated.png"--[[sprite:deactivated]],
-	-- 	.5--[[x coordinate]],
-	-- 	.66--[[y coordinate]],
-	-- 	"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-	-- 	"OpenSettingsPage"--[[callback function]],
-	-- 	1--[[button initial status]])
-
-
-	-- drawButtons(thisPageButtons[5]--[[ButtonLable]], 
-	-- 	"MainMenu"--[[page]], 
-	-- 	"pushonoff"--[[buttonType]],
-	-- 	"Sprites/aboutButton_selected.png"--[[sprite: pressed]],
-	-- 	"Sprites/aboutButton_deselected.png"--[[sprite: released]],
-	-- 	"Sprites/aboutButton_deactivated.png"--[[sprite:deactivated]],
-	-- 	.5--[[x coordinate]],
-	-- 	.82--[[y coordinate]],
-	-- 	"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-	-- 	smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-	-- 	"OpenAboutPage"--[[callback function]],
-	-- 	1--[[button initial status]])
+	drawButtons(thisPageButtons[3]--[[ButtonLable]], 
+		"MainMenu"--[[page]], 
+		"pushonoff"--[[buttonType]],
+		"Sprites/newTripButton_pushed.png"--[[sprite: released]],
+		"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
+		"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
+		.55, --[[x position]]
+		.3, --[[y position]]
+		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"width" )--[[width]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
+		"modeSelectRHTopTimer"--[[callback function]],
+		1--[[button initial status]])
 
 
 	------------------------------------------------------------------------
@@ -214,8 +180,8 @@ function mainMenuDisplay()
 		.05, --[[x percentage of screen]]
 		.05, --[[y percentage of screen]]
 		"LT", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-		smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"width"),--[[width]]
-		smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"height"), --[[height]]
+		globApp.safeScreenArea.w * .4,--[[width]]
+		globApp.safeScreenArea.h * .2, --[[height]]
 		{1,1,1,1},--[[rgba]]
 		UTCString, --[[string of label display 1]]
 		math.floor(smartFontScaling (0.03, 0.05))--[[font size]])
@@ -223,7 +189,7 @@ function mainMenuDisplay()
 
 	--TIMER TOP RIGHT CORNER
 	  -- timer text
-	  local text = format_time(timer.t)
+	  local text = timer.mode .. "\n" .. " TIMER:" .. "\n" .. "M  " .. format_time(timer.t) .. "  S"
 
 	  -- small help text
 	  -- love.graphics.setNewFont(14)
@@ -239,21 +205,48 @@ function mainMenuDisplay()
 	  	.95, --[[x percentage of screen]]
 	  	.05, --[[y percentage of screen]]
 	  	"RT", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-	  	smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"width"),--[[width]]
-	  	smartScaling ("inverse", 0.2, 0.4, .12, .24, 0.6,"height"), --[[height]]
+		globApp.safeScreenArea.w * .4,--[[width]]
+		globApp.safeScreenArea.h * .2, --[[height]]
 	  	{1,1,1,1},--[[rgba]]
 	  	text, --[[string of label display 1]]
-	  	math.floor(smartFontScaling (0.03, 0.05))--[[font size]])
-
+	  	math.floor(smartFontScaling (0.025, 0.04))--[[font size]])
 
 end
 
+
+
+
+function resetRHTopTimer ()
+	if timer.mode == "COUNT UP" then
+		timer.t = 0
+	else
+	timer.t = timer.duration
+	end
+		timer.running = true
+end
+
+
+function pauseRHTopTimer ()
+	timer.running = not timer.running
+end
+
+
+function modeSelectRHTopTimer ()
+	-- toggle modes and re-init time
+	timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
+	if timer.mode == "COUNT DOWN" then
+	  timer.t = timer.duration
+	else
+	  timer.t = 0
+	end
+	timer.running = true
+end
 
 function love.keypressed(key)
   if key == "space" then
     timer.running = not timer.running
   elseif key == "r" then
-    if timer.mode == "countup" then
+    if timer.mode == "COUNT UP" then
       timer.t = 0
     else
       timer.t = timer.duration
@@ -261,8 +254,8 @@ function love.keypressed(key)
     timer.running = true
   elseif key == "c" then
     -- toggle modes and re-init time
-    timer.mode = (timer.mode == "countup") and "countdown" or "countup"
-    if timer.mode == "countdown" then
+    timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
+    if timer.mode == "COUNT DOWN" then
       timer.t = timer.duration
     else
       timer.t = 0
