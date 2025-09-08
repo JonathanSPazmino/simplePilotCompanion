@@ -119,6 +119,8 @@ end
 
 function mainMenuDisplay()
 
+	local fontSize = 12
+
 	local thisPageName = "MainMenu"
 
 	--BUTONS:
@@ -220,7 +222,7 @@ function mainMenuDisplay()
 		globApp.safeScreenArea.h * .2, --[[height]]
 		{1,1,1,1},--[[rgba]]
 		UTCString, --[[string of label display 1]]
-		math.floor(smartFontScaling (0.03, 0.05))--[[font size]])
+		fontSize--[[font size]])
 
 
 	--TIMER TOP RIGHT CORNER
@@ -245,7 +247,7 @@ function mainMenuDisplay()
 		globApp.safeScreenArea.h * .2, --[[height]]
 	  	{1,1,1,1},--[[rgba]]
 	  	text, --[[string of label display 1]]
-	  	math.floor(smartFontScaling (0.025, 0.04))--[[font size]])
+	  	fontSize--[[font size]])
 
 
 end
