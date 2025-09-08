@@ -220,7 +220,7 @@ function mainMenuDisplay()
 		"LT", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
 		globApp.safeScreenArea.w * .4,--[[width]]
 		globApp.safeScreenArea.h * .2, --[[height]]
-		{1,1,1,1},--[[rgba]]
+		{.7,.7,.7,.85},--[[rgba]]
 		UTCString, --[[string of label display 1]]
 		fontSize--[[font size]])
 
@@ -245,7 +245,7 @@ function mainMenuDisplay()
 	  	"RT", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
 		globApp.safeScreenArea.w * .4,--[[width]]
 		globApp.safeScreenArea.h * .2, --[[height]]
-	  	{1,1,1,1},--[[rgba]]
+	  	{.3,.3,1,1},--[[rgba]]
 	  	text, --[[string of label display 1]]
 	  	fontSize--[[font size]])
 
