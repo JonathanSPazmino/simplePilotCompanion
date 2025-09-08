@@ -41,6 +41,12 @@ local function format_time(s)
   return string.format("%02d:%02d", minutes, seconds)
 end
 
+
+local visRhTimerInputBox = false
+
+
+
+
 function love.load ()
 
 	page_switch ("IntialBooting", 3, 2, false)
@@ -120,8 +126,8 @@ function mainMenuDisplay()
 		thisPageButtons[1] = "resetRHTopTimer"
 		thisPageButtons[2] = "pauseRHTopTimer"
 		thisPageButtons[3] = "modeSelectRHTopTimer"
-	-- 	thisPageButtons[4] = "Settings"
-	-- 	thisPageButtons[5] = "About"
+		thisPageButtons[4] = "incrsMinRHTopTimer"
+		thisPageButtons[5] = "dcrsMinRHTopTimer"
 
 	drawButtons(thisPageButtons[1]--[[ButtonLable]], 
 		"MainMenu"--[[page]], 
@@ -165,6 +171,36 @@ function mainMenuDisplay()
 		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
 		"modeSelectRHTopTimer"--[[callback function]],
 		1--[[button initial status]])
+
+
+	drawButtons(thisPageButtons[4]--[[ButtonLable]], 
+		"MainMenu"--[[page]], 
+		"pushonoff"--[[buttonType]],
+		"Sprites/newTripButton_pushed.png"--[[sprite: released]],
+		"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
+		"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
+		.5, --[[x position]]
+		.05, --[[y position]]
+		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"width" )--[[width]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
+		"incrsMinRHTopTimer"--[[callback function]],
+		0--[[button initial status]])
+
+	drawButtons(thisPageButtons[5]--[[ButtonLable]], 
+		"MainMenu"--[[page]], 
+		"pushonoff"--[[buttonType]],
+		"Sprites/newTripButton_pushed.png"--[[sprite: released]],
+		"Sprites/newTripButton_Released.png"--[[sprite: pressed]],
+		"Sprites/newTripButton_deactivated.png"--[[sprite:deactivated]],
+		.5, --[[x position]]
+		.15, --[[y position]]
+		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"width" )--[[width]],
+		smartScaling ("inverse", 0.08, .08, .08, 0.08, 1,"height" )--[[height]],
+		"dcrsMinRHTopTimer"--[[callback function]],
+		0--[[button initial status]])
+
 
 
 	------------------------------------------------------------------------
@@ -211,8 +247,8 @@ function mainMenuDisplay()
 	  	text, --[[string of label display 1]]
 	  	math.floor(smartFontScaling (0.025, 0.04))--[[font size]])
 
-end
 
+end
 
 
 
@@ -235,31 +271,14 @@ function modeSelectRHTopTimer ()
 	-- toggle modes and re-init time
 	timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
 	if timer.mode == "COUNT DOWN" then
+		activateButton ("incrsMinRHTopTimer")
+		activateButton ("dcrsMinRHTopTimer")
 	  timer.t = timer.duration
 	else
+		deactiveButton ("incrsMinRHTopTimer")
+		deactiveButton ("dcrsMinRHTopTimer")
 	  timer.t = 0
 	end
 	timer.running = true
 end
 
-function love.keypressed(key)
-  if key == "space" then
-    timer.running = not timer.running
-  elseif key == "r" then
-    if timer.mode == "COUNT UP" then
-      timer.t = 0
-    else
-      timer.t = timer.duration
-    end
-    timer.running = true
-  elseif key == "c" then
-    -- toggle modes and re-init time
-    timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
-    if timer.mode == "COUNT DOWN" then
-      timer.t = timer.duration
-    else
-      timer.t = 0
-    end
-    timer.running = true
-  end
-end
