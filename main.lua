@@ -109,16 +109,16 @@ function mainMenuDisplay()
     }
 
     drawButtons(thisPageButtons[1], "MainMenu", "pushonoff",
-        "Sprites/newTripButton_pushed.png", "Sprites/newTripButton_Released.png",
-        "Sprites/newTripButton_deactivated.png", .95, .3, "RT",
+        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
+        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "resetRHTopTimer", 1
     )
 
     drawButtons(thisPageButtons[2], "MainMenu", "pushonoff",
-        "Sprites/newTripButton_pushed.png", "Sprites/newTripButton_Released.png",
-        "Sprites/newTripButton_deactivated.png", .725, .3, "LT",
+        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
+        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "pauseRHTopTimer", 1
