@@ -256,7 +256,7 @@ function button_released (x, y, button, istouch, presses)
 
 	for i,p in ipairs(currentButtonsTable) do
 
-		--PUSH BUTTON ON / PUSH OFF:
+		--PUSH ON / PUSH OFF BUTTON:
 		if p.type == "pushonoff" then
 
 			if button == 1  then

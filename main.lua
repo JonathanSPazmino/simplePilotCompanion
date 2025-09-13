@@ -70,6 +70,11 @@ function love.update(dt)
         if timer.t <= 0 then
             timer.t = 0
             timer.running = false
+            for i, j in ipairs(lib_buttons) do
+                if j.name == "pauseRHTopTimer" and j.state == 2  then
+                    j.state = 1
+                end
+            end
         end
     end
 end
@@ -100,15 +105,8 @@ function mainMenuDisplay()
     local thisPageName = "MainMenu"
 
     -- BUTTONS
-    local thisPageButtons = {
-        "resetRHTopTimer",
-        "pauseRHTopTimer",
-        "modeSelectRHTopTimer",
-        "incrsMinRHTopTimer",
-        "dcrsMinRHTopTimer"
-    }
 
-    drawButtons(thisPageButtons[1], "MainMenu", "pushonoff",
+    drawButtons("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
         "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -116,7 +114,7 @@ function mainMenuDisplay()
         "resetRHTopTimer", 1
     )
 
-    drawButtons(thisPageButtons[2], "MainMenu", "pushonoff",
+    drawButtons("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
         "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -124,25 +122,25 @@ function mainMenuDisplay()
         "pauseRHTopTimer", 1
     )
 
-    drawButtons(thisPageButtons[3], "MainMenu", "pushonoff",
-        "Sprites/newTripButton_pushed.png", "Sprites/newTripButton_Released.png",
-        "Sprites/newTripButton_deactivated.png", .55, .3, "LT",
+    drawButtons("modeSelectRHTopTimer", "MainMenu", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "modeSelectRHTopTimer", 1
     )
 
-    drawButtons(thisPageButtons[4], "MainMenu", "pushonoff",
-        "Sprites/newTripButton_pushed.png", "Sprites/newTripButton_Released.png",
-        "Sprites/newTripButton_deactivated.png", .5, .05, "LT",
+    drawButtons("incrsMinRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "incrsMinRHTopTimer", 0
     )
 
-    drawButtons(thisPageButtons[5], "MainMenu", "pushonoff",
-        "Sprites/newTripButton_pushed.png", "Sprites/newTripButton_Released.png",
-        "Sprites/newTripButton_deactivated.png", .5, .15, "LT",
+    drawButtons("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
+       "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "dcrsMinRHTopTimer", 0
@@ -163,7 +161,7 @@ function mainMenuDisplay()
     outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
         .95, .05, "RT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
-        {.3, .3, 1, 1}, text, fontSize
+        {1, 1, 0, 1}, text, fontSize
     )
 end
 
@@ -171,15 +169,17 @@ end
 -- TIMER CONTROL FUNCTIONS
 -------------------------------------------------------------------------------
 function resetRHTopTimer()
-
     timer.running = false
     if timer.mode == "COUNT DOWN" then
     	timer.t = lastSavedCountDownTime
     elseif timer.mode == "COUNT UP" then
     	timer.t = 0
     end 
-
-
+    for i, j in ipairs(lib_buttons) do
+        if j.name == "pauseRHTopTimer" and j.state == 2  then
+            j.state = 1
+        end
+    end
 end
 
 function pauseRHTopTimer()
@@ -209,7 +209,11 @@ function modeSelectRHTopTimer()
         deactiveButton("incrsMinRHTopTimer")
         deactiveButton("dcrsMinRHTopTimer")
     end
-
+    for i, j in ipairs(lib_buttons) do
+        if j.name == "pauseRHTopTimer" and j.state == 2  then
+            j.state = 1
+        end
+    end
     timer.running = false
 end
 
