@@ -146,6 +146,22 @@ function mainMenuDisplay()
         "dcrsMinRHTopTimer", 0
     )
 
+    drawButtons("incrsSecRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .90, .05, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "incrsSecRHTopTimer", 0
+    )
+
+    drawButtons("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
+       "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .90, .15, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "dcrsSecRHTopTimer", 0
+    )
+
     ------------------------------------------------------------------------
     -- TEXT BOXES
     ------------------------------------------------------------------------
@@ -192,7 +208,18 @@ function incrsMinRHTopTimer()
 end
 
 function dcrsMinRHTopTimer()
-    timer.t = math.max(0, timer.t - 60)
+    timer.t = timer.t - 60
+    saveCountdownTime ()
+end
+
+function incrsSecRHTopTimer()
+    timer.t = math.max(0, timer.t + 1)
+    saveCountdownTime ()
+end
+
+
+function dcrsSecRHTopTimer()
+    timer.t = math.max(0, timer.t - 1)
     saveCountdownTime ()
 end
 
@@ -202,12 +229,16 @@ function modeSelectRHTopTimer()
     if timer.mode == "COUNT DOWN" then
         activateButton("incrsMinRHTopTimer")
         activateButton("dcrsMinRHTopTimer")
+        activateButton("incrsSecRHTopTimer")
+        activateButton("dcrsSecRHTopTimer")
       timer.t = lastSavedCountDownTime
     else
 
     	timer.t = 0
         deactiveButton("incrsMinRHTopTimer")
         deactiveButton("dcrsMinRHTopTimer")
+        deactiveButton("incrsSecRHTopTimer")
+        deactiveButton("dcrsSecRHTopTimer")
     end
     for i, j in ipairs(lib_buttons) do
         if j.name == "pauseRHTopTimer" and j.state == 2  then
