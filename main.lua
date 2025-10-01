@@ -159,8 +159,8 @@ function mainMenuDisplay()
     -- TIMER TOP RIGHT CORNER
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
-        .95, .05, "RT",
-        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
         {1, 1, 0, 1}, text, fontSize
     )
 end
