@@ -147,7 +147,7 @@ function mainMenuDisplay()
     )
 
     drawButtons("incrsSecRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
+        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
         "Sprites/invisibleBox.png", .90, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
@@ -155,7 +155,7 @@ function mainMenuDisplay()
     )
 
     drawButtons("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
-       "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+       "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
         "Sprites/invisibleBox.png", .90, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
@@ -179,6 +179,14 @@ function mainMenuDisplay()
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
         {1, 1, 0, 1}, text, fontSize
     )
+
+
+    --CLIMB REQUIREMENT SECTION
+
+    --ALT SLIDER
+
+
+
 end
 
 -------------------------------------------------------------------------------
