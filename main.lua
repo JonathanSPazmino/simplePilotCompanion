@@ -1,5 +1,6 @@
---[[Main.lua
+--[[ Main.lua
     Author: Jonathan Pazmino
+    Description: Core entry file for LÖVE app with timer and GUI integration
 ]]
 
 io.stdout:setvbuf("no")
@@ -9,34 +10,43 @@ io.stdout:setvbuf("no")
 -------------------------------------------------------------------------------
 require("Libraries.jp_GUI_library.jpGUIlib")
 
-page_create(3, "MainMenu", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+-- Create base page
+globApp.appColor = {.2, .2, .2, 1} --initializes bg color
+page_create(3, "MainMenu", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
 
 -------------------------------------------------------------------------------
--- CORE FUNCTIONS BELOW THIS LINE (CALLBACKS)
+-- GLOBAL STATE
 -------------------------------------------------------------------------------
-
 local utc = {}
-local TopRightTimer = 0
 local utcPrintString = ""
 local lastSavedCountDownTime = 0
-
-local timer = {
-    mode = "COUNT UP",   -- "COUNT UP" or "COUNT DOWN"
-    duration = 90,       -- only used in COUNT DOWN mode (seconds)
-    t = 0,               -- current time (seconds)
-    running = false
-}
-
 local font
 
+-- Timer object
+local timer = {
+    mode = "COUNT UP",   -- Options: "COUNT UP" or "COUNT DOWN"
+    duration = 90,       -- Default countdown duration (in seconds)
+    t = 0,               -- Current timer value (in seconds)
+    running = false      -- Timer running state
+}
+
+-- Countdown finished blink state
+local blink = {active = false, timer = 0, state = false}
+
+-- Load beep sound
+local beepSound
+
+-------------------------------------------------------------------------------
+-- HELPER FUNCTIONS
+-------------------------------------------------------------------------------
+
+-- Format seconds into mm:ss
 local function format_time(s)
     if s < 0 then s = 0 end
     local minutes = math.floor(s / 60)
     local seconds = math.floor(s % 60)
     return string.format("%02d:%02d", minutes, seconds)
 end
-
-local visRhTimerInputBox = false
 
 -------------------------------------------------------------------------------
 -- LOVE CALLBACKS
@@ -47,33 +57,69 @@ function love.load()
     font = love.graphics.newFont(20)
     love.graphics.setFont(font)
 
-    -- initialize starting time
+    -- Initialize starting time
     timer.t = 0
+
+    -- Load beep sound
+    beepSound = love.audio.newSource("Sounds/beep.wav", "static")
 end
 
 function love.update(dt)
+    -- Update UTC clock string
     utc = os.date("!*t")
     utcPrintString = string.format(
         "UTC:\n%04d-%02d-%02d\n%02d:%02d:%02d",
         utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
     )
 
+    -- Update GUI
     jpGUI_update(dt)
 
-    -- topright timer
-    if not timer.running then return end
+    if blink.active == false then
+        deactiveButton("acknowlegeAlarm")
+    end
 
-    if timer.mode == "COUNT UP" then
-        timer.t = timer.t + dt
-    else -- COUNT DOWN
-        timer.t = timer.t - dt
-        if timer.t <= 0 then
-            timer.t = 0
-            timer.running = false
-            for i, j in ipairs(lib_buttons) do
-                if j.name == "pauseRHTopTimer" and j.state == 2  then
-                    j.state = 1
+    -- Skip if timer not running
+    if timer.running then
+        if timer.mode == "COUNT UP" then
+            timer.t = timer.t + dt
+        else -- COUNT DOWN
+            timer.t = timer.t - dt
+            if timer.t <= 0 then
+                timer.t = 0
+                timer.running = false
+                blink.active = true -- start blinking background
+                -- Reset pause button state
+                activateButton("acknowlegeAlarm")
+                alarmButtonsDeactivation ()
+                for _, btn in ipairs(lib_buttons) do
+                    if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+                        btn.state = 1
+                    end
                 end
+            end
+        end
+    end
+
+    -- Handle blinking background with vibration and beep
+    if blink.active then
+        blink.timer = blink.timer + dt
+        if blink.timer > 0.5 then
+            blink.timer = 0
+            blink.state = not blink.state
+
+            if blink.state then
+                globApp.appColor = {1, 0, 0, 1} -- red
+                -- Vibrate device if capable
+                if love.system.vibrate then
+                    love.system.vibrate(0.1) -- short vibration
+                end
+                -- Play beep sound
+                if beepSound then
+                    love.audio.play(beepSound)
+                end
+            else
+                globApp.appColor = {0.2, 0.2, 0.2, 1} -- normal gray
             end
         end
     end
@@ -85,10 +131,9 @@ function love.draw()
 end
 
 -------------------------------------------------------------------------------
--- GENERAL FUNCTIONS BELOW THIS LINE
+-- PAGE DRAWING
 -------------------------------------------------------------------------------
 function drawPages()
-    -- pageBackGround_draw must be added on top in order to change bg color
     pageBackground_draw()
     mainMenuDisplay()
 end
@@ -104,9 +149,10 @@ function mainMenuDisplay()
     local fontSize = 12
     local thisPageName = "MainMenu"
 
+    ---------------------------------------------------------------------------
     -- BUTTONS
-
-    drawButtons("resetRHTopTimer", "MainMenu", "pushonoff",
+    ---------------------------------------------------------------------------
+    drawButtons("resetRHTopTimer", thisPageName, "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
         "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -114,7 +160,7 @@ function mainMenuDisplay()
         "resetRHTopTimer", 1
     )
 
-    drawButtons("pauseRHTopTimer", "MainMenu", "toggle",
+    drawButtons("pauseRHTopTimer", thisPageName, "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
         "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -122,7 +168,7 @@ function mainMenuDisplay()
         "pauseRHTopTimer", 1
     )
 
-    drawButtons("modeSelectRHTopTimer", "MainMenu", "toggle",
+    drawButtons("modeSelectRHTopTimer", thisPageName, "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
         "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -130,7 +176,7 @@ function mainMenuDisplay()
         "modeSelectRHTopTimer", 1
     )
 
-    drawButtons("incrsMinRHTopTimer", "MainMenu", "pushonoff",
+    drawButtons("incrsMinRHTopTimer", thisPageName, "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
         "Sprites/invisibleBox.png", .5, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -138,41 +184,41 @@ function mainMenuDisplay()
         "incrsMinRHTopTimer", 0
     )
 
-    drawButtons("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
-       "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+    drawButtons("dcrsMinRHTopTimer", thisPageName, "pushonoff",
+        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
         "Sprites/invisibleBox.png", .5, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "dcrsMinRHTopTimer", 0
     )
 
-    drawButtons("incrsSecRHTopTimer", "MainMenu", "pushonoff",
+    drawButtons("incrsSecRHTopTimer", thisPageName, "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", .90, .05, "LT",
+        "Sprites/invisibleBox.png", .92, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "incrsSecRHTopTimer", 0
     )
 
-    drawButtons("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
-       "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", .90, .15, "LT",
+    drawButtons("dcrsSecRHTopTimer", thisPageName, "pushonoff",
+        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .92, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "dcrsSecRHTopTimer", 0
     )
 
-    ------------------------------------------------------------------------
+
+
+    ---------------------------------------------------------------------------
     -- TEXT BOXES
-    ------------------------------------------------------------------------
-    -- UTC TOP LEFT
+    ---------------------------------------------------------------------------
     outputTxtBox_draw("utcData", thisPageName, "Sprites/invisibleBox.png",
         .05, .05, "LT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
         {.7, .7, .7, .85}, utcPrintString, fontSize
     )
 
-    -- TIMER TOP RIGHT CORNER
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
         .90, .05, "RT",
@@ -181,29 +227,73 @@ function mainMenuDisplay()
     )
 
 
-    --CLIMB REQUIREMENT SECTION
 
-    --ALT SLIDER
-
-
-
+    drawButtons("acknowlegeAlarm", thisPageName, "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
+       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
+        "Sprites/invisibleBox.png", 
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        "acknowlegeAlarm", 0
+    )
 end
 
 -------------------------------------------------------------------------------
 -- TIMER CONTROL FUNCTIONS
 -------------------------------------------------------------------------------
+
+function acknowlegeAlarm()
+    if blink.active then
+        blink.active = false       -- stop blinking
+        blink.state = false        -- reset blink state
+        globApp.appColor = {0.2, 0.2, 0.2, 1} -- restore normal background
+        if beepSound then
+            love.audio.stop(beepSound)  -- stop any currently playing beep
+        end
+    end
+    alarmAcklgBtnsActiation ()
+end
+
+
+function alarmButtonsDeactivation ()
+
+    deactiveButton("incrsMinRHTopTimer")
+    deactiveButton("dcrsMinRHTopTimer")
+    deactiveButton("incrsSecRHTopTimer")
+    deactiveButton("dcrsSecRHTopTimer")
+    deactiveButton("pauseRHTopTimer")
+    deactiveButton("resetRHTopTimer")
+    deactiveButton("modeSelectRHTopTimer")
+
+end
+
+function alarmAcklgBtnsActiation ()
+
+    activateButton("incrsMinRHTopTimer")
+    activateButton("dcrsMinRHTopTimer")
+    activateButton("incrsSecRHTopTimer")
+    activateButton("dcrsSecRHTopTimer")
+    activateButton("pauseRHTopTimer")
+    activateButton("resetRHTopTimer")
+    activateButton("modeSelectRHTopTimer")
+
+end
+
+
 function resetRHTopTimer()
     timer.running = false
     if timer.mode == "COUNT DOWN" then
-    	timer.t = lastSavedCountDownTime
-    elseif timer.mode == "COUNT UP" then
-    	timer.t = 0
-    end 
-    for i, j in ipairs(lib_buttons) do
-        if j.name == "pauseRHTopTimer" and j.state == 2  then
-            j.state = 1
+        timer.t = lastSavedCountDownTime
+    else
+        timer.t = 0
+    end
+    blink.active = false -- stop blink
+    globApp.appColor = {0.2, 0.2, 0.2, 1} -- keep normal color
+    for _, btn in ipairs(lib_buttons) do
+        if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+            btn.state = 1
         end
     end
+    acknowlegeAlarm()
 end
 
 function pauseRHTopTimer()
@@ -212,23 +302,24 @@ end
 
 function incrsMinRHTopTimer()
     timer.t = timer.t + 60
-    saveCountdownTime ()
+    saveCountdownTime()
+    acknowlegeAlarm()
 end
 
 function dcrsMinRHTopTimer()
-    timer.t = timer.t - 60
-    saveCountdownTime ()
+    timer.t = math.max(0, timer.t - 60)
+    saveCountdownTime()
 end
 
 function incrsSecRHTopTimer()
-    timer.t = math.max(0, timer.t + 1)
-    saveCountdownTime ()
+    timer.t = timer.t + 1
+    saveCountdownTime()
+    acknowlegeAlarm()
 end
-
 
 function dcrsSecRHTopTimer()
     timer.t = math.max(0, timer.t - 1)
-    saveCountdownTime ()
+    saveCountdownTime()
 end
 
 function modeSelectRHTopTimer()
@@ -239,26 +330,26 @@ function modeSelectRHTopTimer()
         activateButton("dcrsMinRHTopTimer")
         activateButton("incrsSecRHTopTimer")
         activateButton("dcrsSecRHTopTimer")
-      timer.t = lastSavedCountDownTime
+        timer.t = lastSavedCountDownTime
     else
-
-    	timer.t = 0
+        timer.t = 0
         deactiveButton("incrsMinRHTopTimer")
         deactiveButton("dcrsMinRHTopTimer")
         deactiveButton("incrsSecRHTopTimer")
         deactiveButton("dcrsSecRHTopTimer")
     end
-    for i, j in ipairs(lib_buttons) do
-        if j.name == "pauseRHTopTimer" and j.state == 2  then
-            j.state = 1
+
+    for _, btn in ipairs(lib_buttons) do
+        if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+            btn.state = 1
         end
     end
+
     timer.running = false
 end
 
-
-function saveCountdownTime ()
-
-	lastSavedCountDownTime = timer.t
-
+function saveCountdownTime()
+    lastSavedCountDownTime = math.max(0, timer.t)
 end
+
+
