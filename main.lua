@@ -84,20 +84,19 @@ function love.update(dt)
         if timer.mode == "COUNT UP" then
             timer.t = timer.t + dt
         else -- COUNT DOWN
-            timer.t = timer.t - dt
-            if timer.t <= 0 then
-                timer.t = 0
-                timer.running = false
-                blink.active = true -- start blinking background
-                -- Reset pause button state
-                activateButton("acknowlegeAlarm")
-                alarmButtonsDeactivation ()
-                for _, btn in ipairs(lib_buttons) do
-                    if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-                        btn.state = 1
-                    end
+        timer.t = math.max(0, timer.t - dt)
+
+        if timer.t == 0 then
+            timer.running = false
+            blink.active = true
+            activateButton("acknowlegeAlarm")
+            alarmButtonsDeactivation()
+            for _, btn in ipairs(lib_buttons) do
+                if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+                    btn.state = 1
                 end
             end
+        end
         end
     end
 
