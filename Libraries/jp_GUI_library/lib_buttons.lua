@@ -307,20 +307,21 @@ function returnButtonPosition (position)
 
 end
 
-function deactiveButton (buttonName)
-	for i, b in ipairs(lib_buttons) do
-		if b.name == buttonName then
-			b.deactivated = true
-			b.state = 0
-		end
-	end 
-end
 
-function activateButton (buttonName)
+function setButtonState( buttonName, state )
+	--"deactivated 0, released 1, pushed 2"
 	for i, b in ipairs(lib_buttons) do
 		if b.name == buttonName then
-			b.deactivated = false
-			b.state = 1
+			if state == "deactivated" then
+				b.deactivated = true
+				b.state = 0
+			elseif state == "released" then
+				b.deactivated = false
+				b.state = 1
+			elseif state == "pushed" then
+				b.deactivated = false
+				b.state = 2
+			end
 		end
 	end 
 end
