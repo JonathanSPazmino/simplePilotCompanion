@@ -291,6 +291,7 @@ function resetRHTopTimer()
     timer.running = false
     if timer.mode == "COUNT DOWN" then
         timer.t = lastSavedCountDownTime
+        setButtonState ("pauseRHTopTimer", "released")
     else
         timer.t = 0
     end
@@ -345,13 +346,14 @@ function modeSelectRHTopTimer()
         setButtonState( "dcrsMinRHTopTimer", "deactivated" )
         setButtonState( "incrsSecRHTopTimer", "deactivated" )
         setButtonState( "dcrsSecRHTopTimer", "deactivated" )
+        setButtonState( "pauseRHTopTimer", "released")
     end
 
-    for _, btn in ipairs(lib_buttons) do
-        if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-            btn.state = 1
-        end
-    end
+    -- for _, btn in ipairs(lib_buttons) do
+    --     if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+    --         btn.state = 1
+    --     end
+    -- end
 
     timer.running = false
 end
