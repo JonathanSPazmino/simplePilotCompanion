@@ -122,6 +122,15 @@ function love.update(dt)
             end
         end
     end
+
+    --handles play button state during countdown based on timer
+    if timer.t <= 0 then 
+        for _, btn in ipairs(lib_buttons) do
+            if btn.name == "modeSelectRHTopTimer" and btn.state == 2 then
+                setButtonState ( "pauseRHTopTimer", "deactivated")
+            end
+        end
+    end
 end
 
 function love.draw()
