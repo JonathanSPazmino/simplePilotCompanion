@@ -19,8 +19,14 @@ page_create(3, "MainMenu", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6
 -------------------------------------------------------------------------------
 local utc = {}
 local utcPrintString = ""
+local lastUtcSec = -1 -- Add a variable to track the last updated second
 local lastSavedCountDownTime = 0
 local font
+
+-- Pre-defined colors to avoid creating tables in love.update
+local colorRed = {1, 0, 0, 1}
+local colorGray = {0.2, 0.2, 0.2, 1}
+local colorYellow = {1, 1, 0, 1}
 
 -- Timer object
 local timer = {
@@ -68,12 +74,15 @@ function love.load()
 end
 
 function love.update(dt)
-    -- Update UTC clock string
+    -- Update UTC clock string only when the second changes
     utc = os.date("!*t")
-    utcPrintString = string.format(
-        "UTC:\n%04d-%02d-%02d\n%02d:%02d:%02d",
-        utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
-    )
+    if utc.sec ~= lastUtcSec then
+        utcPrintString = string.format(
+            "UTC:\n%04d-%02d-%02d\n%02d:%02d:%02d",
+            utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
+        )
+        lastUtcSec = utc.sec
+    end
 
     -- Update GUI
     jpGUI_update(dt)
@@ -111,7 +120,7 @@ function love.update(dt)
             blink.state = not blink.state
 
             if blink.state then
-                globApp.appColor = {1, 0, 0, 1} -- red
+                globApp.appColor = colorRed -- red
                 -- Vibrate device if capable
                 if love.system.vibrate then
                     love.system.vibrate(0.1) -- short vibration
@@ -121,7 +130,7 @@ function love.update(dt)
                     love.audio.play(beepSound)
                 end
             else
-                globApp.appColor = {0.2, 0.2, 0.2, 1} -- normal gray
+                globApp.appColor = colorGray -- normal gray
             end
         end
     end
@@ -235,14 +244,14 @@ function mainMenuDisplay()
     outputTxtBox_draw("utcData", thisPageName, "Sprites/invisibleBox.png",
         .05, .05, "LT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
-        {1, 1, 0, 1}, utcPrintString, fontSize
+        colorYellow, utcPrintString, fontSize
     )
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        {1, 1, 0, 1}, text, fontSize
+        colorYellow, text, fontSize
     )
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
@@ -250,14 +259,14 @@ function mainMenuDisplay()
     outputTxtBox_draw("selectedAltitudeBox", thisPageName, "Sprites/invisibleBox.png",
         .05, .3, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, textAltSlctd, fontSize
+        colorYellow, textAltSlctd, fontSize
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
     outputTxtBox_draw("selectedTimeBox", thisPageName, "Sprites/invisibleBox.png",
         .3, .3, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, textTimeSlctd, fontSize
+        colorYellow, textTimeSlctd, fontSize
     )
 
     local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
@@ -265,7 +274,7 @@ function mainMenuDisplay()
     outputTxtBox_draw("requiredFPM", thisPageName, "Sprites/invisibleBox.png",
         .4, .5, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, requiredFPMtext, fontSize
+        colorYellow, requiredFPMtext, fontSize
     )
     ----------------------------------------------------------------------------
     -- SCROLLBARS
