@@ -62,6 +62,9 @@ function love.load()
 
     -- Load beep sound
     beepSound = love.audio.newSource("Sounds/beep.wav", "static")
+
+    selectedAltitude = 0
+    selectedTime = 0
 end
 
 function love.update(dt)
@@ -218,13 +221,21 @@ function mainMenuDisplay()
 
 
 
+    drawButtons("acknowlegeAlarm", thisPageName, "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
+       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
+        "Sprites/invisibleBox.png", 
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        "acknowlegeAlarm", 0
+    )
+
     ---------------------------------------------------------------------------
     -- TEXT BOXES
     ---------------------------------------------------------------------------
     outputTxtBox_draw("utcData", thisPageName, "Sprites/invisibleBox.png",
         .05, .05, "LT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
-        {.7, .7, .7, .85}, utcPrintString, fontSize
+        {1, 1, 0, 1}, utcPrintString, fontSize
     )
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
@@ -234,15 +245,41 @@ function mainMenuDisplay()
         {1, 1, 0, 1}, text, fontSize
     )
 
-
-
-    drawButtons("acknowlegeAlarm", thisPageName, "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
-       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 
-        .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        "acknowlegeAlarm", 0
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    
+    outputTxtBox_draw("selectedAltitudeBox", thisPageName, "Sprites/invisibleBox.png",
+        .05, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        {1, 1, 0, 1}, textAltSlctd, fontSize
     )
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    
+    outputTxtBox_draw("selectedTimeBox", thisPageName, "Sprites/invisibleBox.png",
+        .3, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        {1, 1, 0, 1}, textTimeSlctd, fontSize
+    )
+
+    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
+
+    outputTxtBox_draw("requiredFPM", thisPageName, "Sprites/invisibleBox.png",
+        .4, .5, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        {1, 1, 0, 1}, requiredFPMtext, fontSize
+    )
+    ----------------------------------------------------------------------------
+    -- SCROLLBARS
+    ----------------------------------------------------------------------------
+
+    scrollBar_draw ("altScale", thisPageName, 
+        0.1, 0.4, .05, .3, "LT", 5, 41, 1, 
+        "independent", "vertical", 20, "roundSelectedAltitude")
+
+    scrollBar_draw ("timeScale", thisPageName, 
+        0.2, 0.4, .05, .3, "LT", 5, 41, 1, 
+        "independent", "vertical", 20, "roundSelectedTime")
+
+
 end
 
 -------------------------------------------------------------------------------
@@ -362,4 +399,12 @@ function saveCountdownTime()
     lastSavedCountDownTime = math.max(0, timer.t)
 end
 
+function roundSelectedAltitude (pos)
+    selectedAltitude = math.max(0, math.ceil(51 * (1 - pos) - 1e-9) * 1000)
+end 
+
+
+function roundSelectedTime (pos)
+    selectedTime = math.max(0, math.ceil(25 * (1 - pos)))
+end 
 
