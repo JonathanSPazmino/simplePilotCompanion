@@ -59,14 +59,73 @@ end
 -------------------------------------------------------------------------------
 function love.load()
 
-    button_creation ("testButton", "MainMenu", "pushonoff",
+    ---------------------------------------------------------------------------
+    -- BUTTONS
+    ---------------------------------------------------------------------------
+    button_creation("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", .1, .1, "LT",
-        100,
-        100,
-        "testFunctionForRefactoring", 1)
+        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "resetRHTopTimer", 1
+    )
+
+    button_creation("pauseRHTopTimer", "MainMenu", "toggle",
+        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
+        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "pauseRHTopTimer", 1
+    )
+
+    button_creation("modeSelectRHTopTimer", "MainMenu", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "modeSelectRHTopTimer", 1
+    )
+
+    button_creation("incrsMinRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .05, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "incrsMinRHTopTimer", 0
+    )
+
+    button_creation("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .15, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "dcrsMinRHTopTimer", 0
+    )
+
+    button_creation("incrsSecRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .92, .05, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "incrsSecRHTopTimer", 0
+    )
+
+    button_creation("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .92, .15, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "dcrsSecRHTopTimer", 0
+    )
 
 
+    button_creation("acknowlegeAlarm", "MainMenu", "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
+       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
+        "Sprites/invisibleBox.png", 
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        "acknowlegeAlarm", 0
+    )
 
 
 
@@ -188,74 +247,7 @@ function mainMenuDisplay()
     local fontSize = 12
     local thisPageName = "MainMenu"
 
-    ---------------------------------------------------------------------------
-    -- BUTTONS
-    ---------------------------------------------------------------------------
-    drawButtons("resetRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "resetRHTopTimer", 1
-    )
-
-    drawButtons("pauseRHTopTimer", thisPageName, "toggle",
-        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "pauseRHTopTimer", 1
-    )
-
-    drawButtons("modeSelectRHTopTimer", thisPageName, "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "modeSelectRHTopTimer", 1
-    )
-
-    drawButtons("incrsMinRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", .5, .05, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsMinRHTopTimer", 0
-    )
-
-    drawButtons("dcrsMinRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", .5, .15, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsMinRHTopTimer", 0
-    )
-
-    drawButtons("incrsSecRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", .92, .05, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsSecRHTopTimer", 0
-    )
-
-    drawButtons("dcrsSecRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", .92, .15, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsSecRHTopTimer", 0
-    )
-
-
-
-    drawButtons("acknowlegeAlarm", thisPageName, "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
-       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 
-        .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        "acknowlegeAlarm", 0
-    )
+    
 
     ---------------------------------------------------------------------------
     -- TEXT BOXES
