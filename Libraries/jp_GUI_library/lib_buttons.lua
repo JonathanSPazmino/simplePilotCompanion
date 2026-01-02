@@ -13,13 +13,15 @@ function button_creation (strgLabel, strgPage, buttonType, strgImgButtonPressed,
 
 		newButton.name = strgLabel
 		newButton.page = strgPage
+		newButton.objectType = "button"
 		newButton.type = buttonType --toggle, pushOnOff, Selector
 		newButton.imgButtonPressed = love.graphics.newImage(strgImgButtonPressed)
 		newButton.imgButtonReleased = love.graphics.newImage(strgImgButtonReleased)
 		newButton.imgButtonDeactivated = love.graphics.newImage(strgImgButtonDeactivated)
 		newButton.mywidth = myWidth
 		newButton.myheight = myHeight
-		local myPositions = relativePosition (anchorPoint, myx, myy, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+		newButton.anchorPoint = anchorPoint
+		local myPositions = relativePosition (newButton.anchorPoint, myx, myy, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 		newButton.myx = myPositions[1]
 		newButton.myy = myPositions[2]
 		newButton.factorWidth = newButton.mywidth / newButton.imgButtonPressed:getWidth ()
@@ -31,6 +33,8 @@ function button_creation (strgLabel, strgPage, buttonType, strgImgButtonPressed,
 		newButton.callbackFunc = strgCallbackFunc
 
 		table.insert(lib_buttons,newButton)
+
+		table.insert(gui_objects,newButton)
 
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
@@ -161,6 +165,47 @@ function drawButtons (buttonName, strgPage, strgButtonType, strgImgButtonPressed
 	end
 	
 end
+
+function gui_buttons_draw (pg)
+
+	for i,x in ipairs(gui_objects) do
+		if x.page == pg then 
+			if x.state == 0  then
+			love.graphics.draw(x.imgButtonDeactivated, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+			elseif x.state == 1  then
+			love.graphics.draw(x.imgButtonReleased, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+			elseif x.state == 2  then
+			love.graphics.draw(x.imgButtonPressed, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+			end
+		end
+    end
+end
+
+function gui_buttons_update ()
+	if globApp.resizeDetected == true then --[[updates only if window is resized]]
+		for i, btns in ipairs (gui_objects) do
+			if btns.objectType == "button" then --[[updates only if objt is a buttonqsq]]
+				oldXRatio = btns.myx / globApp.lastWindowWidth
+				oldYRatio = btns.myy / globApp.lastWindowHeight
+				oldWidth = (btns.mywidth / globApp.lastWindowWidth) 
+				oldHeight = (btns.myheight / globApp.lastWindowHeight) 
+
+				btns.mywidth = oldWidth * globApp.safeScreenArea.w
+				btns.myheight= oldHeight * globApp.safeScreenArea.h
+
+				local myPositions = relativePosition (btns.anchorPoint, oldXRatio, oldYRatio, oldWidth, oldHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+
+				btns.myx = myPositions[1]
+				btns.myy = myPositions[2]
+				btns.factorWidth = btns.mywidth / btns.imgButtonPressed:getWidth ()
+				btns.factorHeight = btns.myheight / btns.imgButtonPressed:getHeight ()
+				btns.myMaxx = btns.myx + btns.mywidth
+				btns.myMaxy = btns.myy + btns.myheight
+			end
+		end
+	end
+end
+
 
 
 function buttons_pressed (x,y,button,istouch)

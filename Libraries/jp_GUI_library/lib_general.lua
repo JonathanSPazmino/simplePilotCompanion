@@ -118,6 +118,9 @@ function jpGUI_update (dt)
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = areRequiredTextBoxesEmpty ()
 	end
 
+	--BUTTONS:
+	gui_buttons_update ()
+
 
 	--UPDATES DEVELOPER DATA SHOWN ON EDGES OF 
 	updateDevDisplaysParameters (dt)
@@ -137,6 +140,20 @@ function jpGUI_draw ()
 
 	draw_loadingPage ()
 	drawAllDevDisplays()
+	draw_gui ()
+
+end
+
+function draw_gui ()
+	
+	local activePageName = 0
+	for i, pgs in ipairs (pages) do
+		if pgs.index == globApp.currentPageIndex then
+			activePageName = pgs.name
+		end
+	end
+
+	gui_buttons_draw (activePageName)
 
 end
 
@@ -349,8 +366,9 @@ function resizeDetect ()
 	local resizeDetected = false
 
 	local lastSaveWidth = globApp.totalWindowWidth
-
+	globApp.lastWindowWidth = lastSaveWidth
 	local lastSavedHeight = globApp.totalWindowHeight
+	globApp.lastWindowHeight = lastSavedHeight
 
 	local currentWidth, currentHeight = love.graphics.getDimensions()
 
@@ -1125,6 +1143,8 @@ end
 		globApp.currentPageIndex = 1 --[[activates the first page to load when app starts]]
 		globApp.pageChanged = false
 		globApp.resizeDetected = false --[[Event Initialization]]
+		globApp.lastWindowWidth = 0
+		globApp.lastWindowHeight = 0
 		globApp.txtBoxChangeDetected = false --[[Event initialization]]
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = true
 		globApp.doesAnyTextBoxHaveEndingBlankSpace = true

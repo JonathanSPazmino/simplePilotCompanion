@@ -58,6 +58,20 @@ end
 -- LOVE CALLBACKS
 -------------------------------------------------------------------------------
 function love.load()
+
+    button_creation ("testButton", "MainMenu", "pushonoff",
+        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
+        "Sprites/resetButton_deactivated.png", .1, .1, "LT",
+        100,
+        100,
+        "testFunctionForRefactoring", 1)
+
+
+
+
+
+
+
     page_switch("IntialBooting", 3, 2, false)
 
     font = love.graphics.newFont(20)
@@ -71,6 +85,10 @@ function love.load()
 
     selectedAltitude = 0
     selectedTime = 0
+end
+
+function testFunctionForRefactoring ()
+print ("testFunctionForRefactoring running")
 end
 
 function love.update(dt)
@@ -147,7 +165,8 @@ end
 
 function love.draw()
     drawPages()
-    jpGUI_draw()
+    jpGUI_draw ()
+    
 end
 
 -------------------------------------------------------------------------------
