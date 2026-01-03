@@ -210,85 +210,92 @@ end
 
 function buttons_pressed (x,y,button,istouch)
 
+	local activePageName = ""
+	for i, pgs in ipairs(pages) do
+		if pgs.index == globApp.currentPageIndex then
+			activePageName = pgs.name
+		end
+	end
+
 	local currentButtonsTable = lib_buttons
 
 	--TOGGLE BUTTON CODE
 	for i,p in ipairs(currentButtonsTable) do
+		if p.page == activePageName then
+			if p.type == "toggle" then
 
-		if p.type == "toggle" then
+				if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
 
-			if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-				if p.state == 1 then
-					p.state = 2
-					
-					if p.callbackFunc ~= nil then
-						getfenv()[p.callbackFunc](p.state)
-					else
-						print ("no callback has been assigned to this button")
-					end
-
-
-				elseif p.state == 2 then
-					p.state = 1
-					
-					if p.callbackFunc ~= nil then
-						getfenv()[p.callbackFunc](p.state)
-					else
-						print ("no callback has been assigned to this button")
-					end
-		
-				end
-			
-			end
-
-			if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-				if p.state == 1 then
-					p.state = 2
-					
-					if p.callbackFunc ~= nil then
-						getfenv()[p.callbackFunc](p.state)
-					else
-						print ("no callback has been assigned to this button")
-					end
-
-				elseif p.state == 2 then
-					p.state = 1
-					
-					if p.callbackFunc ~= nil then
-						getfenv()[p.callbackFunc](p.state)
-					else
-						print ("no callback has been assigned to this button")
-					end
-
-				end
-
-			end
-
-		end
-
-		--PUSH BUTTON ON / PUSH OFF:
-		if p.type == "pushonoff" then
-
-			if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-				if p.state == 1 then
+					if p.state == 1 then
 						p.state = 2
-				end
+						
+						if p.callbackFunc ~= nil then
+							getfenv()[p.callbackFunc](p.state)
+						else
+							print ("no callback has been assigned to this button")
+						end
+
+
+					elseif p.state == 2 then
+						p.state = 1
+						
+						if p.callbackFunc ~= nil then
+							getfenv()[p.callbackFunc](p.state)
+						else
+							print ("no callback has been assigned to this button")
+						end
 			
-			end
+					end
+				
+				end
 
-			if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
+				if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
 
-				if p.state == 1 then
+					if p.state == 1 then
 						p.state = 2
+						
+						if p.callbackFunc ~= nil then
+							getfenv()[p.callbackFunc](p.state)
+						else
+							print ("no callback has been assigned to this button")
+						end
+
+					elseif p.state == 2 then
+						p.state = 1
+						
+						if p.callbackFunc ~= nil then
+							getfenv()[p.callbackFunc](p.state)
+						else
+							print ("no callback has been assigned to this button")
+						end
+
+					end
+
 				end
 
 			end
 
-		end
+			--PUSH BUTTON ON / PUSH OFF:
+			if p.type == "pushonoff" then
 
+				if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
+
+					if p.state == 1 then
+							p.state = 2
+					end
+				
+				end
+
+				if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
+
+					if p.state == 1 then
+							p.state = 2
+					end
+
+				end
+
+			end
+		end
 	end
 
 end
@@ -297,47 +304,54 @@ end
 
 function button_released (x, y, button, istouch, presses)
 
+	local activePageName = ""
+	for i, pgs in ipairs(pages) do
+		if pgs.index == globApp.currentPageIndex then
+			activePageName = pgs.name
+		end
+	end
+
 	local currentButtonsTable = lib_buttons
 
 	for i,p in ipairs(currentButtonsTable) do
+		if p.page == activePageName then
+			--PUSH ON / PUSH OFF BUTTON:
+			if p.type == "pushonoff" then
 
-		--PUSH ON / PUSH OFF BUTTON:
-		if p.type == "pushonoff" then
+				if button == 1  then
 
-			if button == 1  then
+					if p.state == 2 then
+						
+						p.state = 1
 
-				if p.state == 2 then
-					
-					p.state = 1
+						if p.callbackFunc ~= nil then
+							getfenv()[p.callbackFunc](p.state)
+						else
+							print ("no callback has been assigned to this button")
+						end
 
-					if p.callbackFunc ~= nil then
-						getfenv()[p.callbackFunc](p.state)
-					else
-						print ("no callback has been assigned to this button")
 					end
 
 				end
 
-			end
-
-			-- if touch == true then
-				
-			-- 	if p.state == 2 then
-
-			-- 		p.state = 1
+				-- if touch == true then
 					
-			-- 		if p.callbackFunc ~= nil then
-			-- 			getfenv()[p.callbackFunc](p.state)
-			-- 		else
-			-- 			print ("no callback has been assigned to this button")
-			-- 		end
+				-- 	if p.state == 2 then
 
-			-- 	end
+				-- 		p.state = 1
+						
+				-- 		if p.callbackFunc ~= nil then
+				-- 			getfenv()[p.callbackFunc](p.state)
+				-- 		else
+				-- 			print ("no callback has been assigned to this button")
+				-- 		end
 
-			-- end
+				-- 	end
 
+				-- end
+
+			end
 		end
-
 	end
 
 end
