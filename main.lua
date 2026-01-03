@@ -58,6 +58,8 @@ end
 -- LOVE CALLBACKS
 -------------------------------------------------------------------------------
 function love.load()
+    selectedAltitude = 0
+    selectedTime = 0
 
     ---------------------------------------------------------------------------
     -- BUTTONS
@@ -126,10 +128,45 @@ function love.load()
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
         "acknowlegeAlarm", 0
     )
+	
+	---------------------------------------------------------------------------
+    -- TEXT BOXES
+    ---------------------------------------------------------------------------
+    outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
+        .05, .05, "LT",
+        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
+        colorYellow, utcPrintString, 12
+    )
 
+    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
+    outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        colorYellow, text, 12
+    )
 
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    
+    outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
+        .05, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, textAltSlctd, 12
+    )
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    
+    outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
+        .3, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, textTimeSlctd, 12
+    )
 
+    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
 
+    outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
+        .4, .5, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, requiredFPMtext, 12
+    )
 
     page_switch("IntialBooting", 3, 2, false)
 
@@ -160,6 +197,20 @@ function love.update(dt)
         )
         lastUtcSec = utc.sec
     end
+
+    outputTxtBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
+
+    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
+    outputTxtBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
+
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    outputTxtBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
+
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    outputTxtBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
+
+    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
+    outputTxtBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
 
     -- Update GUI
     jpGUI_update(dt)
@@ -252,41 +303,7 @@ function mainMenuDisplay()
     ---------------------------------------------------------------------------
     -- TEXT BOXES
     ---------------------------------------------------------------------------
-    outputTxtBox_draw("utcData", thisPageName, "Sprites/invisibleBox.png",
-        .05, .05, "LT",
-        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
-        colorYellow, utcPrintString, fontSize
-    )
-
-    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
-        .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        colorYellow, text, fontSize
-    )
-
-    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
-    outputTxtBox_draw("selectedAltitudeBox", thisPageName, "Sprites/invisibleBox.png",
-        .05, .3, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        colorYellow, textAltSlctd, fontSize
-    )
-    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    
-    outputTxtBox_draw("selectedTimeBox", thisPageName, "Sprites/invisibleBox.png",
-        .3, .3, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        colorYellow, textTimeSlctd, fontSize
-    )
-
-    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-
-    outputTxtBox_draw("requiredFPM", thisPageName, "Sprites/invisibleBox.png",
-        .4, .5, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        colorYellow, requiredFPMtext, fontSize
-    )
     ----------------------------------------------------------------------------
     -- SCROLLBARS
     ----------------------------------------------------------------------------

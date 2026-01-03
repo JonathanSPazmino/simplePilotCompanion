@@ -154,6 +154,7 @@ function draw_gui ()
 	end
 
 	gui_buttons_draw (activePageName)
+	gui_outputTxtBox_draw (activePageName)
 
 end
 

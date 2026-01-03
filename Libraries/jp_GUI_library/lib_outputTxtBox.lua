@@ -1,9 +1,21 @@
 --[[API = Menu labels Lybrary ]]
 
 -----------------------------------------------------------------
-lib_labels = {}
+lib_outputTxtBoxes = {}
 
 function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, height, txtColor, text, fontSize)
+
+	local labelExists = false
+	for i,x in ipairs(lib_outputTxtBoxes) do
+		if x.name == id then
+			labelExists = true
+		end
+	end
+
+	if labelExists == true then
+		outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
+		return
+	end
 
 	--[[ PARAMETERS:
 
@@ -82,16 +94,16 @@ function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, hei
 				table.insert(tb.text.lines, newLine)
 			end
 
-		table.insert(lib_labels,tb)
+		table.insert(lib_outputTxtBoxes,tb)
 
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
 end
 
 
-function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
+function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
 
-	for i, updtLbl in ipairs(lib_labels) do 
+	for i, updtLbl in ipairs(lib_outputTxtBoxes) do 
 
 		if updtLbl.name == id then
 
@@ -147,15 +159,15 @@ end
 
 function outputTxtBox_delete (id,page)
 
-	for i = #lib_labels,1,-1 do
+	for i = #lib_outputTxtBoxes,1,-1 do
 
-		local l = lib_labels[i]
+		local l = lib_outputTxtBoxes[i]
 
 		--LOAD PROJECT:
 
 			if l.name == id and l.page == page then
 
-				table.remove(lib_labels,i)
+				table.remove(lib_outputTxtBoxes,i)
 
 				globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
 
@@ -166,78 +178,14 @@ function outputTxtBox_delete (id,page)
 end
 
 
-function outputTxtBox_draw (id, page, bgSprite,  x,y,anchorPoint,width,height, txtColor, text, fontSize)
-
-	
-	--[[ PARAMETERS:
-
-	1) id ----------------string--------------name of label
-	2) page------------------string--------------select page from pageNameList table
-	3) labelType----------------string---------------static, dynamic
-	4) bgSprite------------string--------------nameofpngfile
-	5) x-----------------------double--------------0 to 1 relative to window size
-	6) y-----------------------double--------------0 to 1 relative to window size
-	7) anchorPoint---------------string--------------LT,LC,LB,CT,CC,CB,RT,RC,RB
-	8) width-------------------double--------------pixels
-	9) height------------------double--------------pixels
-	10) FontColor1 --------------table---------------rgb data values
-	11) labelText1 --------------string -------------label text 1
-	12) FontColor2 --------------string -------------rgb data values
-	13) labelText2 --------------string -------------label text 2
-
-	]]
-
-
-	local activePageName = 0
-
-	for i, pgs in ipairs (pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
-		end
-	end
-
-	local labelExists = false
-
-	for i,x in ipairs(lib_labels) do
-		if x.name == id then
-			labelExists = true
-		end
-	end
-
-	if activePageName == page then
-
-		if labelExists == false then
-
-			outputTxtBox_create (id, page, bgSprite, x, y,anchorPoint, width, height, txtColor, text, fontSize)
-
-		elseif labelExists == true and globApp.resizeDetected == true then --[[updates only if window is resized]]
-
-			outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
-
-		end
-
-		for i,t in ipairs(lib_labels) do
-
-			--UPDATES TEXTBOX IF TEXT CHANGED FROM LAST ON RECORDED
-			if t.text.text ~= text then
-				outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text)
-			end
-			
+function gui_outputTxtBox_draw (pg)
+	for i,t in ipairs(lib_outputTxtBoxes) do
+		if t.page == pg then
 			if t.bgSprite.sprite ~= nil then --[[draw the background before the text]]
-
 				love.graphics.draw(t.bgSprite.sprite, t.bgSprite.x, t.bgSprite.y, 0, t.bgSprite.width, t.bgSprite.height, ox, oy, kx, ky)
-
 			end
 
-
-			if t.name == id and t.state == 0  then
-				
-
-
-
-			elseif t.name == id and t.state == 1  then
-
-
+			if t.state == 1  then
 				--FRAME
 				love.graphics.rectangle("line", t.frame.x, t.frame.y, t.frame.width, t.frame.height, rx, ry, segments)
 				love.graphics.setFont(t.text.font)
@@ -246,42 +194,21 @@ function outputTxtBox_draw (id, page, bgSprite,  x,y,anchorPoint,width,height, t
 						love.graphics.setColor(t.text.color[1], t.text.color[2], t.text.color[3], t.text.color[4])
 						love.graphics.printf(z.text, z.x, z.y, z.width, "center", 0, nil, nil, nil, nil, nil, nil)
 					end
-
 				end
-
 				love.graphics.reset()
-
-
-
-			elseif t.name == id and t.state == 2  then
-
-				if t.labelText2 ~= nil then 
-
+			elseif t.state == 2  then
+				if t.labelText2 ~= nil then
 					love.graphics.setColor(t.text.color[1], t.text.color[2], t.text.color[3], t.text.color[4])
 					--FRAME
 					love.graphics.rectangle("line", t.frame.x, t.frame.y, t.frame.width, t.frame.height, rx, ry, segments)
-
 					--TEXT
 					love.graphics.setFont(t.text.font)
 					love.graphics.printf(t.text.text, t.text.x, t.text.y, t.text.width, "center", 0, nil, nil, nil, nil, nil, nil)
 					love.graphics.reset()
-
 				end
-
 			end
-
-	    end
-
-	elseif activePageName ~= page  then
- 
-	 	if labelExists == true then
-			
-			outputTxtBox_delete (id, page)
-
 		end
-	
 	end
-	
 end
 
 
@@ -299,7 +226,7 @@ end
 function touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
 
 	--isolate table
-	local myTxtBox = lib_labels
+	local myTxtBox = lib_outputTxtBoxes
 	local outputTxtBoxExists = false
 
 	
