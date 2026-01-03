@@ -87,84 +87,84 @@ function button_deletion (buttonName,strgPage)
 end
 
 
-function drawButtons (buttonName, strgPage, strgButtonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated,myx,myy, anchorPoint, mywidth,myheight,callback,initialState)
+-- function drawButtons (buttonName, strgPage, strgButtonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated,myx,myy, anchorPoint, mywidth,myheight,callback,initialState)
 
-	--[[ PARAMETERS:
+-- 	--[[ PARAMETERS:
 
-	buttonName -----------------string--------------name of button
-	strgPage--------------------string--------------select page from pageNameList table
-	strgButtonType--------------string--------------toggle, pushonoff or selector
-	strgImgButtonPressed--------string---------------nameofpngfile
-	strgImgButtonReleased-------string--------------nameofpngfile
-	strgImgButtonDeactivated----double--------------0 to 1 relative to window size
-	myx-------------------------double--------------0 to 1 relative to window size
-	myy-------------------------double--------------0 to 1 relative to window size
-	anchorPoint-----------------string--------------LT,LC,LB,CT,CC,CB,RT,RC,RB
-	mywidth---------------------double--------------0 to 1 relative to window size
-	myheight--------------------string--------------Name of callback funciton
-	callback--------------------string--------------Name of callback funciton
+-- 	buttonName -----------------string--------------name of button
+-- 	strgPage--------------------string--------------select page from pageNameList table
+-- 	strgButtonType--------------string--------------toggle, pushonoff or selector
+-- 	strgImgButtonPressed--------string---------------nameofpngfile
+-- 	strgImgButtonReleased-------string--------------nameofpngfile
+-- 	strgImgButtonDeactivated----double--------------0 to 1 relative to window size
+-- 	myx-------------------------double--------------0 to 1 relative to window size
+-- 	myy-------------------------double--------------0 to 1 relative to window size
+-- 	anchorPoint-----------------string--------------LT,LC,LB,CT,CC,CB,RT,RC,RB
+-- 	mywidth---------------------double--------------0 to 1 relative to window size
+-- 	myheight--------------------string--------------Name of callback funciton
+-- 	callback--------------------string--------------Name of callback funciton
 
-	]]
+-- 	]]
 
-	local activePageName = 0
+-- 	local activePageName = 0
 
-	for i, pgs in ipairs (pages) do
+-- 	for i, pgs in ipairs (pages) do
 
-		if pgs.index == globApp.currentPageIndex then
+-- 		if pgs.index == globApp.currentPageIndex then
 
-			activePageName = pgs.name
+-- 			activePageName = pgs.name
 
-		end
+-- 		end
 
-	end
+-- 	end
 
-	local buttonExists = false
+-- 	local buttonExists = false
 
-	for i,x in ipairs(lib_buttons) do
+-- 	for i,x in ipairs(lib_buttons) do
 
-		if x.name == buttonName then
+-- 		if x.name == buttonName then
 			
-			buttonExists = true
+-- 			buttonExists = true
 		
-		end
+-- 		end
 
-	end
+-- 	end
 
-	if activePageName == strgPage then
+-- 	if activePageName == strgPage then
 
-		if buttonExists == false then --[[ runs once]]
+-- 		if buttonExists == false then --[[ runs once]]
 
-			button_creation (buttonName, strgPage,  strgButtonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx,myy,anchorPoint,mywidth,myheight,callback, initialState)
+-- 			button_creation (buttonName, strgPage,  strgButtonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx,myy,anchorPoint,mywidth,myheight,callback, initialState)
 
-		elseif buttonExists == true and globApp.resizeDetected == true then --[[updates only if window is resized]]
+-- 		elseif buttonExists == true and globApp.resizeDetected == true then --[[updates only if window is resized]]
 
-			buttonUpdate(buttonName, anchorPoint, myx, myy, mywidth, myheight)
+-- 			buttonUpdate(buttonName, anchorPoint, myx, myy, mywidth, myheight)
 
-		end
+-- 		end
 
-		for i,x in ipairs(lib_buttons) do
+-- 		for i,x in ipairs(lib_buttons) do
 			
-			if x.name == buttonName and x.state == 0  then
-				love.graphics.draw(x.imgButtonDeactivated, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			elseif x.name == buttonName and x.state == 1  then
-				love.graphics.draw(x.imgButtonReleased, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			elseif x.name == buttonName and x.state == 2  then
-				love.graphics.draw(x.imgButtonPressed, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			end
+-- 			if x.name == buttonName and x.state == 0  then
+-- 				love.graphics.draw(x.imgButtonDeactivated, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+-- 			elseif x.name == buttonName and x.state == 1  then
+-- 				love.graphics.draw(x.imgButtonReleased, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+-- 			elseif x.name == buttonName and x.state == 2  then
+-- 				love.graphics.draw(x.imgButtonPressed, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
+-- 			end
 
-	    end
+-- 	    end
 
-	elseif activePageName ~= strgPage  then
+-- 	elseif activePageName ~= strgPage  then
  
-	 	if buttonExists == true then
+-- 	 	if buttonExists == true then
 			
-			button_deletion (buttonName, strgPage)
+-- 			button_deletion (buttonName, strgPage)
 
-		end
+-- 		end
 	
-	end
+-- 	end
 	
-end
+-- end
 
 function gui_buttons_draw (pg)
 

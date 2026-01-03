@@ -152,19 +152,19 @@ end
 function drawAllDevDisplays ()
 
 	--DEVELOPER PAGES
-	developerMenuPage()
+	-- developerMenuPage()
 
-	developerUnitTestPage ()
+	-- developerUnitTestPage ()
 
-	screenTestMenuPage ()
+	-- screenTestMenuPage ()
 
-	unitTestInfoPage ()
+	-- unitTestInfoPage ()
 
-	switchScreenSizePage ()
+	-- switchScreenSizePage ()
 
-	devEraseDataConfirmationPage ()
+	-- devEraseDataConfirmationPage ()
 
-	devAboutPage ()
+	-- devAboutPage ()
 
 	--DEVELOPER DISPLAYS:
 	drawTopRowDevDisplays ()
@@ -539,11 +539,12 @@ if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
 end
 
 
-function developerMenuPage()
+
+function createDevMenuObjects()
 
 	local thisPageName = "DeveloperMenu"
 
-	drawButtons("unitTest"--[[ButtonLable]], 
+	button_creation("unitTest"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devUnitTest_pushed.png")--[[sprite: pushed]],
@@ -557,7 +558,7 @@ function developerMenuPage()
 		"openUnitTestPage"--[[callback function]], 
 		1--[[button initial status]])
 
-	drawButtons("screenDevTests"--[[ButtonLable]], 
+	button_creation("screenDevTests"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_screenTestMenuButton_pushed.png")--[[sprite: pushed]],
@@ -571,7 +572,7 @@ function developerMenuPage()
 		"openScreenTestsMenuPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	drawButtons("resetData"--[[ButtonLable]], 
+	button_creation("resetData"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devEraseDataButton_pushed.png")--[[sprite: pushed]],
@@ -585,7 +586,7 @@ function developerMenuPage()
 		"openDevEraseDataConfirmationPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	drawButtons("aboutAppPage"--[[ButtonLable]], 
+	button_creation("aboutAppPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devaAboutButton_pressed.png")--[[sprite: pushed]],
@@ -600,7 +601,7 @@ function developerMenuPage()
 		1--[[button initial status]])
 
 
-	drawButtons("exitDevMenu"--[[ButtonLable]], 
+	button_creation("exitDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_exitDevMenuButton_pushed.png")--[[sprite: pushed]],
@@ -615,11 +616,13 @@ function developerMenuPage()
 		1--[[button initial status]])
 end 
 
-function screenTestMenuPage ()
+createDevMenuObjects()
+
+function createScreenTestMenuObjects ()
 
 	local thisPageName = "screenTestsMenu"
 
-	drawButtons("returnDevMenu"--[[ButtonLable]], 
+	button_creation("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -633,7 +636,7 @@ function screenTestMenuPage ()
 		"openDevMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	drawButtons("switchScreenSize"--[[ButtonLable]],
+	button_creation("switchScreenSize"--[[ButtonLable]],
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_switchScreenSizeButton_pushed.png")--[[sprite: pushed]],
@@ -648,11 +651,14 @@ function screenTestMenuPage ()
 		1--[[button initial status]])
 end
 
-function devEraseDataConfirmationPage ()
+createScreenTestMenuObjects ()
+
+
+function createDevEraseDataConfirmationMenuObjects ()
 
 	local thisPageName = "devEraseDataConfirmationPage"
 
-	drawButtons("returnDevMenu"--[[ButtonLable]], 
+	button_creation("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -666,7 +672,7 @@ function devEraseDataConfirmationPage ()
 		"openDevMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	drawButtons("yesConfirmation"--[[ButtonLable]], 
+	button_creation("yesConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -680,7 +686,7 @@ function devEraseDataConfirmationPage ()
 		"deleteAllProjectData"--[[callback function]],
 		1--[[button initial status]])
 
-	drawButtons("noConfirmation"--[[ButtonLable]], 
+	button_creation("noConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_noConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -695,6 +701,8 @@ function devEraseDataConfirmationPage ()
 		1--[[button initial status]])
 end
 
+createDevEraseDataConfirmationMenuObjects ()
+
 function deleteAllProjectData ()
 	--delete data from love2d memory
 	for i = #globApp.projects,1,-1 do
@@ -707,30 +715,30 @@ function deleteAllProjectData ()
    openDevMainMenu ()
 end
 
-function developerUnitTestPage ()
+function createDevUnitTestMenuObjects ()
 
 	local thisPageName = "UnitTesting"
+--NEEDS TO BE REFACTOR BERFORE UNCOMMENTING
+	-- spreadSheet_draw (
+	-- 	"devUnitTest", --[spreadsheet name]
+	-- 	thisPageName, --[[page]]
+	-- 	"static", --[[type]]
+	-- 	devTests,--[[dataTable]]
+	-- 	.5, --[[x position]]
+	-- 	smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+	-- 	.8, --[[table width]]
+	-- 	.6,--[[table height]]
+	-- 	"CT", --[[anchor point]]
+	-- 	nil, --[[bg sprite]]
+	-- 	{ 	[1]={["INFO"]="openSelectedUTInfoCallback"},},--[[callback function]]
+	-- 	smartFontScaling (0.025, 0.032),--[[font size]]
+	-- 	{	[1] = "name", 
+	-- 		[2]= "result", 
+	-- 		[3] = "failingParameter"})
 
-	spreadSheet_draw (
-		"devUnitTest", --[spreadsheet name]
-		thisPageName, --[[page]]
-		"static", --[[type]]
-		devTests,--[[dataTable]]
-		.5, --[[x position]]
-		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
-		.8, --[[table width]]
-		.6,--[[table height]]
-		"CT", --[[anchor point]]
-		nil, --[[bg sprite]]
-		{ 	[1]={["INFO"]="openSelectedUTInfoCallback"},},--[[callback function]]
-		smartFontScaling (0.025, 0.032),--[[font size]]
-		{	[1] = "name", 
-			[2]= "result", 
-			[3] = "failingParameter"})
 
 
-
-	drawButtons("returnDevMenu"--[[ButtonLable]], 
+	button_creation("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -745,6 +753,8 @@ function developerUnitTestPage ()
 		1--[[button initial status]])
 end
 
+createDevUnitTestMenuObjects ()
+
 local focusedUnitTest = "none"
 function openSelectedUTInfoCallback (utID)
 
@@ -758,7 +768,7 @@ function openUnitTestInfoPage ()
 	page_switch ("LodingUnitTestInfoPage", 20054, .5, false)
 end
 
-function unitTestInfoPage ()
+function createUnitTestInfoMenuObjects ()
 
 	local thisPageName = "unitTestInfo"
 	
@@ -779,7 +789,7 @@ function unitTestInfoPage ()
 		end
 	end
 
-	drawButtons("returnToUnitTestPage"--[[ButtonLable]], 
+	button_creation("returnToUnitTestPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -793,33 +803,35 @@ function unitTestInfoPage ()
 		"openUnitTestPage"--[[callback function]], 
 		1--[[button initial status]])
 
-	outputTxtBox_draw ("UnitTestInfo",--[[Label name]]
-		thisPageName, --[[strg page]]
-		"Sprites/invisibleBox.png", --[[image to be used as bg]]
-		.5, --[[x percentage of screen]]
-		.2, --[[y percentage of screen]]
-		"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-		smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"width"),--[[width]]
-		smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"height"), --[[height]]
-		{0,1,0,1},--[[rgba]]
-		selectedUnitTest, --[[string of label display 1]]
-		math.floor(smartFontScaling (0.03, 0.04))--[[font size]])
+	-- outputTxtBox_draw ("UnitTestInfo",--[[Label name]]
+	-- 	thisPageName, --[[strg page]]
+	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	-- 	.5, --[[x percentage of screen]]
+	-- 	.2, --[[y percentage of screen]]
+	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
+	-- 	smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"width"),--[[width]]
+	-- 	smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"height"), --[[height]]
+	-- 	{0,1,0,1},--[[rgba]]
+	-- 	selectedUnitTest, --[[string of label display 1]]
+	-- 	math.floor(smartFontScaling (0.03, 0.04))--[[font size]])
 
 
-	outputTxtBox_draw ("testInfo",--[[Label name]]
-		thisPageName, --[[strg page]]
-		"Sprites/invisibleBox.png", --[[image to be used as bg]]
-		.5, --[[x percentage of screen]]
-		.6, --[[y percentage of screen]]
-		"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-		smartScaling ("inverse", .9, .8, .63, .56, 0.7,"width"),--[[width]]
-		smartScaling ("inverse", .9, .8, .63, .56, 0.7,"height"), --[[height]]
-		{1,1,1,1},--[[rgba]]
-		resultString, --[[string of label display 1]]
-		math.floor(smartFontScaling (0.02, 0.05))--[[font size]])
+	-- outputTxtBox_draw ("testInfo",--[[Label name]]
+	-- 	thisPageName, --[[strg page]]
+	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	-- 	.5, --[[x percentage of screen]]
+	-- 	.6, --[[y percentage of screen]]
+	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
+	-- 	smartScaling ("inverse", .9, .8, .63, .56, 0.7,"width"),--[[width]]
+	-- 	smartScaling ("inverse", .9, .8, .63, .56, 0.7,"height"), --[[height]]
+	-- 	{1,1,1,1},--[[rgba]]
+	-- 	resultString, --[[string of label display 1]]
+	-- 	math.floor(smartFontScaling (0.02, 0.05))--[[font size]])
 
 
 end
+
+createUnitTestInfoMenuObjects ()
 
 --------------------------------------------------------------------------------
 					--CHANGE SCREEN SIZE FUNCTION
@@ -849,29 +861,29 @@ function ScreenSimulatorsInit ()
 	createScreenSimulator ("ipadAir2_horizontal", 1024, 748, {0,0,1,1})
 end
 
-function switchScreenSizePage ()
+function createSwitchScreenSizeMenuObjects ()
 
 	local thisPageName = "switchScreenSize"
 
-	spreadSheet_draw (
-		"screenSizesTable", --[spreadsheet name]
-		thisPageName, --[[page]]
-		"static", --[[type]]
-		screenSimulators,--[[dataTable]]
-		.5, --[[x position]]
-		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
-		.8, --[[table width]]
-		.6,--[[table height]]
-		"CT", --[[anchor point]]
-		nil, --[[bg sprite]]
-		{ 	[1]={["SELECT"]="changeScreenSize"},},--[[callback function]]
-		smartFontScaling (0.025, 0.032),--[[font size]]
-		{	[1]= "name", 
-			[2]= "dpiWidht", 
-			[3]= "dpiHeight"})
+	-- spreadSheet_draw (
+	-- 	"screenSizesTable", --[spreadsheet name]
+	-- 	thisPageName, --[[page]]
+	-- 	"static", --[[type]]
+	-- 	screenSimulators,--[[dataTable]]
+	-- 	.5, --[[x position]]
+	-- 	smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+	-- 	.8, --[[table width]]
+	-- 	.6,--[[table height]]
+	-- 	"CT", --[[anchor point]]
+	-- 	nil, --[[bg sprite]]
+	-- 	{ 	[1]={["SELECT"]="changeScreenSize"},},--[[callback function]]
+	-- 	smartFontScaling (0.025, 0.032),--[[font size]]
+	-- 	{	[1]= "name", 
+	-- 		[2]= "dpiWidht", 
+	-- 		[3]= "dpiHeight"})
 
 
-	drawButtons("returnScreenTestsMenu"--[[ButtonLable]], 
+	button_creation("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -886,6 +898,8 @@ function switchScreenSizePage ()
 		1--[[button initial status]])
 
 end
+
+createSwitchScreenSizeMenuObjects ()
 
 
 function changeScreenSize (par1, par2, par3)
@@ -908,10 +922,10 @@ function changeScreenSize (par1, par2, par3)
 end
 
 
-function devAboutPage ()
+function createDevAboutMenuObjects ()
 	local thisPageName = "devAboutPage"
 
-	drawButtons("returnScreenTestsMenu"--[[ButtonLable]], 
+	button_creation("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -926,18 +940,17 @@ function devAboutPage ()
 		1--[[button initial status]])
 
 	--TXT OUTPUT BOX:
-	outputTxtBox_draw ("AboutContents",--[[Label name]]
-		thisPageName, --[[strg page]]
-		"Sprites/invisibleBox.png", --[[image to be used as bg]]
-		.5, --[[x percentage of screen]]
-		.5, --[[y percentage of screen]]
-		"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-		smartScaling ("inverse", 1, 1, .8, .8, .8,"width"),--[[width]]
-		smartScaling ("inverse", 1, 1, .8, .8, .8,"height"), --[[height]]
-		{1,1,1,1},--[[rgba]]
-		globApp.aboutPageContent, --text
-		math.floor(smartFontScaling (0.04, 0.055))--[[font size]])
-
-	
+	-- outputTxtBox_draw ("AboutContents",--[[Label name]]
+	-- 	thisPageName, --[[strg page]]
+	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	-- 	.5, --[[x percentage of screen]]
+	-- 	.5, --[[y percentage of screen]]
+	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
+	-- 	smartScaling ("inverse", 1, 1, .8, .8, .8,"width"),--[[width]]
+	-- 	smartScaling ("inverse", 1, 1, .8, .8, .8,"height"), --[[height]]
+	-- 	{1,1,1,1},--[[rgba]]
+	-- 	globApp.aboutPageContent, --text
+	-- 	math.floor(smartFontScaling (0.04, 0.055))--[[font size]])
 
 end 
+createDevAboutMenuObjects ()
