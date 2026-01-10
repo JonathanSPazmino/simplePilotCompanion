@@ -7,7 +7,7 @@
 
 lib_buttons = {}
 
-function button_creation (strgLabel, strgPage, buttonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, initialState)
+function gui_button_create (strgLabel, strgPage, buttonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, initialState)
 
 	local newButton = {}
 
@@ -41,7 +41,7 @@ function button_creation (strgLabel, strgPage, buttonType, strgImgButtonPressed,
 end
 
 
-function buttonUpdate(buttonName, anchorPoint, myx, myy, myWidth, myHeight)
+function gui_button_update(buttonName, anchorPoint, myx, myy, myWidth, myHeight)
 
 	for i, updButton in ipairs(lib_buttons) do 
 
@@ -66,7 +66,7 @@ function buttonUpdate(buttonName, anchorPoint, myx, myy, myWidth, myHeight)
 end
 
 
-function button_deletion (buttonName,strgPage)
+function gui_button_delete (buttonName,strgPage)
 
 	for i = #lib_buttons,1,-1 do
 
@@ -128,7 +128,7 @@ end
 
 
 
-function buttons_pressed (x,y,button,istouch)
+function gui_buttons_pressed (x,y,button,istouch)
 
 	local activePageName = ""
 	for i, pgs in ipairs(pages) do
@@ -222,7 +222,7 @@ end
 
 
 
-function button_released (x, y, button, istouch, presses)
+function gui_button_released (x, y, button, istouch, presses)
 
 	local activePageName = ""
 	for i, pgs in ipairs(pages) do
@@ -278,7 +278,7 @@ end
 
 
 
-function returnButtonPosition (position)
+function gui_returnButtonPosition (position)
 
 	resultPosition = value
 

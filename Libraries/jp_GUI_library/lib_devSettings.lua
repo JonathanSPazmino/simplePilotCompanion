@@ -544,7 +544,7 @@ function createDevMenuObjects()
 
 	local thisPageName = "DeveloperMenu"
 
-	button_creation("unitTest"--[[ButtonLable]], 
+	gui_button_create("unitTest"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devUnitTest_pushed.png")--[[sprite: pushed]],
@@ -558,7 +558,7 @@ function createDevMenuObjects()
 		"openUnitTestPage"--[[callback function]], 
 		1--[[button initial status]])
 
-	button_creation("screenDevTests"--[[ButtonLable]], 
+	gui_button_create("screenDevTests"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_screenTestMenuButton_pushed.png")--[[sprite: pushed]],
@@ -572,7 +572,7 @@ function createDevMenuObjects()
 		"openScreenTestsMenuPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	button_creation("resetData"--[[ButtonLable]], 
+	gui_button_create("resetData"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devEraseDataButton_pushed.png")--[[sprite: pushed]],
@@ -586,7 +586,7 @@ function createDevMenuObjects()
 		"openDevEraseDataConfirmationPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	button_creation("aboutAppPage"--[[ButtonLable]], 
+	gui_button_create("aboutAppPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devaAboutButton_pressed.png")--[[sprite: pushed]],
@@ -601,7 +601,7 @@ function createDevMenuObjects()
 		1--[[button initial status]])
 
 
-	button_creation("exitDevMenu"--[[ButtonLable]], 
+	gui_button_create("exitDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_exitDevMenuButton_pushed.png")--[[sprite: pushed]],
@@ -622,7 +622,7 @@ function createScreenTestMenuObjects ()
 
 	local thisPageName = "screenTestsMenu"
 
-	button_creation("returnDevMenu"--[[ButtonLable]], 
+	gui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -636,7 +636,7 @@ function createScreenTestMenuObjects ()
 		"openDevMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	button_creation("switchScreenSize"--[[ButtonLable]],
+	gui_button_create("switchScreenSize"--[[ButtonLable]],
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_switchScreenSizeButton_pushed.png")--[[sprite: pushed]],
@@ -658,7 +658,7 @@ function createDevEraseDataConfirmationMenuObjects ()
 
 	local thisPageName = "devEraseDataConfirmationPage"
 
-	button_creation("returnDevMenu"--[[ButtonLable]], 
+	gui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -672,7 +672,7 @@ function createDevEraseDataConfirmationMenuObjects ()
 		"openDevMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	button_creation("yesConfirmation"--[[ButtonLable]], 
+	gui_button_create("yesConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -686,7 +686,7 @@ function createDevEraseDataConfirmationMenuObjects ()
 		"deleteAllProjectData"--[[callback function]],
 		1--[[button initial status]])
 
-	button_creation("noConfirmation"--[[ButtonLable]], 
+	gui_button_create("noConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_noConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -738,7 +738,7 @@ function createDevUnitTestMenuObjects ()
 
 
 
-	button_creation("returnDevMenu"--[[ButtonLable]], 
+	gui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -789,7 +789,7 @@ function createUnitTestInfoMenuObjects ()
 		end
 	end
 
-	button_creation("returnToUnitTestPage"--[[ButtonLable]], 
+	gui_button_create("returnToUnitTestPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -883,7 +883,7 @@ function createSwitchScreenSizeMenuObjects ()
 	-- 		[3]= "dpiHeight"})
 
 
-	button_creation("returnScreenTestsMenu"--[[ButtonLable]], 
+	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -925,7 +925,7 @@ end
 function createDevAboutMenuObjects ()
 	local thisPageName = "devAboutPage"
 
-	button_creation("returnScreenTestsMenu"--[[ButtonLable]], 
+	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],

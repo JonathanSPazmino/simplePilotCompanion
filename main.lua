@@ -64,7 +64,7 @@ function love.load()
     ---------------------------------------------------------------------------
     -- BUTTONS
     ---------------------------------------------------------------------------
-    button_creation("resetRHTopTimer", "MainMenu", "pushonoff",
+    gui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
         "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -72,7 +72,7 @@ function love.load()
         "resetRHTopTimer", 1
     )
 
-    button_creation("pauseRHTopTimer", "MainMenu", "toggle",
+    gui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
         "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -80,7 +80,7 @@ function love.load()
         "pauseRHTopTimer", 1
     )
 
-    button_creation("modeSelectRHTopTimer", "MainMenu", "toggle",
+    gui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
         "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -88,7 +88,7 @@ function love.load()
         "modeSelectRHTopTimer", 1
     )
 
-    button_creation("incrsMinRHTopTimer", "MainMenu", "pushonoff",
+    gui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
         "Sprites/invisibleBox.png", .5, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -96,7 +96,7 @@ function love.load()
         "incrsMinRHTopTimer", 0
     )
 
-    button_creation("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
+    gui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
         "Sprites/invisibleBox.png", .5, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -104,7 +104,7 @@ function love.load()
         "dcrsMinRHTopTimer", 0
     )
 
-    button_creation("incrsSecRHTopTimer", "MainMenu", "pushonoff",
+    gui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
         "Sprites/invisibleBox.png", .92, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -112,7 +112,7 @@ function love.load()
         "incrsSecRHTopTimer", 0
     )
 
-    button_creation("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
+    gui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
         "Sprites/invisibleBox.png", .92, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
@@ -121,7 +121,7 @@ function love.load()
     )
 
 
-    button_creation("acknowlegeAlarm", "MainMenu", "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
+    gui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
        "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
         "Sprites/invisibleBox.png", 
         .90, .05, "RT",

@@ -833,7 +833,7 @@ function gdsGUI_mousepressed (x, y, button, istouch, presses)
 		local calledFunction = (buttonName .. " click pressed")
 		globApp.userInput = calledFunction
 
-		buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
+gui_buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
 		
 		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 
@@ -863,7 +863,7 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 			local calledFunction = (buttonName .. " click")
 			globApp.userInput = calledFunction
 
-			button_released (x, y, button, istouch, presses) --runs when button is released
+			gui_button_released (x, y, 1, istouch, presses)
 		
 			tableRow_Select (x,y,button,istouch)
 
@@ -948,7 +948,7 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	globApp.userInput = calledFunction -- insert code below this line to user glob var
 
-	buttons_pressed (x,y,1,istouch) --runs when clicked on created buttons
+	gui_buttons_pressed (x,y,1,istouch) --runs when clicked on created buttons
 
 	tableButtonsPressed (x,y,button,istouch)
 
@@ -977,7 +977,7 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 
 			end 
 
-			button_released (x, y, 1, istouch, presses) --runs when slide to prevent unwanted active buttons
+			gui_button_released (x, y, 1, istouch, presses)
 
 			holdAndDragScrollBar (x,y,button,istouch)
 
@@ -1007,8 +1007,7 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 
 		-- buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
-		button_released (x, y, 1, istouch, presses) --runs when button is released
-		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
+		gui_button_released (x, y, 1, istouch, presses)		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 		tableRow_Select (x,y,button,true)
 
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
