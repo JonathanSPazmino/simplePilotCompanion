@@ -1,290 +1,240 @@
---[[API = Menu Buttons Lybrary ]]
+--[[
+    Library: lib_buttons.lua
+    Author: Jonathan Pazmino
+    Description: Handles creation, state, drawing, and interaction for all GUI buttons.
+]]
 
-
----------------------------------------------------------------------------------------
-										--SINGLE BUTTON
----------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- LIBRARY TABLE
+--------------------------------------------------------------------------------
 
 globApp.objects.buttons = {}
 
-function gui_button_create (strgLabel, strgPage, buttonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, initialState)
+--------------------------------------------------------------------------------
+-- PRIVATE HELPER FUNCTIONS
+--------------------------------------------------------------------------------
 
-	local newButton = {}
-
-		newButton.name = strgLabel
-		newButton.page = strgPage
-		newButton.objectType = "button"
-		newButton.type = buttonType --toggle, pushOnOff, Selector
-		newButton.imgButtonPressed = love.graphics.newImage(strgImgButtonPressed)
-		newButton.imgButtonReleased = love.graphics.newImage(strgImgButtonReleased)
-		newButton.imgButtonDeactivated = love.graphics.newImage(strgImgButtonDeactivated)
-		newButton.mywidth = myWidth
-		newButton.myheight = myHeight
-		newButton.anchorPoint = anchorPoint
-		local myPositions = relativePosition (newButton.anchorPoint, myx, myy, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
-		newButton.myx = myPositions[1]
-		newButton.myy = myPositions[2]
-		newButton.factorWidth = newButton.mywidth / newButton.imgButtonPressed:getWidth ()
-		newButton.factorHeight = newButton.myheight / newButton.imgButtonPressed:getHeight ()
-		newButton.myMaxx = newButton.myx + newButton.mywidth
-		newButton.myMaxy = newButton.myy + newButton.myheight
-		newButton.deactivated = false
-		newButton.state = initialState --[[0 deactivated, 1 = released, 2 = pressed.]]
-		newButton.callbackFunc = strgCallbackFunc
-
-		table.insert(globApp.objects.buttons,newButton)
-
-		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
-
+--[[ Returns the name of the currently active page. ]]
+local function _getActivePageName()
+    for _, page in ipairs(pages) do
+        if page.index == globApp.currentPageIndex then
+            return page.name
+        end
+    end
+    return ""
 end
 
-function gui_buttons_draw (pg)
+--[[ Checks if a given coordinate (x, y) is within the bounds of a button. ]]
+local function _isPressed(button, x, y)
+    return x >= button.myx and x <= button.myMaxx and y >= button.myy and y <= button.myMaxy
+end
 
-	for i,x in ipairs(globApp.objects.buttons) do
-		if x.page == pg then 
-			if x.state == 0  then
-			love.graphics.draw(x.imgButtonDeactivated, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			elseif x.state == 1  then
-			love.graphics.draw(x.imgButtonReleased, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			elseif x.state == 2  then
-			love.graphics.draw(x.imgButtonPressed, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
-			end
-		end
+--[[ Invokes a button's callback function if it exists. ]]
+local function _executeCallback(button)
+    if button.callbackFunc then
+        -- _G is a table containing all global variables.
+        -- This is a safe way to call a global function by its name stored as a string.
+        local callback = _G[button.callbackFunc]
+        if callback and type(callback) == "function" then
+            callback(button.state)
+        else
+            print("Button '" .. button.name .. "' callback function '" .. button.callbackFunc .. "' not found.")
+        end
+    else
+        -- This is not an error, some buttons might not have callbacks.
+        -- print("Button '" .. button.name .. "' has no callback function assigned.")
     end
 end
 
-function gui_buttons_update ()
-	if globApp.resizeDetected == true then --[[updates only if window is resized]]
-		for i, btns in ipairs (globApp.objects.buttons) do
-			if btns.objectType == "button" then --[[updates only if objt is a buttonqsq]]
-				if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
-					local lastSafe = globApp.lastSafeScreenArea
 
-					-- Reverse engineeer the original relative position from the absolute coordinates
-					local originalXRatio, originalYRatio
-					local anchor = string.upper(btns.anchorPoint)
+--------------------------------------------------------------------------------
+-- PUBLIC API
+--------------------------------------------------------------------------------
 
-					if anchor == "LT" or anchor == "LC" or anchor == "LB" then
-						originalXRatio = (btns.myx - lastSafe.x) / lastSafe.w
-					elseif anchor == "CT" or anchor == "CC" or anchor == "CB" then
-						originalXRatio = (btns.myx + btns.mywidth / 2 - lastSafe.x) / lastSafe.w
-					elseif anchor == "RT" or anchor == "RC" or anchor == "RB" then
-						originalXRatio = (btns.myx + btns.mywidth - lastSafe.x) / lastSafe.w
-					end
+--[[
+    Creates a new button and adds it to the global button list.
+]]
+function gui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState)
+    local newButton = {}
 
-					if anchor == "LT" or anchor == "CT" or anchor == "RT" then
-						originalYRatio = (btns.myy - lastSafe.y) / lastSafe.h
-					elseif anchor == "LC" or anchor == "CC" or anchor == "RC" then
-						originalYRatio = (btns.myy + btns.myheight / 2 - lastSafe.y) / lastSafe.h
-					elseif anchor == "LB" or anchor == "CB" or anchor == "RB" then
-						originalYRatio = (btns.myy + btns.myheight - lastSafe.y) / lastSafe.h
-					end
+    newButton.name = label
+    newButton.page = page
+    newButton.objectType = "button"
+    newButton.type = buttonType -- "toggle" or "pushonoff"
 
-					-- Calculate size ratios relative to previous safe area
-					local oldWidthRatio = btns.mywidth / lastSafe.w
-					local oldHeightRatio = btns.myheight / lastSafe.h
+    -- Store images in a sub-table for cleaner state-based drawing.
+    newButton.images = {
+        [globApp.BUTTON_STATES.DEACTIVATED] = love.graphics.newImage(imgDeactivated),
+        [globApp.BUTTON_STATES.RELEASED] = love.graphics.newImage(imgReleased),
+        [globApp.BUTTON_STATES.PRESSED] = love.graphics.newImage(imgPressed)
+    }
 
-					-- Set new absolute size based on the new safe area
-					btns.mywidth = oldWidthRatio * globApp.safeScreenArea.w
-					btns.myheight = oldHeightRatio * globApp.safeScreenArea.h
+    newButton.mywidth = width
+    newButton.myheight = height
+    newButton.anchorPoint = anchorPoint
 
-					-- Get new absolute position using the consistent relative values
-					local myPositions = relativePosition(
-						btns.anchorPoint, originalXRatio, originalYRatio,
-						btns.mywidth, btns.myheight,
-						globApp.safeScreenArea.x, globApp.safeScreenArea.y,
-						globApp.safeScreenArea.w, globApp.safeScreenArea.h
-					)
+    -- This position is updated in gui_buttons_update during a window resize.
+    local myPositions = relativePosition(newButton.anchorPoint, x, y, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+    newButton.myx = myPositions[1]
+    newButton.myy = myPositions[2]
 
-					btns.myx = myPositions[1]
-					btns.myy = myPositions[2]
+    -- Pre-calculate scaling factors and max coordinates for efficiency.
+    local baseImage = newButton.images[globApp.BUTTON_STATES.RELEASED] or newButton.images[globApp.BUTTON_STATES.PRESSED]
+    newButton.factorWidth = newButton.mywidth / baseImage:getWidth()
+    newButton.factorHeight = newButton.myheight / baseImage:getHeight()
+    newButton.myMaxx = newButton.myx + newButton.mywidth
+    newButton.myMaxy = newButton.myy + newButton.myheight
 
-					-- Update derived properties
-					btns.factorWidth = btns.mywidth / btns.imgButtonPressed:getWidth()
-					btns.factorHeight = btns.myheight / btns.imgButtonPressed:getHeight()
-					btns.myMaxx = btns.myx + btns.mywidth
-					btns.myMaxy = btns.myy + btns.myheight
-				end
-			end
-		end
-	end
+    newButton.deactivated = (initialState == globApp.BUTTON_STATES.DEACTIVATED)
+    newButton.state = initialState
+    newButton.callbackFunc = callbackFunc
+
+    table.insert(globApp.objects.buttons, newButton)
+    globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 end
 
-
-
-function gui_button_pressed (x,y,button,istouch)
-
-	local activePageName = ""
-	for i, pgs in ipairs(pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
-		end
-	end
-
-	local currentButtonsTable = globApp.objects.buttons
-
-	--TOGGLE BUTTON CODE
-	for i,p in ipairs(currentButtonsTable) do
-		if p.page == activePageName then
-			if p.type == "toggle" then
-
-				if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-					if p.state == 1 then
-						p.state = 2
-						
-						if p.callbackFunc ~= nil then
-							getfenv()[p.callbackFunc](p.state)
-						else
-							print ("no callback has been assigned to this button")
-						end
-
-
-					elseif p.state == 2 then
-						p.state = 1
-						
-						if p.callbackFunc ~= nil then
-							getfenv()[p.callbackFunc](p.state)
-						else
-							print ("no callback has been assigned to this button")
-						end
-			
-					end
-				
-				end
-
-				if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-					if p.state == 1 then
-						p.state = 2
-						
-						if p.callbackFunc ~= nil then
-							getfenv()[p.callbackFunc](p.state)
-						else
-							print ("no callback has been assigned to this button")
-						end
-
-					elseif p.state == 2 then
-						p.state = 1
-						
-						if p.callbackFunc ~= nil then
-							getfenv()[p.callbackFunc](p.state)
-						else
-							print ("no callback has been assigned to this button")
-						end
-
-					end
-
-				end
-
-			end
-
-			--PUSH BUTTON ON / PUSH OFF:
-			if p.type == "pushonoff" then
-
-				if button == 1 and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-					if p.state == 1 then
-							p.state = 2
-					end
-				
-				end
-
-				if touch == true and x >= p.myx and x <= p.myMaxx and y >= p.myy and y <= p.myMaxy then
-
-					if p.state == 1 then
-							p.state = 2
-					end
-
-				end
-
-			end
-		end
-	end
-
+--[[
+    Draws all buttons that belong to the specified page.
+]]
+function gui_buttons_draw(pageName)
+    for _, button in ipairs(globApp.objects.buttons) do
+        if button.page == pageName then
+            local imageToDraw = button.images[button.state]
+            if imageToDraw then
+                love.graphics.draw(imageToDraw, button.myx, button.myy, 0, button.factorWidth, button.factorHeight)
+            end
+        end
+    end
 end
 
+--[[
+    Updates button positions and sizes when the window is resized.
+]]
+function gui_buttons_update()
+    if globApp.resizeDetected then
+        for _, btns in ipairs(globApp.objects.buttons) do
+            if btns.objectType == "button" then
+                if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
+                    local lastSafe = globApp.lastSafeScreenArea
 
+                    -- Reverse engineer the original relative position from the absolute coordinates
+                    local originalXRatio, originalYRatio
+                    local anchor = string.upper(btns.anchorPoint)
 
-function gui_button_released (x, y, button, istouch, presses)
+                    if anchor == "LT" or anchor == "LC" or anchor == "LB" then
+                        originalXRatio = (btns.myx - lastSafe.x) / lastSafe.w
+                    elseif anchor == "CT" or anchor == "CC" or anchor == "CB" then
+                        originalXRatio = (btns.myx + btns.mywidth / 2 - lastSafe.x) / lastSafe.w
+                    elseif anchor == "RT" or anchor == "RC" or anchor == "RB" then
+                        originalXRatio = (btns.myx + btns.mywidth - lastSafe.x) / lastSafe.w
+                    end
 
-	local activePageName = ""
-	for i, pgs in ipairs(pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
-		end
-	end
+                    if anchor == "LT" or anchor == "CT" or anchor == "RT" then
+                        originalYRatio = (btns.myy - lastSafe.y) / lastSafe.h
+                    elseif anchor == "LC" or anchor == "CC" or anchor == "RC" then
+                        originalYRatio = (btns.myy + btns.myheight / 2 - lastSafe.y) / lastSafe.h
+                    elseif anchor == "LB" or anchor == "CB" or anchor == "RB" then
+                        originalYRatio = (btns.myy + btns.myheight - lastSafe.y) / lastSafe.h
+                    end
 
-	local currentButtonsTable = globApp.objects.buttons
+                    -- Calculate size ratios relative to previous safe area
+                    local oldWidthRatio = btns.mywidth / lastSafe.w
+                    local oldHeightRatio = btns.myheight / lastSafe.h
 
-	for i,p in ipairs(currentButtonsTable) do
-		if p.page == activePageName then
-			--PUSH ON / PUSH OFF BUTTON:
-			if p.type == "pushonoff" then
+                    -- Set new absolute size based on the new safe area
+                    btns.mywidth = oldWidthRatio * globApp.safeScreenArea.w
+                    btns.myheight = oldHeightRatio * globApp.safeScreenArea.h
 
-				if button == 1  then
+                    -- Get new absolute position using the consistent relative values
+                    local myPositions = relativePosition(
+                        btns.anchorPoint, originalXRatio, originalYRatio,
+                        btns.mywidth, btns.myheight,
+                        globApp.safeScreenArea.x, globApp.safeScreenArea.y,
+                        globApp.safeScreenArea.w, globApp.safeScreenArea.h
+                    )
 
-					if p.state == 2 then
-						
-						p.state = 1
+                    btns.myx = myPositions[1]
+                    btns.myy = myPositions[2]
 
-						if p.callbackFunc ~= nil then
-							getfenv()[p.callbackFunc](p.state)
-						else
-							print ("no callback has been assigned to this button")
-						end
-
-					end
-
-				end
-
-				-- if touch == true then
-					
-				-- 	if p.state == 2 then
-
-				-- 		p.state = 1
-						
-				-- 		if p.callbackFunc ~= nil then
-				-- 			getfenv()[p.callbackFunc](p.state)
-				-- 		else
-				-- 			print ("no callback has been assigned to this button")
-				-- 		end
-
-				-- 	end
-
-				-- end
-
-			end
-		end
-	end
-
+                    -- Update derived properties
+                    local baseImage = btns.images[globApp.BUTTON_STATES.RELEASED] or btns.images[globApp.BUTTON_STATES.PRESSED]
+                    btns.factorWidth = btns.mywidth / baseImage:getWidth()
+                    btns.factorHeight = btns.myheight / baseImage:getHeight()
+                    btns.myMaxx = btns.myx + btns.mywidth
+                    btns.myMaxy = btns.myy + btns.myheight
+                end
+            end
+        end
+    end
 end
 
+--[[
+    Handles the logic for when a mouse button or touch event is pressed down.
+]]
+function gui_button_pressed(x, y, button, istouch)
+    -- We only care about left-click or a touch event.
+    if button ~= 1 then return end
 
+    local activePageName = _getActivePageName()
 
-function gui_button_returnPosition (position)
-
-	resultPosition = value
-
-	return resultPosition
-
+    for _, p in ipairs(globApp.objects.buttons) do
+        if p.page == activePageName and p.state ~= globApp.BUTTON_STATES.DEACTIVATED and _isPressed(p, x, y) then
+            if p.type == "toggle" then
+                if p.state == globApp.BUTTON_STATES.RELEASED then
+                    p.state = globApp.BUTTON_STATES.PRESSED
+                    _executeCallback(p)
+                elseif p.state == globApp.BUTTON_STATES.PRESSED then
+                    p.state = globApp.BUTTON_STATES.RELEASED
+                    _executeCallback(p)
+                end
+            elseif p.type == "pushonoff" then
+                if p.state == globApp.BUTTON_STATES.RELEASED then
+                    p.state = globApp.BUTTON_STATES.PRESSED
+                    -- For pushonoff, callback is usually on release.
+                end
+            end
+        end
+    end
 end
 
+--[[
+    Handles the logic for when a mouse button or touch event is released.
+]]
+function gui_button_released(x, y, button, istouch)
+    if button ~= 1 then return end
 
-function gui_button_setState ( buttonName, state )
-	--"deactivated 0, released 1, pushed 2"
-	for i, b in ipairs(globApp.objects.buttons) do
-		if b.name == buttonName then
-			if state == "deactivated" then
-				b.deactivated = true
-				b.state = 0
-			elseif state == "released" then
-				b.deactivated = false
-				b.state = 1
-			elseif state == "pushed" then
-				b.deactivated = false
-				b.state = 2
-			end
-		end
-	end 
+    local activePageName = _getActivePageName()
+    for _, p in ipairs(globApp.objects.buttons) do
+        if p.page == activePageName and p.type == "pushonoff" then
+            if p.state == globApp.BUTTON_STATES.PRESSED then
+                p.state = globApp.BUTTON_STATES.RELEASED
+                _executeCallback(p)
+            end
+        end
+    end
+end
+
+--[[
+    Sets the state of a specific button by its name.
+    States: "deactivated", "released", "pushed"
+]]
+function gui_button_setState(buttonName, state)
+    local targetState
+    if state == "deactivated" then
+        targetState = globApp.BUTTON_STATES.DEACTIVATED
+    elseif state == "released" then
+        targetState = globApp.BUTTON_STATES.RELEASED
+    elseif state == "pushed" then
+        targetState = globApp.BUTTON_STATES.PRESSED
+    else
+        return -- Invalid state string
+    end
+
+    for _, b in ipairs(globApp.objects.buttons) do
+        if b.name == buttonName then
+            b.state = targetState
+            b.deactivated = (targetState == globApp.BUTTON_STATES.DEACTIVATED)
+            return
+        end
+    end
 end

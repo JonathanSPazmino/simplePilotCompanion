@@ -69,7 +69,7 @@ function love.load()
         "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "resetRHTopTimer", 1
+        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED
     )
 
     gui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
@@ -77,7 +77,7 @@ function love.load()
         "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "pauseRHTopTimer", 1
+        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED
     )
 
     gui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
@@ -85,7 +85,7 @@ function love.load()
         "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "modeSelectRHTopTimer", 1
+        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED
     )
 
     gui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -93,7 +93,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsMinRHTopTimer", 0
+        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
     )
 
     gui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -101,7 +101,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsMinRHTopTimer", 0
+        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
     )
 
     gui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -109,7 +109,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsSecRHTopTimer", 0
+        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
     )
 
     gui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -117,7 +117,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsSecRHTopTimer", 0
+        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
     )
 
 
@@ -126,7 +126,7 @@ function love.load()
         "Sprites/invisibleBox.png", 
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        "acknowlegeAlarm", 0
+        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED
     )
 	
 	---------------------------------------------------------------------------
@@ -231,9 +231,9 @@ function love.update(dt)
             blink.active = true
             gui_button_setState("acknowlegeAlarm", "released")
             alarmButtonsDeactivation()
-            for _, btn in ipairs(lib_buttons) do
-                if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-                    btn.state = 1
+for _, btn in ipairs(globApp.objects.buttons) do
+                if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+        btn.state = globApp.BUTTON_STATES.RELEASED
                 end
             end
         end
@@ -266,7 +266,7 @@ function love.update(dt)
     --handles play button state during countdown based on timer
     if timer.t <= 0 then 
         for _, btn in ipairs(globApp.objects.buttons) do
-            if btn.name == "modeSelectRHTopTimer" and btn.state == 2 then
+            if btn.name == "modeSelectRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
                 gui_button_setState ( "pauseRHTopTimer", "deactivated")
             end
         end
@@ -372,8 +372,8 @@ function resetRHTopTimer()
     blink.active = false -- stop blink
     globApp.appColor = {0.2, 0.2, 0.2, 1} -- keep normal color
     for _, btn in ipairs(globApp.objects.buttons) do
-        if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-            btn.state = 1
+        if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+btn.state = globApp.BUTTON_STATES.RELEASED
         end
     end
     
@@ -424,7 +424,7 @@ function modeSelectRHTopTimer()
     end
 
     -- for _, btn in ipairs(lib_buttons) do
-    --     if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+    --     if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
     --         btn.state = 1
     --     end
     -- end

@@ -955,7 +955,7 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	globApp.userInput = calledFunction -- insert code below this line to user glob var
 
-	gui_button_pressed (x,y,1,istouch) --runs when clicked on created buttons
+	gui_button_pressed (x,y,1,true) --runs when clicked on created buttons
 
 	tableButtonsPressed (x,y,button,istouch)
 
@@ -1132,6 +1132,11 @@ end
 
 --[[GLOBAL VARIABLES TABLE:]]
 	globApp = {} --[[global variables table]]
+		globApp.BUTTON_STATES = {
+			DEACTIVATED = 0,
+			RELEASED = 1,
+			PRESSED = 2
+		}
 		globApp.objects = {}
 		globApp.developerMode = true
 		globApp.OperatingSystem  = love.system.getOS( ) --[["OS X", "Windows", "Linux", "Android" or "iOS"]]
