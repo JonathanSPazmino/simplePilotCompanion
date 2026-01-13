@@ -40,52 +40,6 @@ function gui_button_create (strgLabel, strgPage, buttonType, strgImgButtonPresse
 
 end
 
-
-function gui_button_update(buttonName, anchorPoint, myx, myy, myWidth, myHeight)
-
-	for i, updButton in ipairs(lib_buttons) do 
-
-		if updButton.name == buttonName then
-			
-			updButton.mywidth = myWidth
-			updButton.myheight = myHeight
-
-			local myPositions = relativePosition (anchorPoint, myx, myy, updButton.mywidth, updButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
-
-			updButton.myx = myPositions[1]
-			updButton.myy = myPositions[2]
-			updButton.factorWidth = updButton.mywidth / updButton.imgButtonPressed:getWidth ()
-			updButton.factorHeight = updButton.myheight / updButton.imgButtonPressed:getHeight ()
-			updButton.myMaxx = updButton.myx + updButton.mywidth
-			updButton.myMaxy = updButton.myy + updButton.myheight
-
-		end
-
-	end
-
-end
-
-
-function gui_button_delete (buttonName,strgPage)
-
-	for i = #lib_buttons,1,-1 do
-
-		local b = lib_buttons[i]
-
-		--LOAD PROJECT:
-
-			if b.name == buttonName and b.page == strgPage then
-
-				table.remove(lib_buttons,i)
-
-				globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
-
-			end
-
-	end
-
-end
-
 function gui_buttons_draw (pg)
 
 	for i,x in ipairs(gui_objects) do
@@ -128,7 +82,7 @@ end
 
 
 
-function gui_buttons_pressed (x,y,button,istouch)
+function gui_button_pressed (x,y,button,istouch)
 
 	local activePageName = ""
 	for i, pgs in ipairs(pages) do
@@ -278,7 +232,7 @@ end
 
 
 
-function gui_returnButtonPosition (position)
+function gui_button_returnPosition (position)
 
 	resultPosition = value
 

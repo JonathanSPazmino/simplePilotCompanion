@@ -833,7 +833,7 @@ function gdsGUI_mousepressed (x, y, button, istouch, presses)
 		local calledFunction = (buttonName .. " click pressed")
 		globApp.userInput = calledFunction
 
-gui_buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
+gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 		
 		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 
@@ -948,7 +948,7 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	globApp.userInput = calledFunction -- insert code below this line to user glob var
 
-	gui_buttons_pressed (x,y,1,istouch) --runs when clicked on created buttons
+	gui_button_pressed (x,y,1,istouch) --runs when clicked on created buttons
 
 	tableButtonsPressed (x,y,button,istouch)
 
