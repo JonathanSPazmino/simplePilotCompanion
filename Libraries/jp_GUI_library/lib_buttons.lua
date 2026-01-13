@@ -5,7 +5,7 @@
 										--SINGLE BUTTON
 ---------------------------------------------------------------------------------------
 
-lib_buttons = {}
+globApp.objects.buttons = {}
 
 function gui_button_create (strgLabel, strgPage, buttonType, strgImgButtonPressed, strgImgButtonReleased, strgImgButtonDeactivated, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, initialState)
 
@@ -32,9 +32,7 @@ function gui_button_create (strgLabel, strgPage, buttonType, strgImgButtonPresse
 		newButton.state = initialState --[[0 deactivated, 1 = released, 2 = pressed.]]
 		newButton.callbackFunc = strgCallbackFunc
 
-		table.insert(lib_buttons,newButton)
-
-		table.insert(gui_objects,newButton)
+		table.insert(globApp.objects.buttons,newButton)
 
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
@@ -42,7 +40,7 @@ end
 
 function gui_buttons_draw (pg)
 
-	for i,x in ipairs(gui_objects) do
+	for i,x in ipairs(globApp.objects.buttons) do
 		if x.page == pg then 
 			if x.state == 0  then
 			love.graphics.draw(x.imgButtonDeactivated, x.myx, x.myy, 0, x.factorWidth, x.factorHeight, ox, oy, kx, ky)
@@ -57,24 +55,56 @@ end
 
 function gui_buttons_update ()
 	if globApp.resizeDetected == true then --[[updates only if window is resized]]
-		for i, btns in ipairs (gui_objects) do
+		for i, btns in ipairs (globApp.objects.buttons) do
 			if btns.objectType == "button" then --[[updates only if objt is a buttonqsq]]
-				oldXRatio = btns.myx / globApp.lastWindowWidth
-				oldYRatio = btns.myy / globApp.lastWindowHeight
-				oldWidth = (btns.mywidth / globApp.lastWindowWidth) 
-				oldHeight = (btns.myheight / globApp.lastWindowHeight) 
+				if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
+					local lastSafe = globApp.lastSafeScreenArea
 
-				btns.mywidth = oldWidth * globApp.safeScreenArea.w
-				btns.myheight= oldHeight * globApp.safeScreenArea.h
+					-- Reverse engineeer the original relative position from the absolute coordinates
+					local originalXRatio, originalYRatio
+					local anchor = string.upper(btns.anchorPoint)
 
-				local myPositions = relativePosition (btns.anchorPoint, oldXRatio, oldYRatio, oldWidth, oldHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+					if anchor == "LT" or anchor == "LC" or anchor == "LB" then
+						originalXRatio = (btns.myx - lastSafe.x) / lastSafe.w
+					elseif anchor == "CT" or anchor == "CC" or anchor == "CB" then
+						originalXRatio = (btns.myx + btns.mywidth / 2 - lastSafe.x) / lastSafe.w
+					elseif anchor == "RT" or anchor == "RC" or anchor == "RB" then
+						originalXRatio = (btns.myx + btns.mywidth - lastSafe.x) / lastSafe.w
+					end
 
-				btns.myx = myPositions[1]
-				btns.myy = myPositions[2]
-				btns.factorWidth = btns.mywidth / btns.imgButtonPressed:getWidth ()
-				btns.factorHeight = btns.myheight / btns.imgButtonPressed:getHeight ()
-				btns.myMaxx = btns.myx + btns.mywidth
-				btns.myMaxy = btns.myy + btns.myheight
+					if anchor == "LT" or anchor == "CT" or anchor == "RT" then
+						originalYRatio = (btns.myy - lastSafe.y) / lastSafe.h
+					elseif anchor == "LC" or anchor == "CC" or anchor == "RC" then
+						originalYRatio = (btns.myy + btns.myheight / 2 - lastSafe.y) / lastSafe.h
+					elseif anchor == "LB" or anchor == "CB" or anchor == "RB" then
+						originalYRatio = (btns.myy + btns.myheight - lastSafe.y) / lastSafe.h
+					end
+
+					-- Calculate size ratios relative to previous safe area
+					local oldWidthRatio = btns.mywidth / lastSafe.w
+					local oldHeightRatio = btns.myheight / lastSafe.h
+
+					-- Set new absolute size based on the new safe area
+					btns.mywidth = oldWidthRatio * globApp.safeScreenArea.w
+					btns.myheight = oldHeightRatio * globApp.safeScreenArea.h
+
+					-- Get new absolute position using the consistent relative values
+					local myPositions = relativePosition(
+						btns.anchorPoint, originalXRatio, originalYRatio,
+						btns.mywidth, btns.myheight,
+						globApp.safeScreenArea.x, globApp.safeScreenArea.y,
+						globApp.safeScreenArea.w, globApp.safeScreenArea.h
+					)
+
+					btns.myx = myPositions[1]
+					btns.myy = myPositions[2]
+
+					-- Update derived properties
+					btns.factorWidth = btns.mywidth / btns.imgButtonPressed:getWidth()
+					btns.factorHeight = btns.myheight / btns.imgButtonPressed:getHeight()
+					btns.myMaxx = btns.myx + btns.mywidth
+					btns.myMaxy = btns.myy + btns.myheight
+				end
 			end
 		end
 	end
@@ -91,7 +121,7 @@ function gui_button_pressed (x,y,button,istouch)
 		end
 	end
 
-	local currentButtonsTable = lib_buttons
+	local currentButtonsTable = globApp.objects.buttons
 
 	--TOGGLE BUTTON CODE
 	for i,p in ipairs(currentButtonsTable) do
@@ -185,7 +215,7 @@ function gui_button_released (x, y, button, istouch, presses)
 		end
 	end
 
-	local currentButtonsTable = lib_buttons
+	local currentButtonsTable = globApp.objects.buttons
 
 	for i,p in ipairs(currentButtonsTable) do
 		if p.page == activePageName then
@@ -241,9 +271,9 @@ function gui_button_returnPosition (position)
 end
 
 
-function setButtonState( buttonName, state )
+function gui_button_setState ( buttonName, state )
 	--"deactivated 0, released 1, pushed 2"
-	for i, b in ipairs(lib_buttons) do
+	for i, b in ipairs(globApp.objects.buttons) do
 		if b.name == buttonName then
 			if state == "deactivated" then
 				b.deactivated = true

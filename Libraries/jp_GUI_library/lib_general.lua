@@ -100,6 +100,13 @@ function jpGUI_update (dt)
 	--RESIZE TRIGGER CODE MUST GO BEFORE EVERYTHING THAT USES SAFESCREEN AREA TABLE
 	globApp.resizeDetected = resizeDetect ()
 	if globApp.resizeDetected == true then
+
+		-- Add these lines to copy the safe area table
+		globApp.lastSafeScreenArea = {
+			x = globApp.safeScreenArea.x, y = globApp.safeScreenArea.y,
+			w = globApp.safeScreenArea.w, h = globApp.safeScreenArea.h,
+			xw = globApp.safeScreenArea.xw, yh = globApp.safeScreenArea.yh
+		}
 		
 		globApp.totalWindowWidth = love.graphics.getWidth()
 		globApp.totalWindowHeight = love.graphics.getHeight()
@@ -1120,10 +1127,12 @@ end
 
 
 
-
+--THE FOLLOWING TABLE VARIABLE CONTAINS ALL GUI OBJECTS
+-- gui_objects = {}
 
 --[[GLOBAL VARIABLES TABLE:]]
 	globApp = {} --[[global variables table]]
+		globApp.objects = {}
 		globApp.developerMode = true
 		globApp.OperatingSystem  = love.system.getOS( ) --[["OS X", "Windows", "Linux", "Android" or "iOS"]]
 		globApp.fourDevTap = false
@@ -1137,6 +1146,7 @@ end
 		globApp.totalWindowWidth = love.graphics.getWidth() --[[can be called instd love func]]
 		globApp.totalWindowHeight = love.graphics.getHeight() --[[can be called instd love func]]
 		globApp.safeScreenArea = getScreenSafeArea () --jpGUI_simulateWinUnsafeArea (0,.1,1,.8) --
+		globApp.lastSafeScreenArea = globApp.safeScreenArea -- Add this line
 		globApp.isScreenSimulated = false
 		globApp.displayOrientation = findScreenOrientation ()
 		globApp.appScale = love.graphics.getDPIScale ()

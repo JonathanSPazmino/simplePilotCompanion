@@ -216,7 +216,7 @@ function love.update(dt)
     jpGUI_update(dt)
 
     if blink.active == false then
-            setButtonState( "acknowlegeAlarm", "deactivated" )
+            gui_button_setState( "acknowlegeAlarm", "deactivated" )
     end
 
     -- Skip if timer not running
@@ -229,7 +229,7 @@ function love.update(dt)
         if timer.t == 0 then
             timer.running = false
             blink.active = true
-            setButtonState("acknowlegeAlarm", "released")
+            gui_button_setState("acknowlegeAlarm", "released")
             alarmButtonsDeactivation()
             for _, btn in ipairs(lib_buttons) do
                 if btn.name == "pauseRHTopTimer" and btn.state == 2 then
@@ -265,9 +265,9 @@ function love.update(dt)
 
     --handles play button state during countdown based on timer
     if timer.t <= 0 then 
-        for _, btn in ipairs(lib_buttons) do
+        for _, btn in ipairs(globApp.objects.buttons) do
             if btn.name == "modeSelectRHTopTimer" and btn.state == 2 then
-                setButtonState ( "pauseRHTopTimer", "deactivated")
+                gui_button_setState ( "pauseRHTopTimer", "deactivated")
             end
         end
     end
@@ -338,25 +338,25 @@ end
 
 function alarmButtonsDeactivation ()
 
-    setButtonState( "modeSelectRHTopTimer", "deactivated" )
-    setButtonState( "incrsMinRHTopTimer", "deactivated" )
-    setButtonState( "dcrsMinRHTopTimer", "deactivated" )
-    setButtonState( "incrsSecRHTopTimer", "deactivated" )
-    setButtonState( "dcrsSecRHTopTimer", "deactivated" )
-    setButtonState( "pauseRHTopTimer", "deactivated" )
-    setButtonState( "resetRHTopTimer", "deactivated" )
+    gui_button_setState( "modeSelectRHTopTimer", "deactivated" )
+    gui_button_setState( "incrsMinRHTopTimer", "deactivated" )
+    gui_button_setState( "dcrsMinRHTopTimer", "deactivated" )
+    gui_button_setState( "incrsSecRHTopTimer", "deactivated" )
+    gui_button_setState( "dcrsSecRHTopTimer", "deactivated" )
+    gui_button_setState( "pauseRHTopTimer", "deactivated" )
+    gui_button_setState( "resetRHTopTimer", "deactivated" )
 
 end
 
 function alarmAcklgBtnsActiation ()
 
-    setButtonState( "modeSelectRHTopTimer", "pushed" )
-    setButtonState( "incrsMinRHTopTimer", "released" )
-    setButtonState( "dcrsMinRHTopTimer", "released" )
-    setButtonState( "incrsSecRHTopTimer", "released" )
-    setButtonState( "dcrsSecRHTopTimer", "released" )
-    setButtonState( "pauseRHTopTimer", "released" )
-    setButtonState( "resetRHTopTimer", "released" )
+    gui_button_setState( "modeSelectRHTopTimer", "pushed" )
+    gui_button_setState( "incrsMinRHTopTimer", "released" )
+    gui_button_setState( "dcrsMinRHTopTimer", "released" )
+    gui_button_setState( "incrsSecRHTopTimer", "released" )
+    gui_button_setState( "dcrsSecRHTopTimer", "released" )
+    gui_button_setState( "pauseRHTopTimer", "released" )
+    gui_button_setState( "resetRHTopTimer", "released" )
 
 end
 
@@ -365,13 +365,13 @@ function resetRHTopTimer()
     timer.running = false
     if timer.mode == "COUNT DOWN" then
         timer.t = lastSavedCountDownTime
-        setButtonState ("pauseRHTopTimer", "released")
+        gui_button_setState ("pauseRHTopTimer", "released")
     else
         timer.t = 0
     end
     blink.active = false -- stop blink
     globApp.appColor = {0.2, 0.2, 0.2, 1} -- keep normal color
-    for _, btn in ipairs(lib_buttons) do
+    for _, btn in ipairs(globApp.objects.buttons) do
         if btn.name == "pauseRHTopTimer" and btn.state == 2 then
             btn.state = 1
         end
@@ -409,18 +409,18 @@ function modeSelectRHTopTimer()
     timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
     
     if timer.mode == "COUNT DOWN" then
-        setButtonState( "incrsMinRHTopTimer", "released" )
-        setButtonState( "dcrsMinRHTopTimer", "released" )
-        setButtonState( "incrsSecRHTopTimer", "released" )
-        setButtonState( "dcrsSecRHTopTimer", "released" )
+        gui_button_setState( "incrsMinRHTopTimer", "released" )
+        gui_button_setState( "dcrsMinRHTopTimer", "released" )
+        gui_button_setState( "incrsSecRHTopTimer", "released" )
+        gui_button_setState( "dcrsSecRHTopTimer", "released" )
         timer.t = lastSavedCountDownTime
     else
         timer.t = 0
-        setButtonState( "incrsMinRHTopTimer", "deactivated" )
-        setButtonState( "dcrsMinRHTopTimer", "deactivated" )
-        setButtonState( "incrsSecRHTopTimer", "deactivated" )
-        setButtonState( "dcrsSecRHTopTimer", "deactivated" )
-        setButtonState( "pauseRHTopTimer", "released")
+        gui_button_setState( "incrsMinRHTopTimer", "deactivated" )
+        gui_button_setState( "dcrsMinRHTopTimer", "deactivated" )
+        gui_button_setState( "incrsSecRHTopTimer", "deactivated" )
+        gui_button_setState( "dcrsSecRHTopTimer", "deactivated" )
+        gui_button_setState( "pauseRHTopTimer", "released")
     end
 
     -- for _, btn in ipairs(lib_buttons) do

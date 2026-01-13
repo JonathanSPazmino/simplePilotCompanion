@@ -43,9 +43,6 @@ function generateConsoleMessage (mode, text)
 	end
 end
 
---THE FOLLOWING TABLE VARIABLE CONTAINS ALL GUI OBJECTS
-gui_objects = {}
-
 generateConsoleMessage ("info", "GDS_LOVE2D_GUI initilized")
 
 requireGUILibraries ()
