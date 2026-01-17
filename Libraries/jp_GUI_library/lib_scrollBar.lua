@@ -1,134 +1,136 @@
 --scrollBar.lua
 
-scrollBars = {}
+-- scrollbars = {}
+globApp.objects.scrollBars = {}
 
+function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
 
-function scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
+	local t = {}
 
-	local newScrollBar = {}
-
-		newScrollBar.id = id
-		newScrollBar.type = sbType --[[independent or table-linked]]
-		newScrollBar.orientation = sbOrientation
-		newScrollBar.state = 1
-		newScrollBar.scrollSpeedFactor = scrollSpeed
-		newScrollBar.page = strgPage
-		newScrollBar.isFocused = false
-		newScrollBar.numVisValues = visibleValues
-		newScrollBar.numTotalValues = totalValues
-		newScrollBar.callbackString = callback
+		t.id = id
+		t.type = sbType --[[independent or table-linked]]
+		t.objectType = "scrollbar"
+		t.orientation = sbOrientation
+		t.state = 1
+		t.scrollSpeedFactor = scrollSpeed
+		t.page = strgPage
+		t.isFocused = false
+		t.numVisValues = visibleValues
+		t.numTotalValues = totalValues
+		t.callbackString = callback
 
 		
-		newScrollBar.frame = {}
-			newScrollBar.frame.width = width * globApp.safeScreenArea.w 
-			newScrollBar.frame.height = height * globApp.safeScreenArea.h 
-			newScrollBar.frame.positions = 
+		t.frame = {}
+			t.frame.width = width * globApp.safeScreenArea.w 
+			t.frame.height = height * globApp.safeScreenArea.h 
+			t.frame.positions = 
 					relativePosition (anchorPoint, 
 										x,
 										y, 
-										newScrollBar.frame.width, 
-										newScrollBar.frame.height, 
+										t.frame.width, 
+										t.frame.height, 
 										globApp.safeScreenArea.x,
 										globApp.safeScreenArea.y, 
 										globApp.safeScreenArea.w, 
 										globApp.safeScreenArea.h)
-			newScrollBar.frame.x = newScrollBar.frame.positions[1] - globApp.safeScreenArea.x
-			newScrollBar.frame.y = newScrollBar.frame.positions[2] - globApp.safeScreenArea.y
+			t.frame.x = t.frame.positions[1] - globApp.safeScreenArea.x
+			t.frame.y = t.frame.positions[2] - globApp.safeScreenArea.y
 	
-		if newScrollBar.orientation == "vertical" then
+		if t.orientation == "vertical" then
 
-			newScrollBar.imgButtonUpArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_UpArrowButton_pushed.png")
-			newScrollBar.imgButtonUpArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
-			newScrollBar.imgButtonDownArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_pushed.png")
-			newScrollBar.imgButtonDownArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_released.png")
+			t.imgButtonUpArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_UpArrowButton_pushed.png")
+			t.imgButtonUpArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
+			t.imgButtonDownArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_pushed.png")
+			t.imgButtonDownArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_released.png")
 
-			newScrollBar.upButton = {}
-				newScrollBar.upButton.width = width * globApp.safeScreenArea.w
-				newScrollBar.upButton.height = width * globApp.safeScreenArea.w
-				newScrollBar.upButton.x = newScrollBar.frame.x
-				newScrollBar.upButton.y = newScrollBar.frame.y
-				newScrollBar.upButton.factorWidth = newScrollBar.frame.width / newScrollBar.imgButtonUpArrow_active:getWidth ()
-				newScrollBar.upButton.factorHeight = newScrollBar.frame.width / newScrollBar.imgButtonUpArrow_active:getWidth ()
-				newScrollBar.upButton.isActive = false
+			t.upButton = {}
+				t.upButton.width = width * globApp.safeScreenArea.w
+				t.upButton.height = width * globApp.safeScreenArea.w
+				t.upButton.x = t.frame.x
+				t.upButton.y = t.frame.y
+				t.upButton.factorWidth = t.frame.width / t.imgButtonUpArrow_active:getWidth ()
+				t.upButton.factorHeight = t.frame.width / t.imgButtonUpArrow_active:getWidth ()
+				t.upButton.isActive = false
 
-			newScrollBar.downButton = {}
-				newScrollBar.downButton.width = width * globApp.safeScreenArea.w
-				newScrollBar.downButton.height = width * globApp.safeScreenArea.w
-				newScrollBar.downButton.x = newScrollBar.frame.x
-				newScrollBar.downButton.y = newScrollBar.frame.y + newScrollBar.frame.height - newScrollBar.downButton.height
-				newScrollBar.downButton.factorWidth = newScrollBar.frame.width / newScrollBar.imgButtonDownArrow_active:getWidth ()
-				newScrollBar.downButton.factorHeight = newScrollBar.frame.width / newScrollBar.imgButtonDownArrow_active:getWidth ()
-				newScrollBar.downButton.isActive = false
+			t.downButton = {}
+				t.downButton.width = width * globApp.safeScreenArea.w
+				t.downButton.height = width * globApp.safeScreenArea.w
+				t.downButton.x = t.frame.x
+				t.downButton.y = t.frame.y + t.frame.height - t.downButton.height
+				t.downButton.factorWidth = t.frame.width / t.imgButtonDownArrow_active:getWidth ()
+				t.downButton.factorHeight = t.frame.width / t.imgButtonDownArrow_active:getWidth ()
+				t.downButton.isActive = false
 
-			newScrollBar.frame.y = newScrollBar.upButton.y + newScrollBar.upButton.height
-			newScrollBar.frame.height = newScrollBar.downButton.y - newScrollBar.frame.y
+			t.frame.y = t.upButton.y + t.upButton.height
+			t.frame.height = t.downButton.y - t.frame.y
 		
-		elseif newScrollBar.orientation == "horizontal" then
+		elseif t.orientation == "horizontal" then
 
-			newScrollBar.imgButtonLeftArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_leftArrowButton_pushed.png")
-			newScrollBar.imgButtonLeftArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
-			newScrollBar.imgButtonRightArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_pushed.png")
-			newScrollBar.imgButtonRightArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_released.png")
+			t.imgButtonLeftArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_leftArrowButton_pushed.png")
+			t.imgButtonLeftArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
+			t.imgButtonRightArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_pushed.png")
+			t.imgButtonRightArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_released.png")
 			
-			newScrollBar.leftButton = {}
-				newScrollBar.leftButton.width = height * globApp.safeScreenArea.h
-				newScrollBar.leftButton.height = height * globApp.safeScreenArea.h
-				newScrollBar.leftButton.x = newScrollBar.frame.x
-				newScrollBar.leftButton.y = newScrollBar.frame.y
-				newScrollBar.leftButton.factorWidth = newScrollBar.leftButton.height / newScrollBar.imgButtonLeftArrow_active:getHeight ()
-				newScrollBar.leftButton.factorHeight = newScrollBar.leftButton.height / newScrollBar.imgButtonLeftArrow_active:getHeight ()
-				newScrollBar.leftButton.isActive = false
+			t.leftButton = {}
+				t.leftButton.width = height * globApp.safeScreenArea.h
+				t.leftButton.height = height * globApp.safeScreenArea.h
+				t.leftButton.x = t.frame.x
+				t.leftButton.y = t.frame.y
+				t.leftButton.factorWidth = t.leftButton.height / t.imgButtonLeftArrow_active:getHeight ()
+				t.leftButton.factorHeight = t.leftButton.height / t.imgButtonLeftArrow_active:getHeight ()
+				t.leftButton.isActive = false
 
-			newScrollBar.rightButton = {}
-				newScrollBar.rightButton.width = height * globApp.safeScreenArea.h
-				newScrollBar.rightButton.height = height * globApp.safeScreenArea.h
-				newScrollBar.rightButton.x = newScrollBar.frame.x + newScrollBar.frame.width - newScrollBar.rightButton.width
-				newScrollBar.rightButton.y = newScrollBar.frame.y
-				newScrollBar.rightButton.factorWidth = newScrollBar.rightButton.height / newScrollBar.imgButtonRightArrow_active:getHeight ()
-				newScrollBar.rightButton.factorHeight = newScrollBar.rightButton.height / newScrollBar.imgButtonRightArrow_active:getHeight ()
-				newScrollBar.rightButton.isActive = false
+			t.rightButton = {}
+				t.rightButton.width = height * globApp.safeScreenArea.h
+				t.rightButton.height = height * globApp.safeScreenArea.h
+				t.rightButton.x = t.frame.x + t.frame.width - t.rightButton.width
+				t.rightButton.y = t.frame.y
+				t.rightButton.factorWidth = t.rightButton.height / t.imgButtonRightArrow_active:getHeight ()
+				t.rightButton.factorHeight = t.rightButton.height / t.imgButtonRightArrow_active:getHeight ()
+				t.rightButton.isActive = false
 
-			newScrollBar.frame.x = newScrollBar.leftButton.x + newScrollBar.leftButton.width
-			newScrollBar.frame.width = newScrollBar.rightButton.x - newScrollBar.frame.x
+			t.frame.x = t.leftButton.x + t.leftButton.width
+			t.frame.width = t.rightButton.x - t.frame.x
 
 		end
 				
-		newScrollBar.bar = {}
-			newScrollBar.bar.position = dataRelativePosition
-		if newScrollBar.orientation == "vertical" then
-			newScrollBar.bar.width = newScrollBar.frame.width
-			newScrollBar.bar.height = determine_scrollingBarSize (newScrollBar.numVisValues, newScrollBar.numTotalValues) * newScrollBar.frame.height
-			newScrollBar.bar.x = newScrollBar.frame.x
-			newScrollBar.bar.y = newScrollBar.frame.y + (newScrollBar.bar.position * (newScrollBar.frame.height - newScrollBar.bar.height))
-		elseif newScrollBar.orientation == "horizontal" then
-			newScrollBar.bar.width = determine_scrollingBarSize (newScrollBar.numVisValues, newScrollBar.numTotalValues) * newScrollBar.frame.width
-			newScrollBar.bar.height = newScrollBar.frame.height
-			newScrollBar.bar.x = newScrollBar.frame.x + (newScrollBar.bar.position * (newScrollBar.frame.width - newScrollBar.bar.width))
-			newScrollBar.bar.y = newScrollBar.frame.y 
+		t.bar = {}
+			t.bar.position = dataRelativePosition
+		if t.orientation == "vertical" then
+			t.bar.width = t.frame.width
+			t.bar.height = determine_scrollingBarSize (t.numVisValues, t.numTotalValues) * t.frame.height
+			t.bar.x = t.frame.x
+			t.bar.y = t.frame.y + (t.bar.position * (t.frame.height - t.bar.height))
+		elseif t.orientation == "horizontal" then
+			t.bar.width = determine_scrollingBarSize (t.numVisValues, t.numTotalValues) * t.frame.width
+			t.bar.height = t.frame.height
+			t.bar.x = t.frame.x + (t.bar.position * (t.frame.width - t.bar.width))
+			t.bar.y = t.frame.y 
 		end
 
-	table.insert(scrollBars,newScrollBar)
+	-- table.insert(scrollBars,t)
+	table.insert(globApp.objects.scrollBars, t)
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 	
 end
 
 
-function scrollBar_delete (id, strgPage)
-	for i = #scrollBars,1,-1 do
-		local scrollbar = scrollBars[i]
-		if scrollbar.id == id and scrollbar.page == strgPage then
-			table.remove(scrollBars,i)
-			globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
-		end
-	end
-end
+-- function scrollBar_delete (id, strgPage)
+-- 	for i = #globApp.objects.scrollBars,1,-1 do
+-- 		local scrollbar = globApp.objects.scrollBars[i]
+-- 		if scrollbar.id == id and scrollbar.page == strgPage then
+-- 			table.remove(globApp.objects.scrollBars,i)
+-- 			globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
+-- 		end
+-- 	end
+-- end
 
 
-function scrollBar_update (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
+function gui_scrollBar_update ()
 
-	for i, sb in ipairs (scrollBars) do
+	if globApp.resizeDetected then
 
-		if sb.id == id and sb.page == strgPage then
+		for i, sb in ipairs (globApp.objects.scrollBars) do
 
 			sb.numVisValues = visibleValues
 			sb.numTotalValues = totalValues
@@ -210,42 +212,18 @@ function scrollBar_update (id, strgPage, x, y, width, height, anchorPoint, visib
 		end
 
 	end
+
 end
 
 
-function scrollBar_draw (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
+function gui_scrollBar_draw (pageName)
 
-	local activePageName = "no page"
+	for i,x in pairs(globApp.objects.scrollBars) do --[[runs continuously]]
 
-	for i, pgs in ipairs (pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
-		end
-	end
-
-	local objExists = false
-
-	for i,x in ipairs(scrollBars) do--[[checks if obj exists to avoid multiple creations of the same object]]
-		if x.id == id then
-			objExists = true
-		end
-	end
-
-
-	if activePageName == strgPage then --[[compares object's pg to current strgPage]]
-
-		if objExists == false then --[[runs once]]
-			scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
-		elseif objExists == true and globApp.resizeDetected == true then --[[updates only if window is resized]]
-			scrollBar_update (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
-		end
-
-		for i,x in pairs(scrollBars) do --[[runs continuously]]
-
-			if x.id == id then --[[isolates code to single sb]]
+			if x.page == pageName then
 
 				if x.bar.position ~= dataRelativePosition and dataRelativePosition ~= nil then
-					
+
 					if x.type == "independent" then
 
 						updateScrollingBarPosition (x.bar.position, id)
@@ -258,10 +236,6 @@ function scrollBar_draw (id, strgPage, x, y, width, height, anchorPoint, visible
 
 				end
 				
-				if x.id == id and x.state == 0  then
-
-				elseif x.id == id and x.state == 1  then
-
 					--------------------------------------------------------------------------
 											--SCROLLBAR FRAME
 					--------------------------------------------------------------------------
@@ -326,23 +300,14 @@ function scrollBar_draw (id, strgPage, x, y, width, height, anchorPoint, visible
 					love.graphics.print(x.bar.position, (x.frame.x + x.frame.width + 10), (x.frame.y + x.frame.height), r, sx, sy, ox, oy, kx, ky)
 
 					love.graphics.reset()
-				end
+				
 
 			end
 
 
 	    end
 
-	elseif activePageName ~= strgPage  then--[[compares object's pg to current strgPage]]
-
-		if objExists == true then --[[runs once]]
-				
-			scrollBar_delete (id, strgPage)
-
-		end
-	
 	end
-end
 
 
 function determine_scrollingBarSize (numOfVisibleValues, numOfScrollableValues) 
@@ -378,7 +343,7 @@ end
 
 
 function updateScrollingBarPosition (dataPercPosition, id)
-	for i, sb in ipairs (scrollBars) do
+	for i, sb in ipairs (globApp.objects.scrollBars) do
 		if sb.state == 1 and sb.id == id then
 			if sb.orientation == "vertical" then
 				sb.bar.y = sb.frame.y + (dataPercPosition * (sb.frame.height - sb.bar.height))
@@ -395,7 +360,7 @@ function focus_scrollingBar (x,y,button,istouch)
 
 	if button == 1 or globApp.userInput == "touch pressed" then 
 
-		for i, sb in ipairs (scrollBars) do
+		for i, sb in ipairs (globApp.objects.scrollBars) do
 
 			if x >= sb.bar.x and x <= (sb.bar.x + sb.bar.width) and y >= sb.bar.y and y <= sb.bar.y + sb.bar.height then
 				sb.isFocused = true
@@ -431,7 +396,7 @@ end
 
 function unfocus_scrollingBar (x,y,button,istouch)
 	if button == 1 or globApp.userInput == "touch released" then --isolate to mouse use
-		for i, sb in ipairs (scrollBars) do
+		for i, sb in ipairs (globApp.objects.scrollBars) do
 			sb.isFocused = false
 			if sb.orientation == "vertical" then
 				sb.upButton.isActive = false
@@ -449,7 +414,7 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 	--moves scrolling bar up or down when the bar is cocused and dragged
 	--runs using the love.mouseMoved callback function
 
-	for i, sb in ipairs (scrollBars) do--scroll through avialable scrollbars
+	for i, sb in ipairs (globApp.objects.scrollBars) do--scroll through avialable scrollbars
 		if sb.orientation == "vertical" then
 			totalPositionSpan = sb.frame.height - sb.bar.height
 		elseif sb.orientation == "horizontal" then
@@ -496,7 +461,7 @@ end
 
 
 function scrollBarButtonsPressed (dt)
-	for i, sb in ipairs (scrollBars) do 
+	for i, sb in ipairs (globApp.objects.scrollBars) do 
 		local speed = (dt + (1 / sb.numTotalValues ) * sb.scrollSpeedFactor)
 
 		if sb.orientation == "vertical" then 
