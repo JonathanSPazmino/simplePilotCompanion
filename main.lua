@@ -132,14 +132,14 @@ function love.load()
 	---------------------------------------------------------------------------
     -- TEXT BOXES
     ---------------------------------------------------------------------------
-    outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
+    gui_outputTextBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
         .05, .05, "LT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
         colorYellow, utcPrintString, 12
     )
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
+    gui_outputTextBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
         colorYellow, text, 12
@@ -147,14 +147,14 @@ function love.load()
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
-    outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
+    gui_outputTextBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
         .05, .3, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
         colorYellow, textAltSlctd, 12
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
-    outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
+    gui_outputTextBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
         .3, .3, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
         colorYellow, textTimeSlctd, 12
@@ -162,7 +162,7 @@ function love.load()
 
     local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
 
-    outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
+    gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
         .4, .5, "LT",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
         colorYellow, requiredFPMtext, 12
@@ -198,19 +198,19 @@ function love.update(dt)
         lastUtcSec = utc.sec
     end
 
-    outputTxtBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
+    gui_outputTextBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    outputTxtBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
+    gui_outputTextBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    outputTxtBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
+    gui_outputTextBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
 
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    outputTxtBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
+    gui_outputTextBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
 
     local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-    outputTxtBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
+    gui_outputTextBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
 
     -- Update GUI
     jpGUI_update(dt)

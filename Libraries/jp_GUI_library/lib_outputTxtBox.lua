@@ -3,7 +3,7 @@
 -----------------------------------------------------------------
 lib_outputTxtBoxes = {}
 
-function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, height, txtColor, text, fontSize)
+function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width, height, txtColor, text, fontSize)
 
 	local labelExists = false
 	for i,x in ipairs(lib_outputTxtBoxes) do
@@ -13,7 +13,7 @@ function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, hei
 	end
 
 	if labelExists == true then
-		outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
+		gui_outputTextBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
 		return
 	end
 
@@ -101,7 +101,7 @@ function outputTxtBox_create (id, page, bgSprite,  x, y, anchorPoint, width, hei
 end
 
 
-function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
+function gui_outputTextBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
 
 	for i, updtLbl in ipairs(lib_outputTxtBoxes) do 
 
@@ -157,7 +157,7 @@ function outputTxtBox_update(id, anchorPoint, x, y, width, height, fontSize, tex
 end
 
 
-function outputTxtBox_delete (id,page)
+function gui_outputTextBox_delete (id,page)
 
 	for i = #lib_outputTxtBoxes,1,-1 do
 
@@ -223,7 +223,7 @@ function isTextInsideTheFrame (txtBoxTable, lineTable)
 end
 
 
-function touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
+function gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
 
 	--isolate table
 	local myTxtBox = lib_outputTxtBoxes
