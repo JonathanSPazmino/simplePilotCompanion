@@ -196,21 +196,40 @@ function love.update(dt)
             utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
         )
         lastUtcSec = utc.sec
+        for _, box in ipairs(globApp.objects.outputTextBox) do
+            if box.name == "utcData" then
+                box.text.text = utcPrintString
+            end
+        end
     end
 
-    -- gui_outputTextBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
-
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    -- gui_outputTextBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
+    for _, box in ipairs(globApp.objects.outputTextBox) do
+        if box.name == "timerTopRight" then
+            box.text.text = text
+        end
+    end
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    -- gui_outputTextBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
+    for _, box in ipairs(globApp.objects.outputTextBox) do
+        if box.name == "selectedAltitudeBox" then
+            box.text.text = textAltSlctd
+        end
+    end
 
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    -- gui_outputTextBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
+    for _, box in ipairs(globApp.objects.outputTextBox) do
+        if box.name == "selectedTimeBox" then
+            box.text.text = textTimeSlctd
+        end
+    end
 
     local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-    -- gui_outputTextBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
+    for _, box in ipairs(globApp.objects.outputTextBox) do
+        if box.name == "requiredFPM" then
+            box.text.text = requiredFPMtext
+        end
+    end
 
     -- Update GUI
     jpGUI_update(dt)

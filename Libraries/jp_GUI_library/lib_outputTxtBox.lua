@@ -79,19 +79,6 @@ function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width
 end
 
 
-function gui_outputTextBoxes_update()
-
-	for i, updtLbl in ipairs(globApp.objects.outputTextBox) do
-
-		if globApp.resizeDetected or (updtLbl.text.text ~= updtLbl.text.lastText) then
-			_recalculate_textBox(updtLbl)
-			updtLbl.text.lastText = updtLbl.text.text
-		end
-
-	end
-
-end
-
 
 local function _recalculate_textBox(updtLbl)
 
@@ -139,6 +126,19 @@ local function _recalculate_textBox(updtLbl)
 		end
 
 	end
+end
+
+function gui_outputTextBoxes_update()
+
+	for i, updtLbl in ipairs(globApp.objects.outputTextBox) do
+
+		if globApp.resizeDetected or (updtLbl.text.text ~= updtLbl.text.lastText) then
+			_recalculate_textBox(updtLbl)
+			updtLbl.text.lastText = updtLbl.text.text
+		end
+
+	end
+
 end
 
 
