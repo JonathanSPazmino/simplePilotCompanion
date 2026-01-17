@@ -247,11 +247,11 @@ function gui_scrollBar_draw (pageName)
 
 					if x.type == "independent" then
 
-						updateScrollingBarPosition (x.bar.position, id)
+						updateScrollingBarPosition (x, x.bar.position)
 
 					elseif x.type == "table-linked" then
 					
-						updateScrollingBarPosition (dataRelativePosition, id)
+						updateScrollingBarPosition (x, dataRelativePosition)
 
 					end
 
@@ -363,16 +363,13 @@ function determine_scrollingBarSize (numOfVisibleValues, numOfScrollableValues)
 end
 
 
-function updateScrollingBarPosition (dataPercPosition, id)
-	for i, sb in ipairs (globApp.objects.scrollBars) do
-		if sb.state == 1 and sb.id == id then
-			if sb.orientation == "vertical" then
-				sb.bar.y = sb.frame.y + (dataPercPosition * (sb.frame.height - sb.bar.height))
-			elseif sb.orientation == "horizontal" then
-				sb.bar.x = sb.frame.x + (dataPercPosition * (sb.frame.width - sb.bar.width))
-			end
+function updateScrollingBarPosition (sb, dataPercPosition)
+	if sb.state == 1 then
+		if sb.orientation == "vertical" then
+			sb.bar.y = sb.frame.y + (dataPercPosition * (sb.frame.height - sb.bar.height))
+		elseif sb.orientation == "horizontal" then
+			sb.bar.x = sb.frame.x + (dataPercPosition * (sb.frame.width - sb.bar.width))
 		end
-
 	end
 end
 
