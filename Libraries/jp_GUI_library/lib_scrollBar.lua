@@ -384,25 +384,62 @@ function focus_scrollingBar (x,y,button,istouch)
 				sb.isFocused = true
 			end
 
+			local stepSize = 0
+			if sb.numTotalValues and sb.numTotalValues > 0 then
+				stepSize = 1 / sb.numTotalValues
+			end
+
 			if sb.orientation == "vertical" then
 				
 				if x >= sb.upButton.x and x <= (sb.upButton.x + sb.upButton.width) and y >= sb.upButton.y and y <= sb.upButton.y + sb.upButton.height then
-					sb.upButton.isActive = true
+					if not sb.upButton.isActive then -- Only step if not already active (first press)
+						sb.upButton.isActive = true
+						-- Discrete step for up arrow
+						sb.bar.position = math.max(0, sb.bar.position - stepSize)
+						updateScrollingBarPosition(sb, sb.bar.position)
+						if sb.callbackString ~= nil then
+							getfenv()[sb.callbackString](sb.bar.position)
+						end
+					end
 				end
 
 				if x >= sb.downButton.x and x <= (sb.downButton.x + sb.downButton.width) and y >= sb.downButton.y and y <= sb.downButton.y + sb.downButton.height then
-					sb.downButton.isActive = true
+					if not sb.downButton.isActive then -- Only step if not already active (first press)
+						sb.downButton.isActive = true
+						-- Discrete step for down arrow
+						sb.bar.position = math.min(1, sb.bar.position + stepSize)
+						updateScrollingBarPosition(sb, sb.bar.position)
+						if sb.callbackString ~= nil then
+							getfenv()[sb.callbackString](sb.bar.position)
+						end
+					end
 				end
 
 			elseif sb.orientation == "horizontal" then
 				
 				if x >= sb.leftButton.x and x <= (sb.leftButton.x + sb.leftButton.width) and y >= sb.leftButton.y and y <= sb.leftButton.y + sb.leftButton.height then
-					sb.leftButton.isActive = true
+					if not sb.leftButton.isActive then -- Only step if not already active (first press)
+						sb.leftButton.isActive = true
+						-- Discrete step for left arrow
+						sb.bar.position = math.max(0, sb.bar.position - stepSize)
+						updateScrollingBarPosition(sb, sb.bar.position)
+						if sb.callbackString ~= nil then
+							getfenv()[sb.callbackString](sb.bar.position)
+						end
+					end
 				end
 
 				if x >= sb.rightButton.x and x <= (sb.rightButton.x + sb.rightButton.width) and y >= sb.rightButton.y and y <= sb.rightButton.y + sb.rightButton.height then
-					sb.rightButton.isActive = true
-				end
+					if not sb.rightButton.isActive then -- Only step if not already active (first press)
+						sb.rightButton.isActive = true
+						-- Discrete step for right arrow
+						sb.bar.position = math.min(1, sb.bar.position + stepSize)
+						updateScrollingBarPosition(sb, sb.bar.position)
+						if sb.callbackString ~= nil then
+							getfenv()[sb.callbackString](sb.bar.position)
+						end
+					end
+				end -- Added missing 'end'
 
 			end
 
@@ -450,6 +487,11 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 						sb.bar.y = (sb.frame.y + sb.frame.height) - sb.bar.height
 					end
 					sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
+					-- Snap to nearest increment
+					if sb.numTotalValues and sb.numTotalValues > 0 then
+						sb.bar.position = math.floor(sb.bar.position * sb.numTotalValues + 0.5) / sb.numTotalValues
+					end
+					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				elseif sb.orientation == "horizontal" then
 					if x - (sb.bar.width / 2) >= sb.frame.x and ((x - (sb.bar.width / 2)) + sb.bar.width) <= (sb.frame.x + sb.frame.width) then
 						sb.bar.x = x - (sb.bar.width / 2)
@@ -459,6 +501,11 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 						sb.bar.x = (sb.frame.x + sb.frame.width) - sb.bar.width
 					end
 					sb.bar.position = (sb.bar.x - sb.frame.x) / totalPositionSpan
+					-- Snap to nearest increment
+					if sb.numTotalValues and sb.numTotalValues > 0 then
+						sb.bar.position = math.floor(sb.bar.position * sb.numTotalValues + 0.5) / sb.numTotalValues
+					end
+					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				end
 				
 				if sb.callbackString ~= nil then
@@ -479,124 +526,8 @@ end
 
 
 function scrollBarButtonsPressed (dt)
-	for i, sb in ipairs (globApp.objects.scrollBars) do 
-		local speed = (dt + (1 / sb.numTotalValues ) * sb.scrollSpeedFactor)
-
-		if sb.orientation == "vertical" then 
-			local totalPositionSpan = sb.frame.height - sb.bar.height
-
-			if totalPositionSpan > 0 then
-
-				if sb.downButton.isActive == true then
-
-					if sb.bar.y + speed <= (sb.frame.y + sb.frame.height) - sb.bar.height then
-
-						sb.bar.y = sb.bar.y + speed
-
-					elseif sb.bar.y + speed > (sb.frame.y + sb.frame.height) - sb.bar.height then
-
-						sb.bar.y = (sb.frame.y + sb.frame.height) - sb.bar.height
-
-					end
-
-					sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
-
-					if sb.callbackString ~= nil then
-
-						getfenv()[sb.callbackString](sb.bar.position)
-
-					elseif sb.callbackString == nil then
-
-						print ("no callback assigned to " .. sb.id .. " scrollbar")
-
-					end
-
-				elseif sb.upButton.isActive == true then
-
-					if sb.bar.y - speed >= sb.frame.y  then
-
-						sb.bar.y = sb.bar.y - speed
-
-					elseif sb.bar.y - speed < sb.frame.y then
-
-						sb.bar.y = sb.frame.y
-
-					end
-
-					sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
-
-					if sb.callbackString ~= nil then
-
-						getfenv()[sb.callbackString](sb.bar.position)
-
-					elseif sb.callbackString == nil then
-
-						print ("no callback assigned to " .. sb.id .. " scrollbar")
-
-					end
-
-				end
-
-			end
-		elseif sb.orientation == "horizontal" then
-
-			local totalPositionSpan = sb.frame.width - sb.bar.width
-
-			if totalPositionSpan > 0 then
-
-				if sb.rightButton.isActive == true then
-
-					if sb.bar.x + speed <= (sb.frame.x + sb.frame.width) - sb.bar.width then
-
-						sb.bar.x = sb.bar.x + speed
-
-					elseif sb.bar.x + speed > (sb.frame.x + sb.frame.width) - sb.bar.width then
-
-						sb.bar.x = (sb.frame.x + sb.frame.width) - sb.bar.width
-
-					end
-
-					sb.bar.position = (sb.bar.x - sb.frame.x) / totalPositionSpan
-
-					if sb.callbackString ~= nil then
-
-						getfenv()[sb.callbackString](sb.bar.position)
-
-					elseif sb.callbackString == nil then
-
-						print ("no callback assigned to " .. sb.id .. " scrollbar")
-
-					end
-
-				elseif sb.leftButton.isActive == true then
-
-					if sb.bar.x - speed >= sb.frame.x  then
-
-						sb.bar.x = sb.bar.x - speed
-
-					elseif sb.bar.x - speed < sb.frame.x then
-
-						sb.bar.x = sb.frame.x
-
-					end
-
-					sb.bar.position = (sb.bar.x - sb.frame.x) / totalPositionSpan
-
-					if sb.callbackString ~= nil then
-
-						getfenv()[sb.callbackString](sb.bar.position)
-
-					elseif sb.callbackString == nil then
-
-						print ("no callback assigned to " .. sb.id .. " scrollbar")
-
-					end
-
-				end
-
-			end
-		end
-	end
+	-- Continuous scrolling for scrollbar buttons is now handled by discrete steps in focus_scrollingBar.
+	-- This function will no longer actively move scrollbars based on button presses.
 end
 
 
