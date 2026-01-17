@@ -1,5 +1,19 @@
 --scrollBar.lua
 
+gui_scrollBar_assets = {}
+
+function gui_scrollBar_init_assets()
+    gui_scrollBar_assets.up_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_pushed.png")
+    gui_scrollBar_assets.up_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
+    gui_scrollBar_assets.down_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_downArrowButton_pushed.png")
+    gui_scrollBar_assets.down_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_downArrowButton_released.png")
+    gui_scrollBar_assets.left_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_pushed.png")
+    gui_scrollBar_assets.left_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
+    gui_scrollBar_assets.right_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_rightArrowButton_pushed.png")
+    gui_scrollBar_assets.right_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_rightArrowButton_released.png")
+end
+gui_scrollBar_init_assets() -- Call the function immediately after its definition
+
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
 
@@ -18,6 +32,14 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		t.numVisValues = visibleValues
 		t.numTotalValues = totalValues
 		t.callbackString = callback
+
+		t.original = {
+			x = x,
+			y = y,
+			width = width,
+			height = height,
+			anchorPoint = anchorPoint
+		}
 
 		
 		t.frame = {}
@@ -38,10 +60,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 	
 		if t.orientation == "vertical" then
 
-			t.imgButtonUpArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_UpArrowButton_pushed.png")
-			t.imgButtonUpArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
-			t.imgButtonDownArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_pushed.png")
-			t.imgButtonDownArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_downArrowButton_released.png")
+			t.imgButtonUpArrow_active = gui_scrollBar_assets.up_active
+			t.imgButtonUpArrow_inactive = gui_scrollBar_assets.up_inactive
+			t.imgButtonDownArrow_active = gui_scrollBar_assets.down_active
+			t.imgButtonDownArrow_inactive = gui_scrollBar_assets.down_inactive
 
 			t.upButton = {}
 				t.upButton.width = width * globApp.safeScreenArea.w
@@ -66,10 +88,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		
 		elseif t.orientation == "horizontal" then
 
-			t.imgButtonLeftArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_leftArrowButton_pushed.png")
-			t.imgButtonLeftArrow_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
-			t.imgButtonRightArrow_active = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_pushed.png")
-			t.imgButtonRightArrow_inactive = love.graphics.newImage(devSpritesPath .."jpLoveGUI_rightArrowButton_released.png")
+			t.imgButtonLeftArrow_active = gui_scrollBar_assets.left_active
+			t.imgButtonLeftArrow_inactive = gui_scrollBar_assets.left_inactive
+			t.imgButtonRightArrow_active = gui_scrollBar_assets.right_active
+			t.imgButtonRightArrow_inactive = gui_scrollBar_assets.right_inactive
 			
 			t.leftButton = {}
 				t.leftButton.width = height * globApp.safeScreenArea.h
@@ -132,28 +154,28 @@ function gui_scrollBar_update ()
 
 		for i, sb in ipairs (globApp.objects.scrollBars) do
 
-			sb.numVisValues = visibleValues
-			sb.numTotalValues = totalValues
-
-			sb.frame.width = width * globApp.safeScreenArea.w
-			sb.frame.height = height * globApp.safeScreenArea.h
+			-- Use the original, relative values for recalculation
+			local original = sb.original
+			
+			sb.frame.width = original.width * globApp.safeScreenArea.w
+			sb.frame.height = original.height * globApp.safeScreenArea.h
 			sb.frame.positions = 
-					relativePosition (anchorPoint, 
-										x,
-										y, 
+					relativePosition (original.anchorPoint, 
+										original.x,
+										original.y, 
 										sb.frame.width, 
 										sb.frame.height, 
 										globApp.safeScreenArea.x,
 										globApp.safeScreenArea.y, 
 										globApp.safeScreenArea.w, 
 										globApp.safeScreenArea.h)
-			sb.frame.x = sb.frame.positions[1]
-			sb.frame.y = sb.frame.positions[2]
+			sb.frame.x = sb.frame.positions[1] - globApp.safeScreenArea.x
+			sb.frame.y = sb.frame.positions[2] - globApp.safeScreenArea.y
 			
 			if sb.orientation == "vertical" then
 
-				sb.upButton.width = width * globApp.safeScreenArea.w
-				sb.upButton.height = width * globApp.safeScreenArea.w
+				sb.upButton.width = original.width * globApp.safeScreenArea.w
+				sb.upButton.height = original.width * globApp.safeScreenArea.w
 				sb.upButton.x = sb.frame.x
 				sb.upButton.y = sb.frame.y
 				sb.upButton.factorWidth = sb.frame.width / sb.imgButtonUpArrow_active:getWidth ()
@@ -161,8 +183,8 @@ function gui_scrollBar_update ()
 				sb.upButton.isActive = false
 
 
-				sb.downButton.width = width * globApp.safeScreenArea.w
-				sb.downButton.height = width * globApp.safeScreenArea.w
+				sb.downButton.width = original.width * globApp.safeScreenArea.w
+				sb.downButton.height = original.width * globApp.safeScreenArea.w
 				sb.downButton.x = sb.frame.x
 				sb.downButton.y = sb.frame.y + sb.frame.height - sb.downButton.height
 				sb.downButton.factorWidth = sb.frame.width / sb.imgButtonDownArrow_active:getWidth ()
@@ -174,16 +196,16 @@ function gui_scrollBar_update ()
 			
 			elseif sb.orientation == "horizontal" then
 
-				sb.leftButton.width = height * globApp.safeScreenArea.h
-				sb.leftButton.height = height * globApp.safeScreenArea.h
+				sb.leftButton.width = original.height * globApp.safeScreenArea.h
+				sb.leftButton.height = original.height * globApp.safeScreenArea.h
 				sb.leftButton.x = sb.frame.x
 				sb.leftButton.y = sb.frame.y
 				sb.leftButton.factorWidth = sb.leftButton.height / sb.imgButtonLeftArrow_active:getHeight ()
 				sb.leftButton.factorHeight = sb.leftButton.height / sb.imgButtonLeftArrow_active:getHeight ()
 				sb.leftButton.isActive = false
 
-				sb.rightButton.width = height * globApp.safeScreenArea.h
-				sb.rightButton.height = height * globApp.safeScreenArea.h
+				sb.rightButton.width = original.height * globApp.safeScreenArea.h
+				sb.rightButton.height = original.height * globApp.safeScreenArea.h
 				sb.rightButton.x = sb.frame.x + sb.frame.width - sb.rightButton.width
 				sb.rightButton.y = sb.frame.y
 				sb.rightButton.factorWidth = sb.rightButton.height / sb.imgButtonRightArrow_active:getHeight ()
@@ -195,8 +217,7 @@ function gui_scrollBar_update ()
 
 			end
 
-			sb.bar.position = dataRelativePosition
-
+			-- sb.bar.position is updated externally, so we only recalculate its physical position
 			if sb.orientation == "vertical" then
 				sb.bar.width = sb.frame.width
 				sb.bar.height = determine_scrollingBarSize (sb.numVisValues, sb.numTotalValues) * sb.frame.height
