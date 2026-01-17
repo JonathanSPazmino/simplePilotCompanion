@@ -168,6 +168,22 @@ function love.load()
         colorYellow, requiredFPMtext, 12
     )
 
+
+    ----------------------------------------------------------------------------
+    --SCROLLBARS
+    ----------------------------------------------------------------------------
+
+    gui_scrollBar_create ("altScale", "MainMenu", 
+        0.1, 0.4, .05, .3, "LT", 5, 51, 1, 
+        "independent", "vertical", 51, "roundSelectedAltitude")
+
+    gui_scrollBar_create ("timeScale", "MainMenu", 
+        0.2, 0.4, .05, .3, "LT", 5, 25, 1, 
+        "independent", "vertical", 25, "roundSelectedTime")
+
+
+
+
     page_switch("IntialBooting", 3, 2, false)
 
     font = love.graphics.newFont(20)
@@ -307,13 +323,7 @@ function mainMenuDisplay()
     -- SCROLLBARS
     ----------------------------------------------------------------------------
 
-    scrollBar_draw ("altScale", thisPageName, 
-        0.1, 0.4, .05, .3, "LT", 5, 41, 1, 
-        "independent", "vertical", 20, "roundSelectedAltitude")
 
-    scrollBar_draw ("timeScale", thisPageName, 
-        0.2, 0.4, .05, .3, "LT", 5, 41, 1, 
-        "independent", "vertical", 20, "roundSelectedTime")
 
 
 end
@@ -441,6 +451,6 @@ end
 
 
 function roundSelectedTime (pos)
-    selectedTime = math.max(0, math.ceil(25 * (1 - pos)))
+    selectedTime = math.max(0, math.ceil(25 * (1 - pos) - 1e-9))
 end 
 

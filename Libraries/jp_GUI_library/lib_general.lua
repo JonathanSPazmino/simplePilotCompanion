@@ -125,9 +125,10 @@ function jpGUI_update (dt)
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = areRequiredTextBoxesEmpty ()
 	end
 
-	--BUTTONS:
+	--GUI OBJECTS:
 	gui_buttons_update ()
 	gui_outputTextBoxes_update()
+	gui_scrollBar_update ()
 
 
 
@@ -164,6 +165,7 @@ function draw_gui ()
 
 	gui_buttons_draw (activePageName)
 	gui_outputTxtBox_draw (activePageName)
+	gui_scrollBar_draw (activePageName)
 
 end
 
