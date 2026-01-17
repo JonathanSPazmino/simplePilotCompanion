@@ -12,6 +12,9 @@ function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width
 		tb.page = page --[[page location for creation and deleting purposes]]
 		tb.type = labelType --toggle, pushOnOff, Selector
 
+		tb.x = x
+		tb.y = y
+		tb.anchorPoint = anchorPoint
 		tb.rltvWidth = width --[[percentage of screen size]]
 		tb.rltvHeight = height --[[percentage of screen size]]
 			local myPositions = relativePosition (anchorPoint, x, y, tb.rltvWidth, tb.rltvHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --[[do not move this line to other part]]
@@ -37,9 +40,11 @@ function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width
 			if tb.state == 1 then 
 				tb.text.color = txtColor
 				tb.text.text = text
+				tb.text.lastText = text
 			elseif tb.state == 2 then
 				tb.text.color = {1,0,0,1}
 				tb.text.text = "txtOutputBox Error"
+				tb.text.lastText = "txtOutputBox Error"
 			end
 
 			tb.text.width = tb.frame.width * 0.8
@@ -74,61 +79,66 @@ function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width
 end
 
 
-function gui_outputTextBox_update()
-	-- id, anchorPoint, x, y, width, height, fontSize, text, bgSprite
+function gui_outputTextBoxes_update()
 
 	for i, updtLbl in ipairs(globApp.objects.outputTextBox) do
 
-        if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
-
-
-			updtLbl.rltvWidth = width --[[percentage of screen size]]
-			updtLbl.rltvHeight = height --[[percentage of screen size]]
-			local myPositions = relativePosition (anchorPoint, x, y, updtLbl.rltvWidth, updtLbl.rltvHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --[[do not move this line to other part]]
-
-			updtLbl.frame.width = width
-			updtLbl.frame.height = height
-			updtLbl.frame.x = math.floor(myPositions[1])
-			updtLbl.frame.y = math.floor(myPositions[2])
-
-			if bgSprite ~= nil then
-				updtLbl.bgSprite.sprite = love.graphics.newImage(bgSprite) --nil is ok
-				updtLbl.bgSprite.width = width / updtLbl.bgSprite.sprite:getWidth ()
-				updtLbl.bgSprite.height = height / updtLbl.bgSprite.sprite:getHeight ()
-				updtLbl.bgSprite.x = updtLbl.frame.x
-				updtLbl.bgSprite.y = updtLbl.frame.y
-			end
-			
-			updtLbl.text.font = love.graphics.newFont(fontSize)
-			updtLbl.text.text = text
-
-			updtLbl.text.width= updtLbl.frame.width * 0.8
-			updtLbl.text.maxTextLineCount = findMaxNumOfLinesNeeded (updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
-			updtLbl.text.height = returnFontInfo (updtLbl.text.font, "height")
-			updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
-			updtLbl.text.x = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width)/2)
-			updtLbl.text.baseY = updtLbl.frame.y
-
-			-- gathers text string information, puts the string into a table for iteration
-			local width, wrappedtext = updtLbl.text.font:getWrap( updtLbl.text.text, updtLbl.text.width )
-			updtLbl.text.lines = {}
-			for t, l in ipairs (wrappedtext) do
-				local newLine = {}
-				newLine.text = l
-				newLine.x = updtLbl.text.x
-				newLine.width = updtLbl.text.width
-				newLine.y = updtLbl.text.baseY + ((updtLbl.text.height * t) - updtLbl.text.height)
-				newLine.height = updtLbl.text.height
-				newLine.color = updtLbl.text.color
-				newLine.alignement = "center"
-				newLine.isVisible = isTextInsideTheFrame (updtLbl.frame, newLine)
-				table.insert(updtLbl.text.lines, newLine)
-			end
-
+		if globApp.resizeDetected or (updtLbl.text.text ~= updtLbl.text.lastText) then
+			_recalculate_textBox(updtLbl)
+			updtLbl.text.lastText = updtLbl.text.text
 		end
 
 	end
 
+end
+
+
+local function _recalculate_textBox(updtLbl)
+
+	if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
+
+
+		updtLbl.rltvWidth = updtLbl.frame.width --[[percentage of screen size]]
+		updtLbl.rltvHeight = updtLbl.frame.height --[[percentage of screen size]]
+		local myPositions = relativePosition (updtLbl.anchorPoint, updtLbl.x, updtLbl.y, updtLbl.rltvWidth, updtLbl.rltvHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --[[do not move this line to other part]]
+
+		updtLbl.frame.width = updtLbl.frame.width
+		updtLbl.frame.height = updtLbl.frame.height
+		updtLbl.frame.x = math.floor(myPositions[1])
+		updtLbl.frame.y = math.floor(myPositions[2])
+
+		if updtLbl.bgSprite.sprite ~= nil then
+			-- updtLbl.bgSprite.sprite = love.graphics.newImage(bgSprite) --nil is ok
+			updtLbl.bgSprite.width = updtLbl.frame.width / updtLbl.bgSprite.sprite:getWidth ()
+			updtLbl.bgSprite.height = updtLbl.frame.height / updtLbl.bgSprite.sprite:getHeight ()
+			updtLbl.bgSprite.x = updtLbl.frame.x
+			updtLbl.bgSprite.y = updtLbl.frame.y
+		end
+		
+		updtLbl.text.width= updtLbl.frame.width * 0.8
+		updtLbl.text.maxTextLineCount = findMaxNumOfLinesNeeded (updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
+		updtLbl.text.height = returnFontInfo (updtLbl.text.font, "height")
+		updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
+		updtLbl.text.x = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width)/2)
+		updtLbl.text.baseY = updtLbl.frame.y
+
+		-- gathers text string information, puts the string into a table for iteration
+		local width, wrappedtext = updtLbl.text.font:getWrap( updtLbl.text.text, updtLbl.text.width )
+		updtLbl.text.lines = {}
+		for t, l in ipairs (wrappedtext) do
+			local newLine = {}
+			newLine.text = l
+			newLine.x = updtLbl.text.x
+			newLine.width = updtLbl.text.width
+			newLine.y = updtLbl.text.baseY + ((updtLbl.text.height * t) - updtLbl.text.height)
+			newLine.height = updtLbl.text.height
+			newLine.color = updtLbl.text.color
+			newLine.alignement = "center"
+			newLine.isVisible = isTextInsideTheFrame (updtLbl.frame, newLine)
+			table.insert(updtLbl.text.lines, newLine)
+		end
+
+	end
 end
 
 
