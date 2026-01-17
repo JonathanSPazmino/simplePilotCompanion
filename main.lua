@@ -183,10 +183,6 @@ function love.load()
     selectedTime = 0
 end
 
-function testFunctionForRefactoring ()
-print ("testFunctionForRefactoring running")
-end
-
 function love.update(dt)
     -- Update UTC clock string only when the second changes
     utc = os.date("!*t")
@@ -196,40 +192,24 @@ function love.update(dt)
             utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
         )
         lastUtcSec = utc.sec
-        for _, box in ipairs(globApp.objects.outputTextBox) do
-            if box.name == "utcData" then
-                box.text.text = utcPrintString
-            end
-        end
+        gui_updateOutputTextBoxText("utcData", utcPrintString)
     end
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    for _, box in ipairs(globApp.objects.outputTextBox) do
-        if box.name == "timerTopRight" then
-            box.text.text = text
-        end
-    end
+    gui_updateOutputTextBoxText("timerTopRight", text)
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    for _, box in ipairs(globApp.objects.outputTextBox) do
-        if box.name == "selectedAltitudeBox" then
-            box.text.text = textAltSlctd
-        end
-    end
+    gui_updateOutputTextBoxText("selectedAltitudeBox", textAltSlctd)
 
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    for _, box in ipairs(globApp.objects.outputTextBox) do
-        if box.name == "selectedTimeBox" then
-            box.text.text = textTimeSlctd
-        end
-    end
+    gui_updateOutputTextBoxText("selectedTimeBox", textTimeSlctd)
 
-    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-    for _, box in ipairs(globApp.objects.outputTextBox) do
-        if box.name == "requiredFPM" then
-            box.text.text = requiredFPMtext
-        end
+    local requiredFPM = 0
+    if selectedTime > 0 then
+        requiredFPM = math.ceil(selectedAltitude / selectedTime)
     end
+    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
+    gui_updateOutputTextBoxText("requiredFPM", requiredFPMtext)
 
     -- Update GUI
     jpGUI_update(dt)
@@ -250,9 +230,9 @@ function love.update(dt)
             blink.active = true
             gui_button_setState("acknowlegeAlarm", "released")
             alarmButtonsDeactivation()
-for _, btn in ipairs(globApp.objects.buttons) do
+            for _, btn in ipairs(globApp.objects.buttons) do
                 if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
-        btn.state = globApp.BUTTON_STATES.RELEASED
+                    btn.state = globApp.BUTTON_STATES.RELEASED
                 end
             end
         end

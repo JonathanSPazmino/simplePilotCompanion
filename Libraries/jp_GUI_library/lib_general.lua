@@ -992,7 +992,7 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 
 			touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
-			touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
+			gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
 
 		end
 

@@ -274,3 +274,12 @@ function gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouc
 
 	end
 end
+
+function gui_updateOutputTextBoxText(name, text)
+    for _, box in ipairs(globApp.objects.outputTextBox) do
+        if box.name == name then
+            box.text.text = text
+            break
+        end
+    end
+end
