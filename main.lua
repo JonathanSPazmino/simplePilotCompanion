@@ -19,8 +19,14 @@ page_create(3, "MainMenu", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6
 -------------------------------------------------------------------------------
 local utc = {}
 local utcPrintString = ""
+local lastUtcSec = -1 -- Add a variable to track the last updated second
 local lastSavedCountDownTime = 0
 local font
+
+-- Pre-defined colors to avoid creating tables in love.update
+local colorRed = {1, 0, 0, 1}
+local colorGray = {0.2, 0.2, 0.2, 1}
+local colorYellow = {1, 1, 0, 1}
 
 -- Timer object
 local timer = {
@@ -52,6 +58,116 @@ end
 -- LOVE CALLBACKS
 -------------------------------------------------------------------------------
 function love.load()
+    selectedAltitude = 0
+    selectedTime = 0
+
+    ---------------------------------------------------------------------------
+    -- BUTTONS
+    ---------------------------------------------------------------------------
+    gui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
+        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED
+    )
+
+    gui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
+        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
+        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED
+    )
+
+    gui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED
+    )
+
+    gui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .05, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+    )
+
+    gui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .5, .15, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+    )
+
+    gui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
+        "Sprites/invisibleBox.png", .92, .05, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+    )
+
+    gui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
+        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
+        "Sprites/invisibleBox.png", .92, .15, "LT",
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
+        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
+        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+    )
+
+
+    gui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
+       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
+        "Sprites/invisibleBox.png", 
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED
+    )
+	
+	---------------------------------------------------------------------------
+    -- TEXT BOXES
+    ---------------------------------------------------------------------------
+    gui_outputTextBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
+        .05, .05, "LT",
+        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
+        colorYellow, utcPrintString, 12
+    )
+
+    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
+    gui_outputTextBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
+        .90, .05, "RT",
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        colorYellow, text, 12
+    )
+
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    
+    gui_outputTextBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
+        .05, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, textAltSlctd, 12
+    )
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    
+    gui_outputTextBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
+        .3, .3, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, textTimeSlctd, 12
+    )
+
+    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
+
+    gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
+        .4, .5, "LT",
+        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        colorYellow, requiredFPMtext, 12
+    )
+
     page_switch("IntialBooting", 3, 2, false)
 
     font = love.graphics.newFont(20)
@@ -68,18 +184,38 @@ function love.load()
 end
 
 function love.update(dt)
-    -- Update UTC clock string
+    -- Update UTC clock string only when the second changes
     utc = os.date("!*t")
-    utcPrintString = string.format(
-        "UTC:\n%04d-%02d-%02d\n%02d:%02d:%02d",
-        utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
-    )
+    if utc.sec ~= lastUtcSec then
+        utcPrintString = string.format(
+            "UTC:\n%04d-%02d-%02d\n%02d:%02d:%02d",
+            utc.year, utc.month, utc.day, utc.hour, utc.min, utc.sec
+        )
+        lastUtcSec = utc.sec
+        gui_updateOutputTextBoxText("utcData", utcPrintString)
+    end
+
+    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
+    gui_updateOutputTextBoxText("timerTopRight", text)
+
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    gui_updateOutputTextBoxText("selectedAltitudeBox", textAltSlctd)
+
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    gui_updateOutputTextBoxText("selectedTimeBox", textTimeSlctd)
+
+    local requiredFPM = 0
+    if selectedTime > 0 then
+        requiredFPM = math.ceil(selectedAltitude / selectedTime)
+    end
+    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
+    gui_updateOutputTextBoxText("requiredFPM", requiredFPMtext)
 
     -- Update GUI
     jpGUI_update(dt)
 
     if blink.active == false then
-            setButtonState( "acknowlegeAlarm", "deactivated" )
+            gui_button_setState( "acknowlegeAlarm", "deactivated" )
     end
 
     -- Skip if timer not running
@@ -92,11 +228,11 @@ function love.update(dt)
         if timer.t == 0 then
             timer.running = false
             blink.active = true
-            setButtonState("acknowlegeAlarm", "released")
+            gui_button_setState("acknowlegeAlarm", "released")
             alarmButtonsDeactivation()
-            for _, btn in ipairs(lib_buttons) do
-                if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-                    btn.state = 1
+            for _, btn in ipairs(globApp.objects.buttons) do
+                if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+                    btn.state = globApp.BUTTON_STATES.RELEASED
                 end
             end
         end
@@ -111,7 +247,7 @@ function love.update(dt)
             blink.state = not blink.state
 
             if blink.state then
-                globApp.appColor = {1, 0, 0, 1} -- red
+                globApp.appColor = colorRed -- red
                 -- Vibrate device if capable
                 if love.system.vibrate then
                     love.system.vibrate(0.1) -- short vibration
@@ -121,16 +257,16 @@ function love.update(dt)
                     love.audio.play(beepSound)
                 end
             else
-                globApp.appColor = {0.2, 0.2, 0.2, 1} -- normal gray
+                globApp.appColor = colorGray -- normal gray
             end
         end
     end
 
     --handles play button state during countdown based on timer
     if timer.t <= 0 then 
-        for _, btn in ipairs(lib_buttons) do
-            if btn.name == "modeSelectRHTopTimer" and btn.state == 2 then
-                setButtonState ( "pauseRHTopTimer", "deactivated")
+        for _, btn in ipairs(globApp.objects.buttons) do
+            if btn.name == "modeSelectRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+                gui_button_setState ( "pauseRHTopTimer", "deactivated")
             end
         end
     end
@@ -138,7 +274,8 @@ end
 
 function love.draw()
     drawPages()
-    jpGUI_draw()
+    jpGUI_draw ()
+    
 end
 
 -------------------------------------------------------------------------------
@@ -160,113 +297,12 @@ function mainMenuDisplay()
     local fontSize = 12
     local thisPageName = "MainMenu"
 
-    ---------------------------------------------------------------------------
-    -- BUTTONS
-    ---------------------------------------------------------------------------
-    drawButtons("resetRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "resetRHTopTimer", 1
-    )
-
-    drawButtons("pauseRHTopTimer", thisPageName, "toggle",
-        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "pauseRHTopTimer", 1
-    )
-
-    drawButtons("modeSelectRHTopTimer", thisPageName, "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "modeSelectRHTopTimer", 1
-    )
-
-    drawButtons("incrsMinRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", .5, .05, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsMinRHTopTimer", 0
-    )
-
-    drawButtons("dcrsMinRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", .5, .15, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsMinRHTopTimer", 0
-    )
-
-    drawButtons("incrsSecRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", .92, .05, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsSecRHTopTimer", 0
-    )
-
-    drawButtons("dcrsSecRHTopTimer", thisPageName, "pushonoff",
-        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", .92, .15, "LT",
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
-        smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsSecRHTopTimer", 0
-    )
-
-
-
-    drawButtons("acknowlegeAlarm", thisPageName, "pushonoff", --MUST BE DRAWED AFTR TEXTBOX
-       "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 
-        .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        "acknowlegeAlarm", 0
-    )
+    
 
     ---------------------------------------------------------------------------
     -- TEXT BOXES
     ---------------------------------------------------------------------------
-    outputTxtBox_draw("utcData", thisPageName, "Sprites/invisibleBox.png",
-        .05, .05, "LT",
-        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
-        {1, 1, 0, 1}, utcPrintString, fontSize
-    )
-
-    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    outputTxtBox_draw("timerTopRight", thisPageName, "Sprites/invisibleBox.png",
-        .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        {1, 1, 0, 1}, text, fontSize
-    )
-
-    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
-    outputTxtBox_draw("selectedAltitudeBox", thisPageName, "Sprites/invisibleBox.png",
-        .05, .3, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, textAltSlctd, fontSize
-    )
-    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    
-    outputTxtBox_draw("selectedTimeBox", thisPageName, "Sprites/invisibleBox.png",
-        .3, .3, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, textTimeSlctd, fontSize
-    )
-
-    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-
-    outputTxtBox_draw("requiredFPM", thisPageName, "Sprites/invisibleBox.png",
-        .4, .5, "LT",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        {1, 1, 0, 1}, requiredFPMtext, fontSize
-    )
     ----------------------------------------------------------------------------
     -- SCROLLBARS
     ----------------------------------------------------------------------------
@@ -301,25 +337,25 @@ end
 
 function alarmButtonsDeactivation ()
 
-    setButtonState( "modeSelectRHTopTimer", "deactivated" )
-    setButtonState( "incrsMinRHTopTimer", "deactivated" )
-    setButtonState( "dcrsMinRHTopTimer", "deactivated" )
-    setButtonState( "incrsSecRHTopTimer", "deactivated" )
-    setButtonState( "dcrsSecRHTopTimer", "deactivated" )
-    setButtonState( "pauseRHTopTimer", "deactivated" )
-    setButtonState( "resetRHTopTimer", "deactivated" )
+    gui_button_setState( "modeSelectRHTopTimer", "deactivated" )
+    gui_button_setState( "incrsMinRHTopTimer", "deactivated" )
+    gui_button_setState( "dcrsMinRHTopTimer", "deactivated" )
+    gui_button_setState( "incrsSecRHTopTimer", "deactivated" )
+    gui_button_setState( "dcrsSecRHTopTimer", "deactivated" )
+    gui_button_setState( "pauseRHTopTimer", "deactivated" )
+    gui_button_setState( "resetRHTopTimer", "deactivated" )
 
 end
 
 function alarmAcklgBtnsActiation ()
 
-    setButtonState( "modeSelectRHTopTimer", "pushed" )
-    setButtonState( "incrsMinRHTopTimer", "released" )
-    setButtonState( "dcrsMinRHTopTimer", "released" )
-    setButtonState( "incrsSecRHTopTimer", "released" )
-    setButtonState( "dcrsSecRHTopTimer", "released" )
-    setButtonState( "pauseRHTopTimer", "released" )
-    setButtonState( "resetRHTopTimer", "released" )
+    gui_button_setState( "modeSelectRHTopTimer", "pushed" )
+    gui_button_setState( "incrsMinRHTopTimer", "released" )
+    gui_button_setState( "dcrsMinRHTopTimer", "released" )
+    gui_button_setState( "incrsSecRHTopTimer", "released" )
+    gui_button_setState( "dcrsSecRHTopTimer", "released" )
+    gui_button_setState( "pauseRHTopTimer", "released" )
+    gui_button_setState( "resetRHTopTimer", "released" )
 
 end
 
@@ -328,15 +364,15 @@ function resetRHTopTimer()
     timer.running = false
     if timer.mode == "COUNT DOWN" then
         timer.t = lastSavedCountDownTime
-        setButtonState ("pauseRHTopTimer", "released")
+        gui_button_setState ("pauseRHTopTimer", "released")
     else
         timer.t = 0
     end
     blink.active = false -- stop blink
     globApp.appColor = {0.2, 0.2, 0.2, 1} -- keep normal color
-    for _, btn in ipairs(lib_buttons) do
-        if btn.name == "pauseRHTopTimer" and btn.state == 2 then
-            btn.state = 1
+    for _, btn in ipairs(globApp.objects.buttons) do
+        if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+btn.state = globApp.BUTTON_STATES.RELEASED
         end
     end
     
@@ -372,22 +408,22 @@ function modeSelectRHTopTimer()
     timer.mode = (timer.mode == "COUNT UP") and "COUNT DOWN" or "COUNT UP"
     
     if timer.mode == "COUNT DOWN" then
-        setButtonState( "incrsMinRHTopTimer", "released" )
-        setButtonState( "dcrsMinRHTopTimer", "released" )
-        setButtonState( "incrsSecRHTopTimer", "released" )
-        setButtonState( "dcrsSecRHTopTimer", "released" )
+        gui_button_setState( "incrsMinRHTopTimer", "released" )
+        gui_button_setState( "dcrsMinRHTopTimer", "released" )
+        gui_button_setState( "incrsSecRHTopTimer", "released" )
+        gui_button_setState( "dcrsSecRHTopTimer", "released" )
         timer.t = lastSavedCountDownTime
     else
         timer.t = 0
-        setButtonState( "incrsMinRHTopTimer", "deactivated" )
-        setButtonState( "dcrsMinRHTopTimer", "deactivated" )
-        setButtonState( "incrsSecRHTopTimer", "deactivated" )
-        setButtonState( "dcrsSecRHTopTimer", "deactivated" )
-        setButtonState( "pauseRHTopTimer", "released")
+        gui_button_setState( "incrsMinRHTopTimer", "deactivated" )
+        gui_button_setState( "dcrsMinRHTopTimer", "deactivated" )
+        gui_button_setState( "incrsSecRHTopTimer", "deactivated" )
+        gui_button_setState( "dcrsSecRHTopTimer", "deactivated" )
+        gui_button_setState( "pauseRHTopTimer", "released")
     end
 
     -- for _, btn in ipairs(lib_buttons) do
-    --     if btn.name == "pauseRHTopTimer" and btn.state == 2 then
+    --     if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
     --         btn.state = 1
     --     end
     -- end

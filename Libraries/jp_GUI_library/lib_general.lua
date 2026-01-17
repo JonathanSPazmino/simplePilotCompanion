@@ -100,6 +100,13 @@ function jpGUI_update (dt)
 	--RESIZE TRIGGER CODE MUST GO BEFORE EVERYTHING THAT USES SAFESCREEN AREA TABLE
 	globApp.resizeDetected = resizeDetect ()
 	if globApp.resizeDetected == true then
+
+		-- Add these lines to copy the safe area table
+		globApp.lastSafeScreenArea = {
+			x = globApp.safeScreenArea.x, y = globApp.safeScreenArea.y,
+			w = globApp.safeScreenArea.w, h = globApp.safeScreenArea.h,
+			xw = globApp.safeScreenArea.xw, yh = globApp.safeScreenArea.yh
+		}
 		
 		globApp.totalWindowWidth = love.graphics.getWidth()
 		globApp.totalWindowHeight = love.graphics.getHeight()
@@ -117,6 +124,11 @@ function jpGUI_update (dt)
 					-- print (globApp.doesAnyTextBoxHaveEndingBlankSpace)
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = areRequiredTextBoxesEmpty ()
 	end
+
+	--BUTTONS:
+	gui_buttons_update ()
+	gui_outputTextBoxes_update()
+
 
 
 	--UPDATES DEVELOPER DATA SHOWN ON EDGES OF 
@@ -137,6 +149,21 @@ function jpGUI_draw ()
 
 	draw_loadingPage ()
 	drawAllDevDisplays()
+	draw_gui ()
+
+end
+
+function draw_gui ()
+	
+	local activePageName = 0
+	for i, pgs in ipairs (pages) do
+		if pgs.index == globApp.currentPageIndex then
+			activePageName = pgs.name
+		end
+	end
+
+	gui_buttons_draw (activePageName)
+	gui_outputTxtBox_draw (activePageName)
 
 end
 
@@ -349,8 +376,9 @@ function resizeDetect ()
 	local resizeDetected = false
 
 	local lastSaveWidth = globApp.totalWindowWidth
-
+	globApp.lastWindowWidth = lastSaveWidth
 	local lastSavedHeight = globApp.totalWindowHeight
+	globApp.lastWindowHeight = lastSavedHeight
 
 	local currentWidth, currentHeight = love.graphics.getDimensions()
 
@@ -814,7 +842,7 @@ function gdsGUI_mousepressed (x, y, button, istouch, presses)
 		local calledFunction = (buttonName .. " click pressed")
 		globApp.userInput = calledFunction
 
-		buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
+gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 		
 		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 
@@ -844,7 +872,7 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 			local calledFunction = (buttonName .. " click")
 			globApp.userInput = calledFunction
 
-			button_released (x, y, button, istouch, presses) --runs when button is released
+			gui_button_released (x, y, 1, istouch, presses)
 		
 			tableRow_Select (x,y,button,istouch)
 
@@ -929,7 +957,7 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	globApp.userInput = calledFunction -- insert code below this line to user glob var
 
-	buttons_pressed (x,y,1,istouch) --runs when clicked on created buttons
+	gui_button_pressed (x,y,1,true) --runs when clicked on created buttons
 
 	tableButtonsPressed (x,y,button,istouch)
 
@@ -958,13 +986,13 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 
 			end 
 
-			button_released (x, y, 1, istouch, presses) --runs when slide to prevent unwanted active buttons
+			gui_button_released (x, y, 1, istouch, presses)
 
 			holdAndDragScrollBar (x,y,button,istouch)
 
 			touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
-			touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
+			gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
 
 		end
 
@@ -988,8 +1016,7 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 
 		-- buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
-		button_released (x, y, 1, istouch, presses) --runs when button is released
-		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
+		gui_button_released (x, y, 1, istouch, presses)		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 		tableRow_Select (x,y,button,true)
 
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
@@ -1102,10 +1129,17 @@ end
 
 
 
-
+--THE FOLLOWING TABLE VARIABLE CONTAINS ALL GUI OBJECTS
+-- gui_objects = {}
 
 --[[GLOBAL VARIABLES TABLE:]]
 	globApp = {} --[[global variables table]]
+		globApp.BUTTON_STATES = {
+			DEACTIVATED = 0,
+			RELEASED = 1,
+			PRESSED = 2
+		}
+		globApp.objects = {}
 		globApp.developerMode = true
 		globApp.OperatingSystem  = love.system.getOS( ) --[["OS X", "Windows", "Linux", "Android" or "iOS"]]
 		globApp.fourDevTap = false
@@ -1119,12 +1153,15 @@ end
 		globApp.totalWindowWidth = love.graphics.getWidth() --[[can be called instd love func]]
 		globApp.totalWindowHeight = love.graphics.getHeight() --[[can be called instd love func]]
 		globApp.safeScreenArea = getScreenSafeArea () --jpGUI_simulateWinUnsafeArea (0,.1,1,.8) --
+		globApp.lastSafeScreenArea = globApp.safeScreenArea -- Add this line
 		globApp.isScreenSimulated = false
 		globApp.displayOrientation = findScreenOrientation ()
 		globApp.appScale = love.graphics.getDPIScale ()
 		globApp.currentPageIndex = 1 --[[activates the first page to load when app starts]]
 		globApp.pageChanged = false
 		globApp.resizeDetected = false --[[Event Initialization]]
+		globApp.lastWindowWidth = 0
+		globApp.lastWindowHeight = 0
 		globApp.txtBoxChangeDetected = false --[[Event initialization]]
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = true
 		globApp.doesAnyTextBoxHaveEndingBlankSpace = true

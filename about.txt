@@ -1,0 +1,21 @@
+simplePilotCompanion - Application Summary and How-To Guide
+
+Application Summary:
+simplePilotCompanion is a LÖVE2D application designed as a pilot's companion tool. It features a configurable timer that supports both "COUNT UP" and "COUNT DOWN" modes, triggering an alarm (screen blink, vibration, beep sound) when a countdown reaches zero, with an "Acknowledge Alarm" button to stop it. The app also displays the current Coordinated Universal Time (UTC) and allows users to input/select an altitude and a time to calculate a "required FPM" (feet per minute). It utilizes a custom GUI library for user interaction.
+
+How to Use:
+
+1.  **Timer Functionality:**
+    *   **Mode Selection:** Use the "Mode Select" button to switch between "COUNT UP" and "COUNT DOWN" modes.
+    *   **Adjusting Time (COUNT DOWN mode only):** Use the "Inc Min/Sec" and "Dec Min/Sec" buttons to adjust the countdown duration.
+    *   **Start/Pause:** Press the "Pause/Play" button to start or pause the timer.
+    *   **Reset:** The "Reset" button will return the timer to its initial state (0 for COUNT UP, or the last saved countdown time for COUNT DOWN).
+    *   **Acknowledge Alarm:** If the countdown reaches zero, an alarm will activate. Press the "Acknowledge Alarm" button to stop the alarm.
+
+2.  **UTC Display:**
+    *   The current UTC time is displayed in the top-left corner of the main screen.
+
+3.  **Altitude and Time Selection for FPM Calculation:**
+    *   **Select Altitude:** Use the vertical scrollbar on the left to select your desired altitude in feet.
+    *   **Select Time:** Use the vertical scrollbar next to the altitude scrollbar to select your desired time in minutes.
+    *   **Required FPM:** The calculated "required FPM" (feet per minute) will be displayed on the screen, indicating the vertical speed needed to reach the selected altitude in the selected time.
