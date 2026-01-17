@@ -198,19 +198,19 @@ function love.update(dt)
         lastUtcSec = utc.sec
     end
 
-    gui_outputTextBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
+    -- gui_outputTextBox_update("utcData", "LT", .05, .05, globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2, 12, utcPrintString, "Sprites/invisibleBox.png")
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    gui_outputTextBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
+    -- gui_outputTextBox_update("timerTopRight", "RT", .90, .05, globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2, 12, text, "Sprites/invisibleBox.png")
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    gui_outputTextBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
+    -- gui_outputTextBox_update("selectedAltitudeBox", "LT", .05, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textAltSlctd, "Sprites/invisibleBox.png")
 
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    gui_outputTextBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
+    -- gui_outputTextBox_update("selectedTimeBox", "LT", .3, .3, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, textTimeSlctd, "Sprites/invisibleBox.png")
 
     local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
-    gui_outputTextBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
+    -- gui_outputTextBox_update("requiredFPM", "LT", .4, .5, globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08, 12, requiredFPMtext, "Sprites/invisibleBox.png")
 
     -- Update GUI
     jpGUI_update(dt)

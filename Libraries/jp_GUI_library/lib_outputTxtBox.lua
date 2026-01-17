@@ -1,41 +1,14 @@
 --[[API = Menu labels Lybrary ]]
 
 -----------------------------------------------------------------
-lib_outputTxtBoxes = {}
+globApp.objects.outputTextBox = {}
 
 function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width, height, txtColor, text, fontSize)
-
-	local labelExists = false
-	for i,x in ipairs(lib_outputTxtBoxes) do
-		if x.name == id then
-			labelExists = true
-		end
-	end
-
-	if labelExists == true then
-		gui_outputTextBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
-		return
-	end
-
-	--[[ PARAMETERS:
-
-		1) 	id ----------------string--------------unique id/name
-		2) 	page---------------string--------------page name
-		3) 	bgSprite-----------string--------------png file
-		4) 	x------------------double--------------0 to 1 relative to window size
-		5) 	y------------------double--------------0 to 1 relative to window size
-		6) 	anchorPoint--------string--------------LT,LC,LB,CT,CC,CB,RT,RC,RB
-		7) 	width--------------double--------------pixels
-		8) 	max height --------double--------------pixels
-		9) 	txtColor ----------table---------------rgb data values (0-1 scale)
-		10) text --------------string -------------txt string
-		11) fontSize ----------string -------------pixels
-
-	]]
 
 	local tb = {}
 
 		tb.name = id --[[name of the object]]
+		tb.objectType = "outputTextBox"
 		tb.page = page --[[page location for creation and deleting purposes]]
 		tb.type = labelType --toggle, pushOnOff, Selector
 
@@ -94,61 +67,63 @@ function gui_outputTextBox_create (id, page, bgSprite,  x, y, anchorPoint, width
 				table.insert(tb.text.lines, newLine)
 			end
 
-		table.insert(lib_outputTxtBoxes,tb)
+		table.insert(globApp.objects.outputTextBox,tb)
 
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
 end
 
 
-function gui_outputTextBox_update(id, anchorPoint, x, y, width, height, fontSize, text, bgSprite)
+function gui_outputTextBox_update()
+	-- id, anchorPoint, x, y, width, height, fontSize, text, bgSprite
 
-	for i, updtLbl in ipairs(lib_outputTxtBoxes) do 
+	for i, updtLbl in ipairs(globApp.objects.outputTextBox) do
 
-		if updtLbl.name == id then
+        if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
+
 
 			updtLbl.rltvWidth = width --[[percentage of screen size]]
 			updtLbl.rltvHeight = height --[[percentage of screen size]]
-				local myPositions = relativePosition (anchorPoint, x, y, updtLbl.rltvWidth, updtLbl.rltvHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --[[do not move this line to other part]]
+			local myPositions = relativePosition (anchorPoint, x, y, updtLbl.rltvWidth, updtLbl.rltvHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --[[do not move this line to other part]]
 
-				updtLbl.frame.width = width
-				updtLbl.frame.height = height
-				updtLbl.frame.x = math.floor(myPositions[1])
-				updtLbl.frame.y = math.floor(myPositions[2])
+			updtLbl.frame.width = width
+			updtLbl.frame.height = height
+			updtLbl.frame.x = math.floor(myPositions[1])
+			updtLbl.frame.y = math.floor(myPositions[2])
 
-				if bgSprite ~= nil then
-					updtLbl.bgSprite.sprite = love.graphics.newImage(bgSprite) --nil is ok
-					updtLbl.bgSprite.width = width / updtLbl.bgSprite.sprite:getWidth ()
-					updtLbl.bgSprite.height = height / updtLbl.bgSprite.sprite:getHeight ()
-					updtLbl.bgSprite.x = updtLbl.frame.x
-					updtLbl.bgSprite.y = updtLbl.frame.y
-				end
-				
-				updtLbl.text.font = love.graphics.newFont(fontSize)
-				updtLbl.text.text = text
+			if bgSprite ~= nil then
+				updtLbl.bgSprite.sprite = love.graphics.newImage(bgSprite) --nil is ok
+				updtLbl.bgSprite.width = width / updtLbl.bgSprite.sprite:getWidth ()
+				updtLbl.bgSprite.height = height / updtLbl.bgSprite.sprite:getHeight ()
+				updtLbl.bgSprite.x = updtLbl.frame.x
+				updtLbl.bgSprite.y = updtLbl.frame.y
+			end
+			
+			updtLbl.text.font = love.graphics.newFont(fontSize)
+			updtLbl.text.text = text
 
-				updtLbl.text.width= updtLbl.frame.width * 0.8
-				updtLbl.text.maxTextLineCount = findMaxNumOfLinesNeeded (updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
-				updtLbl.text.height = returnFontInfo (updtLbl.text.font, "height")
-				updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
-				updtLbl.text.x = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width)/2)
-				updtLbl.text.baseY = updtLbl.frame.y
+			updtLbl.text.width= updtLbl.frame.width * 0.8
+			updtLbl.text.maxTextLineCount = findMaxNumOfLinesNeeded (updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
+			updtLbl.text.height = returnFontInfo (updtLbl.text.font, "height")
+			updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
+			updtLbl.text.x = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width)/2)
+			updtLbl.text.baseY = updtLbl.frame.y
 
-				-- gathers text string information, puts the string into a table for iteration
-				local width, wrappedtext = updtLbl.text.font:getWrap( updtLbl.text.text, updtLbl.text.width )
-				updtLbl.text.lines = {}
-				for t, l in ipairs (wrappedtext) do
-					local newLine = {}
-					newLine.text = l
-					newLine.x = updtLbl.text.x
-					newLine.width = updtLbl.text.width
-					newLine.y = updtLbl.text.baseY + ((updtLbl.text.height * t) - updtLbl.text.height)
-					newLine.height = updtLbl.text.height
-					newLine.color = updtLbl.text.color
-					newLine.alignement = "center"
-					newLine.isVisible = isTextInsideTheFrame (updtLbl.frame, newLine)
-					table.insert(updtLbl.text.lines, newLine)
-				end
+			-- gathers text string information, puts the string into a table for iteration
+			local width, wrappedtext = updtLbl.text.font:getWrap( updtLbl.text.text, updtLbl.text.width )
+			updtLbl.text.lines = {}
+			for t, l in ipairs (wrappedtext) do
+				local newLine = {}
+				newLine.text = l
+				newLine.x = updtLbl.text.x
+				newLine.width = updtLbl.text.width
+				newLine.y = updtLbl.text.baseY + ((updtLbl.text.height * t) - updtLbl.text.height)
+				newLine.height = updtLbl.text.height
+				newLine.color = updtLbl.text.color
+				newLine.alignement = "center"
+				newLine.isVisible = isTextInsideTheFrame (updtLbl.frame, newLine)
+				table.insert(updtLbl.text.lines, newLine)
+			end
 
 		end
 
@@ -159,15 +134,15 @@ end
 
 function gui_outputTextBox_delete (id,page)
 
-	for i = #lib_outputTxtBoxes,1,-1 do
+	for i = #globApp.objects.outputTextBox,1,-1 do
 
-		local l = lib_outputTxtBoxes[i]
+		local l = globApp.objects.outputTextBox[i]
 
 		--LOAD PROJECT:
 
 			if l.name == id and l.page == page then
 
-				table.remove(lib_outputTxtBoxes,i)
+				table.remove(globApp.objects.outputTextBox,i)
 
 				globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
 
@@ -179,7 +154,7 @@ end
 
 
 function gui_outputTxtBox_draw (pg)
-	for i,t in ipairs(lib_outputTxtBoxes) do
+	for i,t in ipairs(globApp.objects.outputTextBox) do
 		if t.page == pg then
 			if t.bgSprite.sprite ~= nil then --[[draw the background before the text]]
 				love.graphics.draw(t.bgSprite.sprite, t.bgSprite.x, t.bgSprite.y, 0, t.bgSprite.width, t.bgSprite.height, ox, oy, kx, ky)
@@ -226,7 +201,7 @@ end
 function gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
 
 	--isolate table
-	local myTxtBox = lib_outputTxtBoxes
+	local myTxtBox = globApp.objects.outputTextBox
 	local outputTxtBoxExists = false
 
 	

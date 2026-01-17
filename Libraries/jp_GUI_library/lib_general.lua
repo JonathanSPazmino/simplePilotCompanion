@@ -127,6 +127,8 @@ function jpGUI_update (dt)
 
 	--BUTTONS:
 	gui_buttons_update ()
+	gui_outputTextBoxes_update()
+
 
 
 	--UPDATES DEVELOPER DATA SHOWN ON EDGES OF 
