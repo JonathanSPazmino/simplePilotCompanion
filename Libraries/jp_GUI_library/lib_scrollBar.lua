@@ -445,8 +445,6 @@ function gui_scrollBar_draw (pageName)
 
 										end
 
-					love.graphics.print(x.bar.position, (x.frame.x + x.frame.width + 10), (x.frame.y + x.frame.height))
-
 					love.graphics.reset()
 				
 
