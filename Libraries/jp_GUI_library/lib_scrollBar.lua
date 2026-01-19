@@ -58,6 +58,14 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 			t.frame.x = t.frame.positions[1] - globApp.safeScreenArea.x
 			t.frame.y = t.frame.positions[2] - globApp.safeScreenArea.y
 	
+		if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
+			t.frame.y = t.frame.y + globApp.safeScreenArea.y
+		end
+	
+		if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
+			t.frame.y = t.frame.y + globApp.safeScreenArea.y
+		end
+	
 		if t.orientation == "vertical" then
 
 			t.imgButtonUpArrow_active = gui_scrollBar_assets.up_active
@@ -70,8 +78,8 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 				t.upButton.height = width * globApp.safeScreenArea.w
 				t.upButton.x = t.frame.x
 				t.upButton.y = t.frame.y
-				t.upButton.factorWidth = t.frame.width / t.imgButtonUpArrow_active:getWidth ()
-				t.upButton.factorHeight = t.frame.width / t.imgButtonUpArrow_active:getWidth ()
+				t.upButton.factorWidth = t.upButton.width / t.imgButtonUpArrow_active:getWidth ()
+				t.upButton.factorHeight = t.upButton.height / t.imgButtonUpArrow_active:getHeight ()
 				t.upButton.isActive = false
 
 			t.downButton = {}
@@ -79,26 +87,26 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 				t.downButton.height = width * globApp.safeScreenArea.w
 				t.downButton.x = t.frame.x
 				t.downButton.y = t.frame.y + t.frame.height - t.downButton.height
-				t.downButton.factorWidth = t.frame.width / t.imgButtonDownArrow_active:getWidth ()
-				t.downButton.factorHeight = t.frame.width / t.imgButtonDownArrow_active:getWidth ()
+				t.downButton.factorWidth = t.downButton.width / t.imgButtonDownArrow_active:getWidth ()
+				t.downButton.factorHeight = t.downButton.height / t.imgButtonDownArrow_active:getHeight ()
 				t.downButton.isActive = false
 
 			t.frame.y = t.upButton.y + t.upButton.height
-			t.frame.height = t.downButton.y - t.frame.y
+				t.frame.height = t.downButton.y - t.frame.y
 		
 		elseif t.orientation == "horizontal" then
 
 			t.imgButtonLeftArrow_active = gui_scrollBar_assets.left_active
-			t.imgButtonLeftArrow_inactive = gui_scrollBar_assets.left_inactive
-			t.imgButtonRightArrow_active = gui_scrollBar_assets.right_active
-			t.imgButtonRightArrow_inactive = gui_scrollBar_assets.right_inactive
+				t.imgButtonLeftArrow_inactive = gui_scrollBar_assets.left_inactive
+				t.imgButtonRightArrow_active = gui_scrollBar_assets.right_active
+				t.imgButtonRightArrow_inactive = gui_scrollBar_assets.right_inactive
 			
 			t.leftButton = {}
 				t.leftButton.width = height * globApp.safeScreenArea.h
 				t.leftButton.height = height * globApp.safeScreenArea.h
 				t.leftButton.x = t.frame.x
 				t.leftButton.y = t.frame.y
-				t.leftButton.factorWidth = t.leftButton.height / t.imgButtonLeftArrow_active:getHeight ()
+				t.leftButton.factorWidth = t.leftButton.width / t.imgButtonLeftArrow_active:getWidth ()
 				t.leftButton.factorHeight = t.leftButton.height / t.imgButtonLeftArrow_active:getHeight ()
 				t.leftButton.isActive = false
 
@@ -107,11 +115,11 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 				t.rightButton.height = height * globApp.safeScreenArea.h
 				t.rightButton.x = t.frame.x + t.frame.width - t.rightButton.width
 				t.rightButton.y = t.frame.y
-				t.rightButton.factorWidth = t.rightButton.height / t.imgButtonRightArrow_active:getHeight ()
+				t.rightButton.factorWidth = t.rightButton.width / t.imgButtonRightArrow_active:getWidth ()
 				t.rightButton.factorHeight = t.rightButton.height / t.imgButtonRightArrow_active:getHeight ()
 				t.rightButton.isActive = false
 
-			t.frame.x = t.leftButton.x + t.leftButton.width
+				t.frame.x = t.leftButton.x + t.leftButton.width
 			t.frame.width = t.rightButton.x - t.frame.x
 
 		end
@@ -171,6 +179,10 @@ function gui_scrollBar_update ()
 										globApp.safeScreenArea.h)
 			sb.frame.x = sb.frame.positions[1] - globApp.safeScreenArea.x
 			sb.frame.y = sb.frame.positions[2] - globApp.safeScreenArea.y
+
+			if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
+				sb.frame.y = sb.frame.y + globApp.safeScreenArea.y
+			end
 			
 			if sb.orientation == "vertical" then
 
@@ -178,8 +190,8 @@ function gui_scrollBar_update ()
 				sb.upButton.height = original.width * globApp.safeScreenArea.w
 				sb.upButton.x = sb.frame.x
 				sb.upButton.y = sb.frame.y
-				sb.upButton.factorWidth = sb.frame.width / sb.imgButtonUpArrow_active:getWidth ()
-				sb.upButton.factorHeight = sb.frame.width / sb.imgButtonUpArrow_active:getWidth ()
+				sb.upButton.factorWidth = sb.upButton.width / sb.imgButtonUpArrow_active:getWidth ()
+				sb.upButton.factorHeight = sb.upButton.height / sb.imgButtonUpArrow_active:getHeight ()
 				sb.upButton.isActive = false
 
 
@@ -187,8 +199,8 @@ function gui_scrollBar_update ()
 				sb.downButton.height = original.width * globApp.safeScreenArea.w
 				sb.downButton.x = sb.frame.x
 				sb.downButton.y = sb.frame.y + sb.frame.height - sb.downButton.height
-				sb.downButton.factorWidth = sb.frame.width / sb.imgButtonDownArrow_active:getWidth ()
-				sb.downButton.factorHeight = sb.frame.width / sb.imgButtonDownArrow_active:getWidth ()
+				sb.downButton.factorWidth = sb.downButton.width / sb.imgButtonDownArrow_active:getWidth ()
+				sb.downButton.factorHeight = sb.downButton.height / sb.imgButtonDownArrow_active:getHeight ()
 				sb.downButton.isActive = false
 
 				sb.frame.y = sb.upButton.y + sb.upButton.height
@@ -200,7 +212,7 @@ function gui_scrollBar_update ()
 				sb.leftButton.height = original.height * globApp.safeScreenArea.h
 				sb.leftButton.x = sb.frame.x
 				sb.leftButton.y = sb.frame.y
-				sb.leftButton.factorWidth = sb.leftButton.height / sb.imgButtonLeftArrow_active:getHeight ()
+				sb.leftButton.factorWidth = sb.leftButton.width / sb.imgButtonLeftArrow_active:getWidth ()
 				sb.leftButton.factorHeight = sb.leftButton.height / sb.imgButtonLeftArrow_active:getHeight ()
 				sb.leftButton.isActive = false
 
@@ -208,7 +220,7 @@ function gui_scrollBar_update ()
 				sb.rightButton.height = original.height * globApp.safeScreenArea.h
 				sb.rightButton.x = sb.frame.x + sb.frame.width - sb.rightButton.width
 				sb.rightButton.y = sb.frame.y
-				sb.rightButton.factorWidth = sb.rightButton.height / sb.imgButtonRightArrow_active:getHeight ()
+				sb.rightButton.factorWidth = sb.rightButton.width / sb.imgButtonRightArrow_active:getWidth ()
 				sb.rightButton.factorHeight = sb.rightButton.height / sb.imgButtonRightArrow_active:getHeight ()
 				sb.rightButton.isActive = false
 
@@ -261,64 +273,167 @@ function gui_scrollBar_draw (pageName)
 											--SCROLLBAR FRAME
 					--------------------------------------------------------------------------
 
-					love.graphics.setColor(1, 1, 1, 1)
+										love.graphics.setColor(1, 1, 1, 1)
+
+										
+
+										love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
+
+										
+
+										
+
+										---------------------------------------------------------------------------
+
+																--BAR
+
+										---------------------------------------------------------------------------
+
 					
-					love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
+
+										if x.isFocused == true then
+
+											love.graphics.setColor(0, 0, 1, 1)
+
+										elseif x.isFocused == false then
+
+											love.graphics.setColor(0, 1, 0, 1)
+
+										end
+
 					
+
+										love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
+
 					
-					---------------------------------------------------------------------------
-											--BAR
-					---------------------------------------------------------------------------
 
-					if x.isFocused == true then
-						love.graphics.setColor(0, 0, 1, 1)
-					elseif x.isFocused == false then
-						love.graphics.setColor(0, 1, 0, 1)
-					end
-
-					love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
-
-
-					---------------------------------------------------------------------------
-											--BUTTONS
-					---------------------------------------------------------------------------
 					
-					love.graphics.setColor(1, 0, 0, 1)
 
-					if x.orientation == "vertical" then
+										---------------------------------------------------------------------------
 
-						love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
-						if x.upButton.isActive == false then
-							love.graphics.draw(x.imgButtonUpArrow_inactive, x.upButton.x, x.upButton.y, r, x.upButton.factorWidth, x.upButton.factorHeight, ox, oy, kx, ky)
-						else
-							love.graphics.draw(x.imgButtonUpArrow_active, x.upButton.x, x.upButton.y, r, x.upButton.factorWidth, x.upButton.factorHeight, ox, oy, kx, ky)
-						end
+																--BUTTONS
 
-						love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
-						if x.downButton.isActive == false then
-							love.graphics.draw(x.imgButtonDownArrow_inactive, x.downButton.x, x.downButton.y, r, x.downButton.factorWidth, x.downButton.factorHeight, ox, oy, kx, ky)
-						else
-							love.graphics.draw(x.imgButtonDownArrow_active, x.downButton.x, x.downButton.y, r, x.downButton.factorWidth, x.downButton.factorHeight, ox, oy, kx, ky)
-						end
+										---------------------------------------------------------------------------
 
-					elseif x.orientation == "horizontal" then
+										
 
-						love.graphics.rectangle("fill", x.leftButton.x, x.leftButton.y, x.leftButton.width, x.leftButton.height)
-						if x.leftButton.isActive == false then
-							love.graphics.draw(x.imgButtonLeftArrow_inactive, x.leftButton.x, x.leftButton.y, r, x.leftButton.factorWidth, x.leftButton.factorHeight, ox, oy, kx, ky)
-						else
-							love.graphics.draw(x.imgButtonLeftArrow_active, x.leftButton.x, x.leftButton.y, r, x.leftButton.factorWidth, x.leftButton.factorHeight, ox, oy, kx, ky)
-						end
+										love.graphics.setColor(1, 0, 0, 1)
 
-						love.graphics.rectangle("fill", x.rightButton.x, x.rightButton.y, x.rightButton.width, x.rightButton.height)
-						if x.rightButton.isActive == false then
-							love.graphics.draw(x.imgButtonRightArrow_inactive, x.rightButton.x, x.rightButton.y, r, x.rightButton.factorWidth, x.rightButton.factorHeight, ox, oy, kx, ky)
-						else
-							love.graphics.draw(x.imgButtonRightArrow_active, x.rightButton.x, x.rightButton.y, r, x.rightButton.factorWidth, x.rightButton.factorHeight, ox, oy, kx, ky)
-						end
-					end
+					
 
-					love.graphics.print(x.bar.position, (x.frame.x + x.frame.width + 10), (x.frame.y + x.frame.height), r, sx, sy, ox, oy, kx, ky)
+										if x.orientation == "vertical" then
+
+					
+
+											love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
+
+											if x.upButton.isActive == false then
+
+												local imgW, imgH = x.imgButtonUpArrow_inactive:getDimensions()
+
+												local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
+
+												local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonUpArrow_inactive, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
+
+											else
+
+												local imgW, imgH = x.imgButtonUpArrow_active:getDimensions()
+
+												local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
+
+												local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonUpArrow_active, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
+
+											end
+
+					
+
+											love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
+
+											if x.downButton.isActive == false then
+
+												local imgW, imgH = x.imgButtonDownArrow_inactive:getDimensions()
+
+												local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
+
+												local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonDownArrow_inactive, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
+
+											else
+
+												local imgW, imgH = x.imgButtonDownArrow_active:getDimensions()
+
+												local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
+
+												local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonDownArrow_active, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
+
+											end
+
+					
+
+										elseif x.orientation == "horizontal" then
+
+					
+
+											love.graphics.rectangle("fill", x.leftButton.x, x.leftButton.y, x.leftButton.width, x.leftButton.height)
+
+											if x.leftButton.isActive == false then
+
+												local imgW, imgH = x.imgButtonLeftArrow_inactive:getDimensions()
+
+												local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
+
+												local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonLeftArrow_inactive, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
+
+											else
+
+												local imgW, imgH = x.imgButtonLeftArrow_active:getDimensions()
+
+												local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
+
+												local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonLeftArrow_active, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
+
+											end
+
+					
+
+											love.graphics.rectangle("fill", x.rightButton.x, x.rightButton.y, x.rightButton.width, x.rightButton.height)
+
+											if x.rightButton.isActive == false then
+
+												local imgW, imgH = x.imgButtonRightArrow_inactive:getDimensions()
+
+												local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
+
+												local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonRightArrow_inactive, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
+
+											else
+
+												local imgW, imgH = x.imgButtonRightArrow_active:getDimensions()
+
+												local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
+
+												local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
+
+												love.graphics.draw(x.imgButtonRightArrow_active, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
+
+											end
+
+										end
+
+					love.graphics.print(x.bar.position, (x.frame.x + x.frame.width + 10), (x.frame.y + x.frame.height))
 
 					love.graphics.reset()
 				
