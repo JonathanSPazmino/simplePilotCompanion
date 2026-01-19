@@ -174,11 +174,11 @@ function love.load()
     ----------------------------------------------------------------------------
 
     gui_scrollBar_create ("altScale", "MainMenu", 
-        0.1, 0.4, .05, .3, "LT", 5, 51, 1, 
+        0.1, 0.4, .07, .4, "LT", 5, 51, 1, 
         "independent", "vertical", 51, "roundSelectedAltitude")
 
     gui_scrollBar_create ("timeScale", "MainMenu", 
-        0.2, 0.4, .05, .3, "LT", 5, 25, 1, 
+        0.2, 0.4, .07, .4, "LT", 5, 25, 1, 
         "independent", "vertical", 25, "roundSelectedTime")
 
 
