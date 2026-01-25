@@ -160,7 +160,13 @@ function love.load()
         colorYellow, textTimeSlctd, 12
     )
 
-    local requiredFPMtext = "req:\n" .. (math.ceil(selectedAltitude / selectedTime)) .. " fpm"
+    local requiredFPM = 0
+    if selectedTime > 0 then
+        requiredFPM = math.ceil(selectedAltitude / selectedTime)
+    else
+        requiredFPM = 0
+    end
+    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
 
     gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
         .4, .5, "LT",
