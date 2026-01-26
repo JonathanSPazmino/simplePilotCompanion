@@ -245,7 +245,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		t.scrollBox.x = t.frame.x
 		t.scrollBox.y = t.frame.y + t.titleBox.height + t.headersBox.h
 		t.scrollBox.width = t.frame.width - t.fonts.cells.size
-		t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - t.rowHeight
+		t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
 
 	t.scrollableYequivPercent = (globApp.safeScreenArea.y + t.scrollBox.y) / globApp.safeScreenArea.h 
 
@@ -261,7 +261,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 		t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
 		t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
-						t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.fonts.cells.size/ globApp.safeScreenArea.h
+						t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
 
 	if t.rowsCount > 0 then
 		t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
@@ -539,7 +539,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				t.scrollBox.x = t.frame.x
 				t.scrollBox.y = t.frame.y + t.titleBox.height + t.headersBox.h
 				t.scrollBox.width = t.frame.width - t.fonts.cells.size
-				t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - t.rowHeight
+				t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
 
 			t.scrollableYequivPercent = t.scrollBox.y / globApp.safeScreenArea.h
 
@@ -559,7 +559,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
 				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
 				t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w
-				t.horizontalScrollBar.height = (t.verticalScrollBar.width * globApp.safeScreenArea.w) / globApp.safeScreenArea.h
+				t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
 
 			if t.rowsCount > 0 then
 				t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
