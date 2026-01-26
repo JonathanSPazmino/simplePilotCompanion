@@ -43,13 +43,8 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 
 		
 		t.frame = {}
-			if globApp.safeScreenArea.w < globApp.safeScreenArea.h then
-				t.frame.width = width * globApp.safeScreenArea.w
-				t.frame.height = t.frame.width / (width / height)
-			else
-				t.frame.height = height * globApp.safeScreenArea.h
-				t.frame.width = t.frame.height * (width / height)
-			end
+			t.frame.height = height * globApp.safeScreenArea.h
+			t.frame.width = width * globApp.safeScreenArea.w
 			 
 			t.frame.positions = 
 					relativePosition (anchorPoint, 
@@ -169,13 +164,8 @@ function gui_scrollBar_update ()
 			-- Use the original, relative values for recalculation
 			local original = sb.original
 			
-			if globApp.safeScreenArea.w < globApp.safeScreenArea.h then
-				sb.frame.width = original.width * globApp.safeScreenArea.w
-				sb.frame.height = sb.frame.width / (original.width / original.height)
-			else
-				sb.frame.height = original.height * globApp.safeScreenArea.h
-				sb.frame.width = sb.frame.height * (original.width / original.height)
-			end
+			sb.frame.height = original.height * globApp.safeScreenArea.h
+			sb.frame.width = original.width * globApp.safeScreenArea.w
 			
 			sb.frame.positions = 
 					relativePosition (original.anchorPoint, 

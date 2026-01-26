@@ -255,13 +255,13 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		t.verticalScrollBar.x = ((t.frame.x + t.frame.width) -  (t.fonts.cells.size)) / globApp.safeScreenArea.w
 		t.verticalScrollBar.y = t.scrollableYequivPercent - t.y_difBetweenSafeAndTotalArea
 		t.verticalScrollBar.width = t.fonts.cells.size/ globApp.safeScreenArea.w --(t.frame.width * .05) / globApp.safeScreenArea.w
-						t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
+		t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
 
 	t.horizontalScrollBar = {}
 		t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 		t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
 		t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
-						t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
+		t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
 
 	if t.rowsCount > 0 then
 		t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
