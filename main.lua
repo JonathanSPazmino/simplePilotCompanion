@@ -243,20 +243,20 @@ function love.update(dt)
     -- Skip if timer not running
     if timer.running then
         if timer.mode == "COUNT UP" then
-            timer.t = timer.t + dt
+                timer.t = timer.t + dt
         else -- COUNT DOWN
-        timer.t = math.max(0, timer.t - dt)
+            timer.t = math.max(0, timer.t - dt)
 
-        if timer.t == 0 then
-            timer.running = false
-            blink.active = true
-            gui_button_setState("acknowlegeAlarm", "released")
-            alarmButtonsDeactivation()
-            for _, btn in ipairs(globApp.objects.buttons) do
-                if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
-                    btn.state = globApp.BUTTON_STATES.RELEASED
+            if timer.t == 0 then
+                timer.running = false
+                blink.active = true
+                gui_button_setState("acknowlegeAlarm", "released")
+                alarmButtonsDeactivation()
+                for _, btn in ipairs(globApp.objects.buttons) do
+                    if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
+                        btn.state = globApp.BUTTON_STATES.RELEASED
+                    end
                 end
-            end
         end
         end
     end

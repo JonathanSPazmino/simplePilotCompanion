@@ -129,6 +129,7 @@ function jpGUI_update (dt)
 	gui_buttons_update ()
 	gui_outputTextBoxes_update()
 	gui_scrollBar_update ()
+	gui_table_update ()
 
 
 
@@ -151,6 +152,7 @@ function jpGUI_draw ()
 	draw_loadingPage ()
 	drawAllDevDisplays()
 	draw_gui ()
+	
 
 end
 
@@ -165,6 +167,7 @@ function draw_gui ()
 
 	gui_buttons_draw (activePageName)
 	gui_outputTxtBox_draw (activePageName)
+	gui_table_draw (activePageName)
 	gui_scrollBar_draw (activePageName)
 
 end
@@ -895,10 +898,7 @@ function gdsGUI_mousemoved (x, y, button, istouch, presses)
 
 	local buttonName = gdsGUI_convertButtonNumToString (button)
 
-	if globApp.userInput == (button .. " click pressed") then
-		local calledFunction = (buttonName .. " click pressed and dragged")
-		globApp.userInput = calledFunction
-	end
+
 
 	holdAndDragScrollBar (x,y,button,istouch)
 

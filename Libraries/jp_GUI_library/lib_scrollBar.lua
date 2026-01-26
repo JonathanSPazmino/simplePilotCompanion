@@ -362,15 +362,19 @@ function determine_scrollingBarSize (numOfVisibleValues, numOfScrollableValues)
 	--returns size of scrolling size based on number of values to be scrolled
 	--result is expressed on decimal value, percentage of scroll bar total size
 
-	local minBarSize = 0.2
+	local minBarSize = 0
 	local maxBarSize = 0.2
+
+	if numOfVisibleValues == nil or (type(numOfVisibleValues) == "number" and numOfVisibleValues ~= numOfVisibleValues) then
+		return maxBarSize
+	end
 
 	local result = "no result"
 	local vis2scrollableNumValRatio = (numOfScrollableValues / numOfVisibleValues)
 
 	if numOfVisibleValues >= numOfScrollableValues then --runs if num of values are less than the total amount of visible
 
-		result = maxBarSize
+		result = 1.0
 
 	elseif numOfVisibleValues < numOfScrollableValues then -- runs if num of values are more than the total amount of visible values
 
@@ -412,8 +416,8 @@ function focus_scrollingBar (x,y,button,istouch)
 			end
 
 			local stepSize = 0
-			if sb.numTotalValues and sb.numTotalValues > 0 then
-				stepSize = 1 / sb.numTotalValues
+			if sb.numTotalValues and sb.numTotalValues > 1 then -- Ensure at least 2 total values to allow movement
+				stepSize = 1 / (sb.numTotalValues - 1)
 			end
 
 			if sb.orientation == "vertical" then
@@ -425,7 +429,7 @@ function focus_scrollingBar (x,y,button,istouch)
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
-								getfenv()[sb.callbackString](sb.bar.position)
+								_G[sb.callbackString](sb.bar.position)
 							end
 						end
 					end
@@ -439,7 +443,7 @@ function focus_scrollingBar (x,y,button,istouch)
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
-								getfenv()[sb.callbackString](sb.bar.position)
+								_G[sb.callbackString](sb.bar.position)
 							end
 						end
 					end
@@ -454,7 +458,7 @@ function focus_scrollingBar (x,y,button,istouch)
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
-								getfenv()[sb.callbackString](sb.bar.position)
+								_G[sb.callbackString](sb.bar.position)
 							end
 						end
 					end
@@ -467,7 +471,7 @@ function focus_scrollingBar (x,y,button,istouch)
 						sb.bar.position = math.min(1, sb.bar.position + stepSize)
 						updateScrollingBarPosition(sb, sb.bar.position)
 						if sb.callbackString ~= nil then
-							getfenv()[sb.callbackString](sb.bar.position)
+							_G[sb.callbackString](sb.bar.position)
 						end
 					end
 				end -- Added missing 'end'
@@ -517,11 +521,13 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 					elseif (y + sb.bar.height) > (sb.frame.y + sb.frame.height)then
 						sb.bar.y = (sb.frame.y + sb.frame.height) - sb.bar.height
 					end
-					sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
-					-- Snap to nearest increment
-					if sb.numTotalValues and sb.numTotalValues > 0 then
-						sb.bar.position = math.floor(sb.bar.position * sb.numTotalValues + 0.5) / sb.numTotalValues
-					end
+					                    -- Snap to nearest increment
+					                    if sb.numTotalValues and sb.numTotalValues > 1 then
+					                        sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
+					                        sb.bar.position = math.floor(sb.bar.position * (sb.numTotalValues - 1) + 0.5) / (sb.numTotalValues - 1)
+					                    else
+					                        sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
+					                    end
 					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				elseif sb.orientation == "horizontal" then
 					if x - (sb.bar.width / 2) >= sb.frame.x and ((x - (sb.bar.width / 2)) + sb.bar.width) <= (sb.frame.x + sb.frame.width) then
@@ -533,14 +539,14 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 					end
 					sb.bar.position = (sb.bar.x - sb.frame.x) / totalPositionSpan
 					-- Snap to nearest increment
-					if sb.numTotalValues and sb.numTotalValues > 0 then
-						sb.bar.position = math.floor(sb.bar.position * sb.numTotalValues + 0.5) / sb.numTotalValues
+					if sb.numTotalValues and sb.numTotalValues > 1 then
+						sb.bar.position = math.floor(sb.bar.position * (sb.numTotalValues - 1) + 0.5) / (sb.numTotalValues - 1)
 					end
 					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				end
 				
 				if sb.callbackString ~= nil then
-					getfenv()[sb.callbackString](sb.bar.position)
+					_G[sb.callbackString](sb.bar.position)
 				elseif sb.callbackString == nil then
 					print ("no callback assigned to " .. sb.id .. " scrollbar")
 				end

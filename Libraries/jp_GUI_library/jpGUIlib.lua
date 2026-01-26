@@ -10,6 +10,7 @@ local function requireGUILibraries ()
 	--when calling files, no need for .lua externsions
 	local pathToLibrary = "Libraries.jp_GUI_library."
 
+	-- lib_general must be loaded first to initialize globApp
 	require (pathToLibrary .. "lib_general") --[[general functions]]
 	require (pathToLibrary .. "lib_pages") --[[handles all app pages]]
 	require (pathToLibrary .. "lib_buttons") --[[contains buttons related code]]
@@ -17,13 +18,13 @@ local function requireGUILibraries ()
 	require (pathToLibrary .. "lib_inputTxtBox") --[[contains text box related code]]
 	require (pathToLibrary .. "lib_outputTxtBox") --[[contains labels related code]]
 	require (pathToLibrary .. "lib_saveLoad") --[[save and load data code]]
-	require (pathToLibrary .. "lib_scrollBar")--[[scrollbars]]
 	require (pathToLibrary .. "lib_table") --[[data display tables]]
+	require (pathToLibrary .. "lib_scrollBar")--[[scrollbars]]
 	require (pathToLibrary .. "lib_timeControl") --[[time triggers callbacks]]
 	require (pathToLibrary .. "lib_appFrame")--[[app frame]]
 	require (pathToLibrary .. "lib_images")--[[images]]
-	require (pathToLibrary .. "lib_devSettings")--[[developement and settings]]
 	require (pathToLibrary .. "lib_unitTests")--[[developement and settings]]
+	require (pathToLibrary .. "lib_devSettings")--[[developement and settings]]
 
 end
 

@@ -1,102 +1,103 @@
 --[[tables.lua]]
 
-spreadSheets = {}
+-- spreadSheets = {}
+globApp.objects.tables = {}
 local recordErased = false
 
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
 
-function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
-	local NewSpreadSheet = {}
+	local t = {}
 
-	NewSpreadSheet.name = spreadSheetName
-	NewSpreadSheet.page = strgPage
-	NewSpreadSheet.type = strgspreadSheetType
-	NewSpreadSheet.rowsCount = determineSizeOfArray (dataTable, "rows")
-	NewSpreadSheet.collumnsCount = #headerTitles
+	t.name = spreadSheetName
+	t.page = strgPage
+	t.type = strgspreadSheetType
+	t.rowsCount = determineSizeOfArray (dataTable, "rows")
+	t.collumnsCount = #headerTitles
 
-	NewSpreadSheet.fonts = {}
-		NewSpreadSheet.fonts.title = {}
-			NewSpreadSheet.fonts.title.size = 12
-			NewSpreadSheet.fonts.title.font = love.graphics.newFont(NewSpreadSheet.fonts.title.size)
-		NewSpreadSheet.fonts.headers = {}
-			NewSpreadSheet.fonts.headers.size = 12
-			NewSpreadSheet.fonts.headers.font = love.graphics.newFont(NewSpreadSheet.fonts.headers.size)
-		NewSpreadSheet.fonts.cells = {}
-			NewSpreadSheet.fonts.cells.size = 12
-			NewSpreadSheet.fonts.cells.font = love.graphics.newFont(NewSpreadSheet.fonts.cells.size)
+	t.fonts = {}
+		t.fonts.title = {}
+			t.fonts.title.size = 12
+			t.fonts.title.font = love.graphics.newFont(t.fonts.title.size)
+		t.fonts.headers = {}
+			t.fonts.headers.size = 12
+			t.fonts.headers.font = love.graphics.newFont(t.fonts.headers.size)
+		t.fonts.cells = {}
+			t.fonts.cells.size = 12
+			t.fonts.cells.font = love.graphics.newFont(t.fonts.cells.size)
 
 	if strgImgspreadSheetBg ~= nil then --creates newImage if passed by callback
-		NewSpreadSheet.imgSpreadSheetBg = love.graphics.newImage(strgImgspreadSheetBg)
+		t.imgSpreadSheetBg = love.graphics.newImage(strgImgspreadSheetBg)
 	end
 
-	NewSpreadSheet.frame = {}
-		NewSpreadSheet.frame.width = (tableWidth * globApp.safeScreenArea.w)
-		NewSpreadSheet.frame.height = (tableHeight * globApp.safeScreenArea.h)
+	t.frame = {}
+		t.frame.width = (tableWidth * globApp.safeScreenArea.w)
+		t.frame.height = (tableHeight * globApp.safeScreenArea.h)
 		local framePositions = 
 			relativePosition(anchorPoint, 
 							myX, 
 							myY, 
-							NewSpreadSheet.frame.width, 
-							NewSpreadSheet.frame.height, 
+							t.frame.width, 
+							t.frame.height, 
 							globApp.safeScreenArea.x,
 							globApp.safeScreenArea.y, 
 							globApp.safeScreenArea.w, 
 							globApp.safeScreenArea.h)
-		NewSpreadSheet.frame.x = framePositions[1]
-		NewSpreadSheet.frame.y = framePositions[2]
+		t.frame.x = framePositions[1]
+		t.frame.y = framePositions[2]
 
-	NewSpreadSheet.masks = {}
-		NewSpreadSheet.masks.properties = {}
-			NewSpreadSheet.masks.properties.color = globApp.appColor --{rgbt}
-		NewSpreadSheet.masks.top = {}
-			NewSpreadSheet.masks.top.x = globApp.safeScreenArea.x
-			NewSpreadSheet.masks.top.y = globApp.safeScreenArea.y
-			NewSpreadSheet.masks.top.width = globApp.safeScreenArea.w
-			NewSpreadSheet.masks.top.height = NewSpreadSheet.frame.y - NewSpreadSheet.masks.top.y
-		NewSpreadSheet.masks.left = {}
-			NewSpreadSheet.masks.left.x = globApp.safeScreenArea.x
-			NewSpreadSheet.masks.left.y = globApp.safeScreenArea.y + NewSpreadSheet.masks.top.height
-			NewSpreadSheet.masks.left.width = NewSpreadSheet.frame.x - globApp.safeScreenArea.x
-			NewSpreadSheet.masks.left.height = NewSpreadSheet.frame.height
-		NewSpreadSheet.masks.right = {}
-			NewSpreadSheet.masks.right.x = NewSpreadSheet.frame.x + NewSpreadSheet.frame.width
-			NewSpreadSheet.masks.right.y = globApp.safeScreenArea.y + NewSpreadSheet.masks.top.height
-			NewSpreadSheet.masks.right.width = (globApp.safeScreenArea.x + globApp.safeScreenArea.w) - NewSpreadSheet.masks.right.x
-			NewSpreadSheet.masks.right.height = NewSpreadSheet.frame.height
-		NewSpreadSheet.masks.bottom = {}
-			NewSpreadSheet.masks.bottom.x = globApp.safeScreenArea.x
-			NewSpreadSheet.masks.bottom.y = NewSpreadSheet.frame.y + NewSpreadSheet.frame.height
-			NewSpreadSheet.masks.bottom.width = globApp.safeScreenArea.w
-			NewSpreadSheet.masks.bottom.height = globApp.safeScreenArea.y + globApp.safeScreenArea.h - NewSpreadSheet.masks.bottom.y
+	t.masks = {}
+		t.masks.properties = {}
+			t.masks.properties.color = globApp.appColor --{rgbt}
+		t.masks.top = {}
+			t.masks.top.x = globApp.safeScreenArea.x
+			t.masks.top.y = globApp.safeScreenArea.y
+			t.masks.top.width = globApp.safeScreenArea.w
+			t.masks.top.height = t.frame.y - t.masks.top.y
+		t.masks.left = {}
+			t.masks.left.x = globApp.safeScreenArea.x
+			t.masks.left.y = globApp.safeScreenArea.y + t.masks.top.height
+			t.masks.left.width = t.frame.x - globApp.safeScreenArea.x
+			t.masks.left.height = t.frame.height
+		t.masks.right = {}
+			t.masks.right.x = t.frame.x + t.frame.width
+			t.masks.right.y = globApp.safeScreenArea.y + t.masks.top.height
+			t.masks.right.width = (globApp.safeScreenArea.x + globApp.safeScreenArea.w) - t.masks.right.x
+			t.masks.right.height = t.frame.height
+		t.masks.bottom = {}
+			t.masks.bottom.x = globApp.safeScreenArea.x
+			t.masks.bottom.y = t.frame.y + t.frame.height
+			t.masks.bottom.width = globApp.safeScreenArea.w
+			t.masks.bottom.height = globApp.safeScreenArea.y + globApp.safeScreenArea.h - t.masks.bottom.y
 
-	NewSpreadSheet.textMargin = 0.1
+	t.textMargin = 0.1
 
 
-	NewSpreadSheet.minCollumnWidth = NewSpreadSheet.fonts.cells.size * 10
-	NewSpreadSheet.maxCollumnWidth = NewSpreadSheet.frame.width - NewSpreadSheet.fonts.cells.size
-	if NewSpreadSheet.collumnsCount == 1 then
-		NewSpreadSheet.collumWidth = NewSpreadSheet.frame.width - NewSpreadSheet.fonts.cells.size
-	elseif NewSpreadSheet.collumnsCount > 1 and ((NewSpreadSheet.frame.width - NewSpreadSheet.fonts.cells.size) / NewSpreadSheet.collumnsCount) < NewSpreadSheet.minCollumnWidth then
-		NewSpreadSheet.collumWidth = NewSpreadSheet.minCollumnWidth
-	elseif NewSpreadSheet.collumnsCount > 1 and ((NewSpreadSheet.frame.width - NewSpreadSheet.fonts.cells.size )/ NewSpreadSheet.collumnsCount) > NewSpreadSheet.minCollumnWidth then
-		NewSpreadSheet.collumWidth = ((NewSpreadSheet.frame.width -NewSpreadSheet.fonts.cells.size) / NewSpreadSheet.collumnsCount)
+	t.minCollumnWidth = t.fonts.cells.size * 10
+	t.maxCollumnWidth = t.frame.width - t.fonts.cells.size
+	if t.collumnsCount == 1 then
+		t.collumWidth = t.frame.width - t.fonts.cells.size
+	elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size) / t.collumnsCount) < t.minCollumnWidth then
+		t.collumWidth = t.minCollumnWidth
+	elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size )/ t.collumnsCount) > t.minCollumnWidth then
+		t.collumWidth = ((t.frame.width -t.fonts.cells.size) / t.collumnsCount)
 	end
 
 
 
-	NewSpreadSheet.textWrapCellPercentWidth = NewSpreadSheet.collumWidth * 0.8 
-	NewSpreadSheet.rowHeight = NewSpreadSheet.fonts.cells.size + (NewSpreadSheet.fonts.cells.size * .4)
+	t.textWrapCellPercentWidth = t.collumWidth * 0.8 
+	t.rowHeight = t.fonts.cells.size + (t.fonts.cells.size * .4)
 
-	NewSpreadSheet.displayWidth = NewSpreadSheet.frame.width
-	NewSpreadSheet.displayHeight = tableHeight * globApp.safeScreenArea.h
+	t.displayWidth = t.frame.width
+	t.displayHeight = tableHeight * globApp.safeScreenArea.h
 
 	------------------------FUNC CALLBACKS/BUTTONS--------------------
-	NewSpreadSheet.callbackFuncNames = {}
-	NewSpreadSheet.fullCallbackFuncs = {}
-	NewSpreadSheet.buttons = {}
+	t.callbackFuncNames = {}
+	t.fullCallbackFuncs = {}
+	t.buttons = {}
 
 	local numOfCallbackButtons = 0
 
@@ -112,34 +113,34 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 
 			iterator1 = iterator1 + 1
 
-			NewSpreadSheet.callbackFuncNames[index] = cb
-			NewSpreadSheet.fullCallbackFuncs[index] = ""
-			NewSpreadSheet.buttons[index] = {}
-			NewSpreadSheet.buttons[index].text = index
-			NewSpreadSheet.buttons[index].x = NewSpreadSheet.frame.x + (iterator1 * (NewSpreadSheet.displayWidth / #tblCallbackFuncs)) - (NewSpreadSheet.displayWidth / #tblCallbackFuncs)
-			NewSpreadSheet.buttons[index].y = NewSpreadSheet.frame.y + NewSpreadSheet.displayHeight - NewSpreadSheet.rowHeight
-			NewSpreadSheet.buttons[index].width = NewSpreadSheet.displayWidth / #tblCallbackFuncs
-			NewSpreadSheet.buttons[index].height = NewSpreadSheet.rowHeight
-			NewSpreadSheet.buttons[index].isFocused = false
+			t.callbackFuncNames[index] = cb
+			t.fullCallbackFuncs[index] = ""
+			t.buttons[index] = {}
+			t.buttons[index].text = index
+			t.buttons[index].x = t.frame.x + (iterator1 * (t.displayWidth / #tblCallbackFuncs)) - (t.displayWidth / #tblCallbackFuncs)
+			t.buttons[index].y = t.frame.y + t.displayHeight - t.rowHeight
+			t.buttons[index].width = t.displayWidth / #tblCallbackFuncs
+			t.buttons[index].height = t.rowHeight
+			t.buttons[index].isFocused = false
 		end
 	end
 
-	NewSpreadSheet.titleBox = {}
-		NewSpreadSheet.titleBox.x = NewSpreadSheet.frame.x
-		NewSpreadSheet.titleBox.y = NewSpreadSheet.frame.y
-		NewSpreadSheet.titleBox.width = NewSpreadSheet.frame.width
-		NewSpreadSheet.titleBox.height = NewSpreadSheet.fonts.title.size * 1.3
+	t.titleBox = {}
+		t.titleBox.x = t.frame.x
+		t.titleBox.y = t.frame.y
+		t.titleBox.width = t.frame.width
+		t.titleBox.height = t.fonts.title.size * 1.3
 
-	NewSpreadSheet.titleCaption = {}
-		NewSpreadSheet.titleCaption.x = NewSpreadSheet.titleBox.x + (NewSpreadSheet.titleBox.width * .1)
-		NewSpreadSheet.titleCaption.y = NewSpreadSheet.titleBox.y + (NewSpreadSheet.titleBox.height * .1)
-		NewSpreadSheet.titleCaption.wrapWidth = NewSpreadSheet.titleBox.width * 0.8
+	t.titleCaption = {}
+		t.titleCaption.x = t.titleBox.x + (t.titleBox.width * .1)
+		t.titleCaption.y = t.titleBox.y + (t.titleBox.height * .1)
+		t.titleCaption.wrapWidth = t.titleBox.width * 0.8
 
-	NewSpreadSheet.headersBox = {}
-		NewSpreadSheet.headersBox.x = NewSpreadSheet.titleBox.x
-		NewSpreadSheet.headersBox.y = NewSpreadSheet.titleBox.y + NewSpreadSheet.titleBox.height
-		NewSpreadSheet.headersBox.w = NewSpreadSheet.titleBox.width
-		NewSpreadSheet.headersBox.h = 0
+	t.headersBox = {}
+		t.headersBox.x = t.titleBox.x
+		t.headersBox.y = t.titleBox.y + t.titleBox.height
+		t.headersBox.w = t.titleBox.width
+		t.headersBox.h = 0
 
 
 	local headerData = headerTitles
@@ -148,16 +149,37 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 		allTblHeaders[i] = dataTable[i]["ID"]
 	end
 
-	-- uniqueHeaderFilter (dataTable, NewSpreadSheet.collumnsCount)
-	NewSpreadSheet.cells = {}
+	-- uniqueHeaderFilter (dataTable, t.collumnsCount)
+				t.cells = {}
+				
+				-- New code to calculate uniformCellHeight
+				local maxOverallTextLineCount = 1
+				local actualCellFontHeight = returnFontInfo (t.fonts.cells.font, "height")
 	
-	local cellPositions = {}
-	cellPositions.w = NewSpreadSheet.collumWidth
+				-- Check headers
+				maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
+	
+				-- Check data rows
+				for i = 1, t.rowsCount, 1 do
+					local textTable = {}
+					for z=1, #headerData, 1 do
+						textTable[z] = table_lookUp (dataTable, i, headerData[z])
+					end
+					maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
+				end
+	
+				-- Calculate uniform cell height with 15% top/bottom padding
+				local cellPaddingFactor = 0.30 -- 15% top + 15% bottom
+				local uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + cellPaddingFactor)
+				t.uniformCellHeight = uniformCellHeight -- Store it for later use
+				-- End new code
+	
+				local cellPositions = {}	cellPositions.w = t.collumWidth
 	local previewsRowY = 0
 	local previewsRowH = 0
-	NewSpreadSheet.combinedRowsHeight = 0
+	t.combinedRowsHeight = 0
 	
-	for i = 1, NewSpreadSheet.rowsCount + 1, 1 do
+	for i = 1, t.rowsCount + 1, 1 do
 		for j = 1, #headerData , 1 do
 
 			local cellName = (i .. "," .. j)
@@ -165,7 +187,7 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 			local scrollability = false
 			local cellRercordID = ""
 			
-			cellPositions.x = NewSpreadSheet.frame.x - NewSpreadSheet.collumWidth + (NewSpreadSheet.collumWidth * j )
+			cellPositions.x = t.frame.x - t.collumWidth + (t.collumWidth * j )
 
 			if i == 1 then --takes care of the header row data
 
@@ -174,14 +196,12 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 
 				if j == 1 then
 
-					local maxTextLineCount = findMaxNumOfLinesNeeded (NewSpreadSheet.fonts.headers.font, NewSpreadSheet.textWrapCellPercentWidth, headerData)
-					local actualHeaderFontHeight = returnFontInfo (NewSpreadSheet.fonts.headers.font, "height")
+					local maxTextLineCount = findMaxNumOfLinesNeeded (t.fonts.headers.font, t.textWrapCellPercentWidth, headerData)
+					local actualHeaderFontHeight = returnFontInfo (t.fonts.headers.font, "height")
 
-					cellPositions.y = NewSpreadSheet.headersBox.y
-					cellPositions.h = (actualHeaderFontHeight * maxTextLineCount)
-					cellPositions.h = cellPositions.h + (cellPositions.h * NewSpreadSheet.textMargin)
-
-					NewSpreadSheet.headersBox.h = cellPositions.h
+					cellPositions.y = t.headersBox.y
+					cellPositions.h = t.uniformCellHeight
+					t.headersBox.h = t.uniformCellHeight
 
 				end
 
@@ -195,7 +215,7 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 
 				if j == 1 then
 
-					for k, c in pairs(NewSpreadSheet.cells) do
+					for k, c in pairs(t.cells) do
 						 if c.row == (i - 1) and c.collumn == 1 then
 							previewsRowY = c.y
 							previewsRowH = c.height
@@ -203,12 +223,9 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 						end
 					end
 
-					local maxTextLineCount = findMaxNumOfLinesNeeded (NewSpreadSheet.fonts.cells.font, NewSpreadSheet.textWrapCellPercentWidth, textTable)
-					local actualCellFontHeight = returnFontInfo (NewSpreadSheet.fonts.cells.font, "height")
 					cellPositions.y = (previewsRowY + previewsRowH)
-					cellPositions.h = (actualCellFontHeight * maxTextLineCount)
-					cellPositions.h = cellPositions.h + (cellPositions.h * NewSpreadSheet.textMargin)
-					NewSpreadSheet.combinedRowsHeight = NewSpreadSheet.combinedRowsHeight + cellPositions.h
+					cellPositions.h = t.uniformCellHeight
+					t.combinedRowsHeight = t.combinedRowsHeight + cellPositions.h
 				end
 			
 				cellRercordID = allTblHeaders[i - 1]
@@ -218,60 +235,99 @@ function spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dat
 
 			end
 			
-			TableCell_create (cellName, cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, cellData, scrollability, NewSpreadSheet.cells,cellRercordID)
+			TableCell_create (cellName, cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, cellData, scrollability, t.cells,cellRercordID)
 
 		end --[[cell objects creation]]
 
 	end
 
-	NewSpreadSheet.scrollBox = {}
-		NewSpreadSheet.scrollBox.x = NewSpreadSheet.frame.x
-		NewSpreadSheet.scrollBox.y = NewSpreadSheet.frame.y + NewSpreadSheet.titleBox.height + NewSpreadSheet.headersBox.h
-		NewSpreadSheet.scrollBox.width = NewSpreadSheet.frame.width - NewSpreadSheet.fonts.cells.size
-		NewSpreadSheet.scrollBox.height = (NewSpreadSheet.displayHeight - (NewSpreadSheet.scrollBox.y - NewSpreadSheet.frame.y)) - NewSpreadSheet.rowHeight
+	t.scrollBox = {}
+		t.scrollBox.x = t.frame.x
+		t.scrollBox.y = t.frame.y + t.titleBox.height + t.headersBox.h
+		t.scrollBox.width = t.frame.width - t.fonts.cells.size
+		t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - t.rowHeight
 
-	NewSpreadSheet.scrollableYequivPercent = (globApp.safeScreenArea.y + NewSpreadSheet.scrollBox.y) / globApp.safeScreenArea.h 
+	t.scrollableYequivPercent = (globApp.safeScreenArea.y + t.scrollBox.y) / globApp.safeScreenArea.h 
 
-	NewSpreadSheet.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y /  globApp.safeScreenArea.h
-	NewSpreadSheet.verticalScrollBar = {}
-		NewSpreadSheet.verticalScrollBar.name = spreadSheetName .. "_vsb"
-		NewSpreadSheet.verticalScrollBar.x = ((NewSpreadSheet.frame.x + NewSpreadSheet.frame.width) -  (NewSpreadSheet.fonts.cells.size)) / globApp.safeScreenArea.w
-		NewSpreadSheet.verticalScrollBar.y = NewSpreadSheet.scrollableYequivPercent - NewSpreadSheet.y_difBetweenSafeAndTotalArea
-		NewSpreadSheet.verticalScrollBar.width = NewSpreadSheet.fonts.cells.size/ globApp.safeScreenArea.w --(NewSpreadSheet.frame.width * .05) / globApp.safeScreenArea.w
-		NewSpreadSheet.verticalScrollBar.height = NewSpreadSheet.scrollBox.height / globApp.safeScreenArea.h
-	--IMPORTANT: DONT REMOVE FOLLOWING LINE
-	NewSpreadSheet.scrollBox.height = NewSpreadSheet.scrollBox.height - (NewSpreadSheet.verticalScrollBar.width * globApp.safeScreenArea.w)
+	t.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y /  globApp.safeScreenArea.h
+	t.verticalScrollBar = {}
+		t.verticalScrollBar.name = spreadSheetName .. "_vsb"
+		t.verticalScrollBar.x = ((t.frame.x + t.frame.width) -  (t.fonts.cells.size)) / globApp.safeScreenArea.w
+		t.verticalScrollBar.y = t.scrollableYequivPercent - t.y_difBetweenSafeAndTotalArea
+		t.verticalScrollBar.width = t.fonts.cells.size/ globApp.safeScreenArea.w --(t.frame.width * .05) / globApp.safeScreenArea.w
+						t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
 
-	NewSpreadSheet.horizontalScrollBar = {}
-		NewSpreadSheet.horizontalScrollBar.name = spreadSheetName .. "_hsb"
-		NewSpreadSheet.horizontalScrollBar.x = NewSpreadSheet.frame.x / globApp.safeScreenArea.w
-		NewSpreadSheet.horizontalScrollBar.y = (NewSpreadSheet.scrollBox.y + NewSpreadSheet.scrollBox.height) / globApp.safeScreenArea.h
-		NewSpreadSheet.horizontalScrollBar.width = NewSpreadSheet.scrollBox.width / globApp.safeScreenArea.w
-		NewSpreadSheet.horizontalScrollBar.height = NewSpreadSheet.fonts.cells.size/ globApp.safeScreenArea.h
+	t.horizontalScrollBar = {}
+		t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
+		t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
+		t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
+						t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.fonts.cells.size/ globApp.safeScreenArea.h
 
-	NewSpreadSheet.avrgRowHeight = NewSpreadSheet.combinedRowsHeight / NewSpreadSheet.rowsCount
-	NewSpreadSheet.numRowsPerDisplay = NewSpreadSheet.scrollBox.height / NewSpreadSheet.avrgRowHeight
+	if t.rowsCount > 0 then
+		t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
+	else
+		t.avrgRowHeight = 1
+	end
+	t.numRowsPerDisplay = t.scrollBox.height / t.avrgRowHeight
 
 
-	NewSpreadSheet.combinedCollumnsWidth = NewSpreadSheet.collumnsCount * NewSpreadSheet.collumWidth
-	NewSpreadSheet.avrgCollumnsWidht = NewSpreadSheet.collumWidth
-	NewSpreadSheet.numCollumnsPerDisplay = NewSpreadSheet.scrollBox.width / NewSpreadSheet.collumWidth
+	t.combinedCollumnsWidth = t.collumnsCount * t.collumWidth
+	if t.collumnsCount > 0 then
+		t.avrgCollumnsWidht = t.collumWidth
+	else
+		t.avrgCollumnsWidht = 1
+	end
+	t.numCollumnsPerDisplay = t.scrollBox.width / t.collumWidth
 
-	NewSpreadSheet.dataCurrentVertPosition = 0.0
-	NewSpreadSheet.dataCurrentHorzPosition = 0.0
-	NewSpreadSheet.state = 0 --[[0 deactivated, 1 = released, 2 = pressed.]]
+	t.dataCurrentVertPosition = 0.0
+	t.dataCurrentHorzPosition = 0.0
+	t.state = 1 --[[0 deactivated, 1 = released, 2 = pressed.]]
 
-	table.insert(spreadSheets,NewSpreadSheet)
+	table.insert(globApp.objects.tables, t)
 
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+
+	gui_scrollBar_create (
+		t.verticalScrollBar.name, --[id]
+		t.page, --[page]
+		t.verticalScrollBar.x, --[x]
+		t.verticalScrollBar.y, --[y]
+		t.verticalScrollBar.width, --[width]
+		t.verticalScrollBar.height, --[height]
+		"LT", --[anchor point]
+		t.numRowsPerDisplay, --[visible values]
+		t.rowsCount, --[total values]
+		t.dataCurrentVertPosition,--dataRelativePosition
+		"table-linked", --[sb type string]
+		"vertical", --[draw orientation: vertical or horizontal]
+		30, --[scroll speed: lower slow, bigger fast]
+		"spreadSheetScrollbarVertCallback"--[callback function]
+		)
+
+	gui_scrollBar_create (
+		t.horizontalScrollBar.name, --[id]
+		t.page, --[page]
+		t.horizontalScrollBar.x, --[x]
+		t.horizontalScrollBar.y, --[y]
+		t.horizontalScrollBar.width, --[width]
+		t.horizontalScrollBar.height, --[height]
+		"LT", --[anchor point]
+		t.numCollumnsPerDisplay , --[visible values]
+		t.collumnsCount, --[total values]
+		t.dataCurrentHorzPosition,--dataRelativePosition
+		"table-linked", --[sb type string]
+		"horizontal", --[draw orientation: vertical or horizontal]
+		30, --[scroll speed: lower slow, bigger fast]
+		"speadSheetScrollbarHorzCallback"--[callback function]
+		)
 end
 
 ------------------------------------------------------------
 			--OBJECT UPDATE
 ------------------------------------------------------------
-function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
-	for i, t in ipairs(spreadSheets) do 
+	for i, t in ipairs(globApp.objects.tables) do 
 
 		if t.name == spreadSheetName then
 
@@ -391,6 +447,28 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 			-- uniqueHeaderFilter (dataTable, t.collumnsCount)
 			t.cells = {}
 			
+			-- New code to calculate uniformCellHeight
+			local maxOverallTextLineCount = 1
+			local actualCellFontHeight = returnFontInfo (t.fonts.cells.font, "height")
+
+			-- Check headers
+			maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
+
+			-- Check data rows
+			for i = 1, t.rowsCount, 1 do
+				local textTable = {}
+				for z=1, #headerData, 1 do
+					textTable[z] = table_lookUp (dataTable, i, headerData[z])
+				end
+				maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
+			end
+
+			-- Calculate uniform cell height with 15% top/bottom padding
+			local cellPaddingFactor = 0.30 -- 15% top + 15% bottom
+			local uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + cellPaddingFactor)
+			t.uniformCellHeight = uniformCellHeight -- Store it for later use
+			-- End new code
+
 			local cellPositions = {}
 			cellPositions.w = t.collumWidth
 			local previewsRowY = 0
@@ -418,11 +496,8 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 							local actualHeaderFontHeight = returnFontInfo (t.fonts.headers.font, "height")
 
 							cellPositions.y = t.headersBox.y
-							cellPositions.h = (actualHeaderFontHeight * maxTextLineCount)
-							cellPositions.h = cellPositions.h + (cellPositions.h * t.textMargin)
-
-							t.headersBox.h = cellPositions.h
-
+												cellPositions.h = t.uniformCellHeight
+												t.headersBox.h = t.uniformCellHeight
 						end
 
 					elseif i > 1 then --takes care of the data rows data
@@ -443,12 +518,8 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 								end
 							end
 
-							local maxTextLineCount = findMaxNumOfLinesNeeded (t.fonts.cells.font, t.textWrapCellPercentWidth, textTable)
-							local actualCellFontHeight = returnFontInfo (t.fonts.cells.font, "height")
-							cellPositions.y = (previewsRowY + previewsRowH)
-							cellPositions.h = (actualCellFontHeight * maxTextLineCount)
-							cellPositions.h = cellPositions.h + (cellPositions.h * t.textMargin)
-							t.combinedRowsHeight = t.combinedRowsHeight + cellPositions.h
+												cellPositions.y = (previewsRowY + previewsRowH)
+												cellPositions.h = t.uniformCellHeight							t.combinedRowsHeight = t.combinedRowsHeight + cellPositions.h
 						end
 					
 						cellRercordID = allTblHeaders[i - 1]
@@ -481,7 +552,7 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 				t.verticalScrollBar.width = t.fonts.cells.size/ globApp.safeScreenArea.w
 				t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
 			--IMPORTANT: DONT REMOVE FOLLOWING LINE
-			t.scrollBox.height = t.scrollBox.height - (t.verticalScrollBar.width * globApp.safeScreenArea.w)
+
 
 			t.horizontalScrollBar = {}
 				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
@@ -490,12 +561,20 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 				t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w
 				t.horizontalScrollBar.height = (t.verticalScrollBar.width * globApp.safeScreenArea.w) / globApp.safeScreenArea.h
 
-			t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
+			if t.rowsCount > 0 then
+				t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
+			else
+				t.avrgRowHeight = 1
+			end
 			t.numRowsPerDisplay = t.scrollBox.height / t.avrgRowHeight
 
 
 			t.combinedCollumnsWidth = t.collumnsCount * t.collumWidth
-			t.avrgCollumnsWidht = t.collumWidth
+			if t.collumnsCount > 0 then
+				t.avrgCollumnsWidht = t.collumWidth
+			else
+				t.avrgCollumnsWidht = 1
+			end
 			t.numCollumnsPerDisplay = t.scrollBox.width / t.collumWidth
 
 			t.dataCurrentVertPosition = t.dataCurrentVertPosition
@@ -504,29 +583,32 @@ function spreadSheet_update (spreadSheetName, strgPage, strgspreadSheetType, dat
 
 			scrollBar_update (t.verticalScrollBar.name, strgPage, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
 			scrollBar_update (t.horizontalScrollBar.name, strgPage, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
+
+			scrollBar_update (t.verticalScrollBar.name, strgPage, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
+			scrollBar_update (t.horizontalScrollBar.name, strgPage, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
 		end
 
 	end
 end
 
-function spreadSheet_delete (spreadSheetName,strgPage)
+-- function spreadSheet_delete (spreadSheetName,strgPage)
 
-	for i = #spreadSheets,1,-1 do
+-- 	for i = #spreadSheets,1,-1 do
 
-		local spreadSheet = spreadSheets[i]
+-- 		local spreadSheet = spreadSheets[i]
 
-		--LOAD PROJECT:
+-- 		--LOAD PROJECT:
 
-			if spreadSheet.name == spreadSheetName and spreadSheet.page == strgPage then
+-- 			if spreadSheet.name == spreadSheetName and spreadSheet.page == strgPage then
 
-				table.remove(spreadSheets,i)
+-- 				table.remove(spreadSheets,i)
 
-				globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
+-- 				globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
 
-			end
+-- 			end
 
-	end
-end
+-- 	end
+-- end
 
 function uniqueHeaderFilter (array, headerCount)
 
@@ -571,112 +653,79 @@ function uniqueHeaderFilter (array, headerCount)
 	return headers
 end
 
-function spreadSheet_draw (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles )
+function gui_table_draw (pageName)
 
-	--[[ PARAMETERS:
+	-- local activePageName = 0
 
-	spreadSheetName -----------------string--------------name of spreadSheet
-	strgPage--------------------string--------------select page from pageNameList table
-	strgspreadSheetType--------------string--------------toggle, pushonoff or selector
-	strgImgspreadSheetPressed--------string---------------nameofpngfile
-	strgImgspreadSheetReleased-------string--------------nameofpngfile
-	strgImgspreadSheetDeactivated----double--------------0 to 1 relative to window size
-	myX-------------------------double--------------0 to 1 relative to window size
-	myY-------------------------double--------------0 to 1 relative to window size
-	anchorPoint-----------------string--------------LT,LC,LB,CT,CC,CB,RT,RC,RB
-	myWidth---------------------double--------------0 to 1 relative to window size
-	myHeight--------------------string--------------Name of callback funciton
-	callback--------------------string--------------Name of callback funciton
+	-- for i, pgs in ipairs (pages) do
+	-- 	if pgs.index == globApp.currentPageIndex then
+	-- 		activePageName = pageName
+	-- 	end
+	-- end
 
-	]]
+	-- local spreadSheetExists = false
 
 
-	local activePageName = 0
+	-- if activePageName == strgPage then --[[compares object pg to current page]]
 
-	for i, pgs in ipairs (pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
-		end
-	end
+		-- if spreadSheetExists == false then --[[runs once]]
 
-	local spreadSheetExists = false
+		-- 	gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
-	for i,x in ipairs(spreadSheets) do--[[checks if spreadsheet exists to avoid multiple creations of the same object]]
+		-- elseif spreadSheetExists == true and (globApp.resizeDetected == true or globApp.projectsTblChanged == true) then --[[updates only if window is resized]]
 
-		if x.name == spreadSheetName then
-			
-			spreadSheetExists = true
+		-- if globApp.projectAvailable == false then
+		-- -- 	spreadSheet_update(spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+		-- -- else  
+		-- 	page_switch ("LoadingMainMenu", 3, 2, false)
+		-- end
+		-- 	globApp.projectsTblChanged = false
 
-			if spreadSheetExists == true then
+		-- -- end
 
-				x.state = 1
+		for i,x in pairs(globApp.objects.tables) do --[[draws table]]
 
-			else
+			if x.page == pageName then
 
-				x.state = 0
+				if x.state == 0  then
+					
+				elseif x.state == 1  then
 
-			end
-		
-		end
+					--TABLE FONT SIZE
+					love.graphics.setFont(x.fonts.cells.font)
 
-	end
+					--TABLE TOTAL BG AREA 
+					love.graphics.setColor(1, 0, 0, 1)
+					love.graphics.rectangle("fill", x.titleBox.x, x.titleBox.y, x.displayWidth, x.displayHeight)
 
-	if activePageName == strgPage then --[[compares object pg to current page]]
+					--SCROLLABLE SPACE
+					love.graphics.setColor(0, 0, 0, 1)
+					love.graphics.rectangle("fill", x.scrollBox.x, x.scrollBox.y, x.scrollBox.width, x.scrollBox.height)
 
-		if spreadSheetExists == false then --[[runs once]]
+					--CELLS:
+					for j,cells in pairs(x.cells) do
 
-			spreadSheet_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+						if cells.row ~= 1 then
 
-		elseif spreadSheetExists == true and (globApp.resizeDetected == true or globApp.projectsTblChanged == true) then --[[updates only if window is resized]]
+							if cells.y + cells.height > x.scrollBox.y and cells.y < x.scrollBox.y + x.scrollBox.height then
 
-			if globApp.projectAvailable == true then
-				spreadSheet_update(spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
-			else  
-				page_switch ("LoadingMainMenu", 3, 2, false)
-			end
-				globApp.projectsTblChanged = false
+								if cells.focused == false then
+								
+									love.graphics.setColor(.5, .5, .5, 1)
+									love.graphics.rectangle("line", cells.x, cells.y, cells.width, cells.height)
 
-		end
+									love.graphics.setColor(1, 1, 1, 1)
+									love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
-		for i,x in pairs(spreadSheets) do --[[draws table]]
-			
-			if x.name == spreadSheetName and x.state == 0  then
-	
-			elseif x.name == spreadSheetName and x.state == 1  then
+								elseif cells.focused == true then
 
-				--TABLE FONT SIZE
-				love.graphics.setFont(x.fonts.cells.font)
+									love.graphics.setColor(0, 1, 0, 1)
+									love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
 
-				--TABLE TOTAL BG AREA 
-				love.graphics.setColor(1, 0, 0, 1)
-				love.graphics.rectangle("fill", x.titleBox.x, x.titleBox.y, x.displayWidth, x.displayHeight)
+									love.graphics.setColor(1, 0, 0, 1)
+									love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
-				--SCROLLABLE SPACE
-				love.graphics.setColor(0, 0, 0, 1)
-				love.graphics.rectangle("fill", x.scrollBox.x, x.scrollBox.y, x.scrollBox.width, x.scrollBox.height)
-
-				--CELLS:
-				for j,cells in pairs(x.cells) do
-
-					if cells.row ~= 1 then
-
-						if cells.y + cells.height > x.scrollBox.y and cells.y < x.scrollBox.y + x.scrollBox.height then
-
-							if cells.focused == false then
-							
-								love.graphics.setColor(.5, .5, .5, 1)
-								love.graphics.rectangle("line", cells.x, cells.y, cells.width, cells.height)
-
-								love.graphics.setColor(1, 1, 1, 1)
-								love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center", r, sx, sy, ox, oy, kx, ky)
-
-							elseif cells.focused == true then
-
-								love.graphics.setColor(0, 1, 0, 1)
-								love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
-
-								love.graphics.setColor(1, 0, 0, 1)
-								love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center", r, sx, sy, ox, oy, kx, ky)
+								end
 
 							end
 
@@ -684,135 +733,105 @@ function spreadSheet_draw (spreadSheetName, strgPage, strgspreadSheetType, dataT
 
 					end
 
-				end
+					--TITLE:
 
-				--TITLE:
+					love.graphics.setFont(x.fonts.title.font)
+					love.graphics.setColor(.2, .2, .2, 1)
+					love.graphics.rectangle("fill", x.titleBox.x, x.titleBox.y, x.titleBox.width , x.titleBox.height)--[[title rectangle]]
 
-				love.graphics.setFont(x.fonts.title.font)
-				love.graphics.setColor(.2, .2, .2, 1)
-				love.graphics.rectangle("fill", x.titleBox.x, x.titleBox.y, x.titleBox.width , x.titleBox.height)--[[title rectangle]]
+					love.graphics.setColor(1, 1, 1, 1)
+					
+					love.graphics.printf(x.name, x.titleCaption.x, x.titleCaption.y, x.titleCaption.wrapWidth, "center") --[[Title text]]
 
-				love.graphics.setColor(1, 1, 1, 1)
-				
-				love.graphics.printf(x.name, x.titleCaption.x, x.titleCaption.y, x.titleCaption.wrapWidth, "center", r, sx, sy, ox, oy, kx, ky) --[[Title text]]
+					--HEADERS
+					love.graphics.setFont(x.fonts.headers.font)
 
-				--HEADERS
-				love.graphics.setFont(x.fonts.headers.font)
+					for j,cells in ipairs (x.cells) do
 
-				for j,cells in ipairs (x.cells) do
+						if cells.row == 1 then
+							
+							love.graphics.setColor(.3, .3, .3, 1)
+							
+							love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
 
-					if cells.row == 1 then
-						
-						love.graphics.setColor(.3, .3, .3, 1)
-						
-						love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
+							love.graphics.setColor(0, 1, 0, 1)
+							love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
-						love.graphics.setColor(0, 1, 0, 1)
-						love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center", r, sx, sy, ox, oy, kx, ky)
+						end
+
+					end
+					
+
+					--[[TABLE BUTTONS]]
+					for j, bt in pairs (x.buttons) do
+
+						local btFontColor = {0,0,0,1}
+						local btColor = {0,0,0,1}
+
+						if bt.isFocused == false then
+							btFontColor = {1,1,1,1}
+							btColor = {.3,.3,.3,1}
+						elseif bt.isFocused == true then
+							btFontColor = {1,0,0,1}
+							btColor = {0,1,1,1}
+						end
+
+							love.graphics.setColor(btColor[1], btColor[2], btColor[3], btColor[4])
+							love.graphics.rectangle("fill", bt.x, bt.y, bt.width, bt.height)
+
+							love.graphics.setColor(btFontColor[1], btFontColor[2], btFontColor[3], btFontColor[4])
+							love.graphics.printf(bt.text, bt.x + (bt.width * .1), bt.y + (bt.height * 0.1), (bt.width * 0.8), "center")
+							love.graphics.reset ()
+
 
 					end
 
-				end
-				
 
-				--[[TABLE BUTTONS]]
-				for j, bt in pairs (x.buttons) do
 
-					local btFontColor = {0,0,0,1}
-					local btColor = {0,0,0,1}
 
-					if bt.isFocused == false then
-						btFontColor = {1,1,1,1}
-						btColor = {.3,.3,.3,1}
-					elseif bt.isFocused == true then
-						btFontColor = {1,0,0,1}
-						btColor = {0,1,1,1}
-					end
-
-						love.graphics.setColor(btColor[1], btColor[2], btColor[3], btColor[4])
-						love.graphics.rectangle("fill", bt.x, bt.y, bt.width, bt.height)
-
-						love.graphics.setColor(btFontColor[1], btFontColor[2], btFontColor[3], btFontColor[4])
-						love.graphics.printf(bt.text, bt.x + (bt.width * .1), bt.y + (bt.height * 0.1), (bt.width * 0.8), "center", r, sx, sy, ox, oy, kx, ky)
+					--MASKS:
+						love.graphics.setColor(globApp.appColor[1], globApp.appColor[2], globApp.appColor[3], globApp.appColor[4])
+						--TOP
+						love.graphics.rectangle("fill", x.masks.top.x, x.masks.top.y, x.masks.top.width, x.masks.top.height, rx, ry, segments)
+						--LEFT
+						love.graphics.rectangle("fill", x.masks.left.x, x.masks.left.y, x.masks.left.width, x.masks.left.height, rx, ry, segments)
+						--RIGHT
+						love.graphics.rectangle("fill", x.masks.right.x, x.masks.right.y, x.masks.right.width, x.masks.right.height, rx, ry, segments)
+						--BOTTOM
+						love.graphics.rectangle("fill", x.masks.bottom.x, x.masks.bottom.y, x.masks.bottom.width, x.masks.bottom.height, rx, ry, segments)
+						
 						love.graphics.reset ()
+						
 
-
+					--UNSAFE AREA MASKS:
+						love.graphics.setColor(0,0,0,1)
+						--TOP
+						love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), globApp.safeScreenArea.y, rx, ry, segments)
+						--LEFT
+						love.graphics.rectangle("fill", 0, 0, globApp.safeScreenArea.x, love.graphics.getHeight(), rx, ry, segments)
+						-- --RIGHT
+						love.graphics.rectangle("fill", globApp.safeScreenArea.xw, 0, (love.graphics.getWidth()-globApp.safeScreenArea.xw), love.graphics.getHeight(), rx, ry, segments)
+						-- --BOTTOM
+						love.graphics.rectangle("fill", 0, globApp.safeScreenArea.yh, love.graphics.getWidth(), (love.graphics.getHeight()-globApp.safeScreenArea.yh), rx, ry, segments)
+						
+						love.graphics.reset ()
+				
 				end
 
-				scrollBar_draw (
-					x.verticalScrollBar.name, --[id]
-					strgPage, --[page]
-					x.verticalScrollBar.x, --[x]
-					x.verticalScrollBar.y, --[y]
-					x.verticalScrollBar.width, --[width]
-					x.verticalScrollBar.height, --[height]
-					"LT", --[anchor point]
-					x.numRowsPerDisplay, --[visible values]
-					x.rowsCount, --[total values]
-					x.dataCurrentVertPosition,--dataRelativePosition
-					"table-linked", --[sb type string]
-					"vertical", --[draw orientation: vertical or horizontal]
-					30, --[scroll speed: lower slow, bigger fast]
-					"spreadSheetScrollbarVertCallback"--[callback function]
-					)
-
-				scrollBar_draw (
-					x.horizontalScrollBar.name, --[id]
-					strgPage, --[page]
-					x.horizontalScrollBar.x, --[x]
-					x.horizontalScrollBar.y, --[y]
-					x.horizontalScrollBar.width, --[width]
-					x.horizontalScrollBar.height, --[height]
-					"LT", --[anchor point]
-					x.numCollumnsPerDisplay , --[visible values]
-					x.collumnsCount, --[total values]
-					x.dataCurrentHorzPosition,--dataRelativePosition
-					"table-linked", --[sb type string]
-					"horizontal", --[draw orientation: vertical or horizontal]
-					30, --[scroll speed: lower slow, bigger fast]
-					"speadSheetScrollbarHorzCallback"--[callback function]
-					)
-
-				--MASKS:
-					love.graphics.setColor(globApp.appColor[1], globApp.appColor[2], globApp.appColor[3], globApp.appColor[4])
-					--TOP
-					love.graphics.rectangle("fill", x.masks.top.x, x.masks.top.y, x.masks.top.width, x.masks.top.height, rx, ry, segments)
-					--LEFT
-					love.graphics.rectangle("fill", x.masks.left.x, x.masks.left.y, x.masks.left.width, x.masks.left.height, rx, ry, segments)
-					--RIGHT
-					love.graphics.rectangle("fill", x.masks.right.x, x.masks.right.y, x.masks.right.width, x.masks.right.height, rx, ry, segments)
-					--BOTTOM
-					love.graphics.rectangle("fill", x.masks.bottom.x, x.masks.bottom.y, x.masks.bottom.width, x.masks.bottom.height, rx, ry, segments)
-					
-					love.graphics.reset ()
-					
-
-				--UNSAFE AREA MASKS:
-					love.graphics.setColor(0,0,0,1)
-					--TOP
-					love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), globApp.safeScreenArea.y, rx, ry, segments)
-					--LEFT
-					love.graphics.rectangle("fill", 0, 0, globApp.safeScreenArea.x, love.graphics.getHeight(), rx, ry, segments)
-					-- --RIGHT
-					love.graphics.rectangle("fill", globApp.safeScreenArea.xw, 0, (love.graphics.getWidth()-globApp.safeScreenArea.xw), love.graphics.getHeight(), rx, ry, segments)
-					-- --BOTTOM
-					love.graphics.rectangle("fill", 0, globApp.safeScreenArea.yh, love.graphics.getWidth(), (love.graphics.getHeight()-globApp.safeScreenArea.yh), rx, ry, segments)
-					
-					love.graphics.reset ()
 			end
 	    end
 
-	elseif activePageName ~= strgPage  then--[[compares object pg to current page]]
+	-- elseif activePageName ~= strgPage  then--[[compares object pg to current page]]
  
-	 	if spreadSheetExists == true then
+	 	-- if spreadSheetExists == true then
 			
-			spreadSheet_delete (spreadSheetName, strgPage)
-			scrollBar_delete ((spreadSheetName.. "_hsb"), strgPage)
-			scrollBar_delete ((spreadSheetName.. "_vsb"), strgPage)
+		-- 	spreadSheet_delete (spreadSheetName, strgPage)
+		-- 	scrollBar_delete ((spreadSheetName.. "_hsb"), strgPage)
+		-- 	scrollBar_delete ((spreadSheetName.. "_vsb"), strgPage)
 
-		end
+		-- end
 	
-	end	
+	-- end	
 end
 
 function TableCell_create (name, x, y, width, height, myRow, myCollumn, content, scrollable, addTo, recordID)
@@ -983,7 +1002,7 @@ end
 
 function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 	--isolate table
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 	local spreadSheetExist = false
 	local totalRows = 0
 	local totalCollums = 0
@@ -1113,7 +1132,7 @@ end
 function tableRow_Select (x,y,button,istouch)
 
 	--isolate table
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 	local spreadSheetExist = false
 	local totalCollums = 0
 	local justATapOrClick = false
@@ -1288,7 +1307,7 @@ end
 
 function tableButtonsPressed (x,y,button,istouch)
 	
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch pressed" then
 		for i, tbl in ipairs (myTable) do 
@@ -1305,7 +1324,7 @@ end
 
 function tableButtonsReleased (x,y,button,istouch)
 
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch released" then
 		for i, tbl in ipairs (myTable) do 
@@ -1353,7 +1372,7 @@ end
 function tableSelectButton_released (x,y,button,istouch)
 
 	local buttonState = 0
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 	local selectedRow = 0
 	local myResult = {}
 	local buttonTouched = false
@@ -1447,7 +1466,7 @@ end
 function tableDeleteButton_released (x,y,button,istouch)
 
 	local buttonState = 0
-	local myTable = spreadSheets
+	local myTable = globApp.objects.tables
 	local selectedRow = 0
 	local myResult = {}
 	local buttonTouched = false
@@ -1543,7 +1562,7 @@ function tableDeleteButton_released (x,y,button,istouch)
 end
 
 function spreadSheetScrollbarVertCallback (position)
-	for i, t in ipairs (spreadSheets) do
+	for i, t in ipairs (globApp.objects.tables) do
 
 		local lowerY = t.scrollBox.y
 		local upperY = lowerY - t.combinedRowsHeight + t.scrollBox.height
@@ -1595,20 +1614,21 @@ function spreadSheetScrollbarVertCallback (position)
 
 						t.dataCurrentVertPosition = position
 						
-					end
+					end -- closes 'if cl.row ~= 1'
 
-				end
+				end -- closes 'for j, cl'
 
-			end
+			end -- closes 'if t.combinedRowsHeight < t.scrollBox.height' and its 'else' part
 		
-		end
+		end -- closes 'if t.state == 1'
 
-	end
-end
+	end -- closes 'for i, t'
+end -- closes 'function spreadSheetScrollbarVertCallback (position)'
+
 
 function speadSheetScrollbarHorzCallback (position)
 
-	for i, t in ipairs (spreadSheets) do
+	for i, t in ipairs (globApp.objects.tables) do
 
 		local lowerX = t.scrollBox.x
 		local upperX = lowerX - t.combinedCollumnsWidth + t.scrollBox.width
@@ -1690,7 +1710,7 @@ function returnTblRowsToScrollBoxVerticalPosition ()
 	first row (2)]]
 	local result = nil
 
-	for i, t in ipairs (spreadSheets) do
+	for i, t in ipairs (globApp.objects.tables) do
 
 		local lowerY = t.scrollBox.y
 		local upperY = lowerY - t.combinedRowsHeight + t.scrollBox.height
@@ -1718,7 +1738,7 @@ function returnTblCollumnsToScrollHorizontalPosition ()
 	first collumn (1)]]
 	local result = nil
 
-	for i, t in ipairs (spreadSheets) do
+	for i, t in ipairs (globApp.objects.tables) do
 
 		local rightY = t.scrollBox.x
 		local leftY = rightY - t.combinedCollumnsWidth + t.scrollBox.width

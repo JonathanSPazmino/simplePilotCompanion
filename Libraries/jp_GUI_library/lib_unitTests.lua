@@ -112,10 +112,16 @@ function gdsGUI_executeAllUnitTests (strPageName)
 						["funcParameters"]={globApp.currentPageIndex},
 						["funcExpctOutput"]={true}}
 
+		-- Save original current page index
+		local originalPageIndex = globApp.currentPageIndex
+		-- Temporarily set current page index to DeveloperMenu for testing
+		globApp.currentPageIndex = 20050
 		devTest_execute {["id"]="returnCurrentPageName_test",
 						["funcName"]={"returnCurrentPageName"},
 						["funcParameters"]={globApp.currentPageIndex},
-						["funcExpctOutput"]={strPageName}}
+						["funcExpctOutput"]={"DeveloperMenu"}}
+		-- Restore original current page index
+		globApp.currentPageIndex = originalPageIndex
 
 		devTest_execute {["id"]="doesPageExist_test_true",
 						["funcName"]={"doesPageExist"},

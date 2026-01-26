@@ -718,23 +718,24 @@ end
 function createDevUnitTestMenuObjects ()
 
 	local thisPageName = "UnitTesting"
---NEEDS TO BE REFACTOR BERFORE UNCOMMENTING
-	-- spreadSheet_draw (
-	-- 	"devUnitTest", --[spreadsheet name]
-	-- 	thisPageName, --[[page]]
-	-- 	"static", --[[type]]
-	-- 	devTests,--[[dataTable]]
-	-- 	.5, --[[x position]]
-	-- 	smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
-	-- 	.8, --[[table width]]
-	-- 	.6,--[[table height]]
-	-- 	"CT", --[[anchor point]]
-	-- 	nil, --[[bg sprite]]
-	-- 	{ 	[1]={["INFO"]="openSelectedUTInfoCallback"},},--[[callback function]]
-	-- 	smartFontScaling (0.025, 0.032),--[[font size]]
-	-- 	{	[1] = "name", 
-	-- 		[2]= "result", 
-	-- 		[3] = "failingParameter"})
+	gdsGUI_executeAllUnitTests ("DeveloperMenu")
+
+	gui_table_create (
+		"devUnitTest", --[spreadsheet name]
+		thisPageName, --[[page]]
+		"static", --[[type]]
+		devTests,--[[dataTable]]
+		.5, --[[x position]]
+		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+		.8, --[[table width]]
+		.6,--[[table height]]
+		"CT", --[[anchor point]]
+		nil, --[[bg sprite]]
+		{ 	[1]={["INFO"]="openSelectedUTInfoCallback"},},--[[callback function]]
+		smartFontScaling (0.025, 0.032),--[[font size]]
+		{	[1] = "name", 
+			[2]= "result", 
+			[3] = "failingParameter"})
 
 
 
@@ -864,23 +865,24 @@ end
 function createSwitchScreenSizeMenuObjects ()
 
 	local thisPageName = "switchScreenSize"
-
-	-- spreadSheet_draw (
-	-- 	"screenSizesTable", --[spreadsheet name]
-	-- 	thisPageName, --[[page]]
-	-- 	"static", --[[type]]
-	-- 	screenSimulators,--[[dataTable]]
-	-- 	.5, --[[x position]]
-	-- 	smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
-	-- 	.8, --[[table width]]
-	-- 	.6,--[[table height]]
-	-- 	"CT", --[[anchor point]]
-	-- 	nil, --[[bg sprite]]
-	-- 	{ 	[1]={["SELECT"]="changeScreenSize"},},--[[callback function]]
-	-- 	smartFontScaling (0.025, 0.032),--[[font size]]
-	-- 	{	[1]= "name", 
-	-- 		[2]= "dpiWidht", 
-	-- 		[3]= "dpiHeight"})
+print ("running")
+	ScreenSimulatorsInit ()
+	gui_table_create (
+		"screenSizesTable", --[spreadsheet name]
+		thisPageName, --[[page]]
+		"static", --[[type]]
+		screenSimulators,--[[dataTable]]
+		.5, --[[x position]]
+		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+		.8, --[[table width]]
+		.6,--[[table height]]
+		"CT", --[[anchor point]]
+		nil, --[[bg sprite]]
+		{ 	[1]={["SELECT"]="changeScreenSize"},},--[[callback function]]
+		smartFontScaling (0.025, 0.032),--[[font size]]
+		{	[1]= "name", 
+			[2]= "dpiWidht", 
+			[3]= "dpiHeight"})
 
 
 	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
