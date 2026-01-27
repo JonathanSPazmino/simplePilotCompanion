@@ -1065,7 +1065,14 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 							--VERTICAL SCROLLING LOGIC
 							if (isScrollUpAvlbl == true and dy > 0) or (isScrollDownAvlbl == true and dy < 0) then
 								cl.y = cl.y + dy
-								updateScrollingBarPosition (returnTblRowsToScrollBoxVerticalPosition (), tbl.verticalScrollBar.name)
+								local new_v_pos = returnTblRowsToScrollBoxVerticalPosition()
+								for _, sb in ipairs(globApp.objects.scrollBars) do
+									if sb.id == tbl.verticalScrollBar.name then
+										updateScrollingBarPosition(sb, new_v_pos)
+										tbl.dataCurrentVertPosition = new_v_pos
+										break
+									end
+								end
 	
 							end
 							--HORIZONTAL SCROLLING LOGIC
@@ -1073,7 +1080,14 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 							-- print (isScrollRightAvlbl)
 								cl.x = cl.x + dx
 
-								updateScrollingBarPosition (returnTblCollumnsToScrollHorizontalPosition (), tbl.horizontalScrollBar.name)
+								local new_h_pos = returnTblCollumnsToScrollHorizontalPosition()
+								for _, sb in ipairs(globApp.objects.scrollBars) do
+									if sb.id == tbl.horizontalScrollBar.name then
+										updateScrollingBarPosition(sb, new_h_pos)
+										tbl.dataCurrentHorzPosition = new_h_pos
+										break
+									end
+								end
 							end
 						elseif cl.row == 1 then
 							--HORIZONTAL SCROLLING LOGIC

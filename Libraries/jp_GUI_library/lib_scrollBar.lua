@@ -454,17 +454,19 @@ function focus_scrollingBar (x,y,button,istouch)
 					end
 				end
 
-				if x >= sb.rightButton.x and x <= (sb.rightButton.x + sb.rightButton.width) and y >= sb.rightButton.y and y <= sb.rightButton.y + sb.rightButton.height then
-					if not sb.rightButton.isActive then -- Only step if not already active (first press)
-						sb.rightButton.isActive = true
-						-- Discrete step for right arrow
-						sb.bar.position = math.min(1, sb.bar.position + stepSize)
-						updateScrollingBarPosition(sb, sb.bar.position)
-						if sb.callbackString ~= nil then
-							_G[sb.callbackString](sb.bar.position)
+				if sb.rightButton then
+					if x >= sb.rightButton.x and x <= (sb.rightButton.x + sb.rightButton.width) and y >= sb.rightButton.y and y <= sb.rightButton.y + sb.rightButton.height then
+						if not sb.rightButton.isActive then -- Only step if not already active (first press)
+							sb.rightButton.isActive = true
+							-- Discrete step for right arrow
+							sb.bar.position = math.min(1, sb.bar.position + stepSize)
+							updateScrollingBarPosition(sb, sb.bar.position)
+							if sb.callbackString ~= nil then
+								_G[sb.callbackString](sb.bar.position)
+							end
 						end
 					end
-				end -- Added missing 'end'
+				end
 
 			end
 
