@@ -148,14 +148,14 @@ function love.load()
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
     gui_outputTextBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .05, .3, "LT",
+        .2, .6, "CC",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
         colorYellow, textAltSlctd, 12
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
     gui_outputTextBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .3, .3, "LT",
+        .8, .6, "CC",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
         colorYellow, textTimeSlctd, 12
     )
@@ -169,9 +169,9 @@ function love.load()
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
 
     gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        .4, .5, "LT",
+        .5, .5, "CC",
         globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        colorYellow, requiredFPMtext, 12
+        colorYellow, requiredFPMtext, 18
     )
 
 
@@ -180,11 +180,11 @@ function love.load()
     ----------------------------------------------------------------------------
 
     gui_scrollBar_create ("altScale", "MainMenu", 
-        0.1, 0.4, .07, .4, "LT", 5, 51, 1, 
+        0.2, 0.65, .07, .3, "LT", 5, 51, 1, 
         "independent", "vertical", 51, "roundSelectedAltitude")
 
     gui_scrollBar_create ("timeScale", "MainMenu", 
-        0.2, 0.4, .07, .4, "LT", 5, 25, 1, 
+        0.73, 0.65, .07, .3, "LT", 5, 25, 1, 
         "independent", "vertical", 25, "roundSelectedTime")
 
 

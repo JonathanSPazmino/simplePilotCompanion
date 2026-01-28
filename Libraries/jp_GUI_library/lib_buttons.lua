@@ -69,11 +69,21 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
         [globApp.BUTTON_STATES.PRESSED] = love.graphics.newImage(imgPressed)
     }
 
+    -- Store original relative properties for robust resizing
+    newButton.original = {
+        x = x,
+        y = y,
+        -- The original width/height are absolute, so we calculate their initial
+        -- ratio relative to the screen's safe area for later use.
+        widthRatio = width / globApp.safeScreenArea.w,
+        heightRatio = height / globApp.safeScreenArea.h,
+        anchorPoint = anchorPoint
+    }
+
+    -- This position is updated in the new resize() method.
     newButton.mywidth = width
     newButton.myheight = height
     newButton.anchorPoint = anchorPoint
-
-    -- This position is updated in gui_buttons_update during a window resize.
     local myPositions = relativePosition(newButton.anchorPoint, x, y, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
     newButton.myx = myPositions[1]
     newButton.myy = myPositions[2]
@@ -88,6 +98,33 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
     newButton.deactivated = (initialState == globApp.BUTTON_STATES.DEACTIVATED)
     newButton.state = initialState
     newButton.callbackFunc = callbackFunc
+
+    -- The new resize method for this object
+    function newButton:resize()
+        local original = self.original
+
+        -- Recalculate absolute size based on the new safe area and original ratio
+        self.mywidth = original.widthRatio * globApp.safeScreenArea.w
+        self.myheight = original.heightRatio * globApp.safeScreenArea.h
+
+        -- Recalculate absolute position using the consistent relative values
+        local myPositions = relativePosition(
+            self.anchorPoint, original.x, original.y,
+            self.mywidth, self.myheight,
+            globApp.safeScreenArea.x, globApp.safeScreenArea.y,
+            globApp.safeScreenArea.w, globApp.safeScreenArea.h
+        )
+        self.myx = myPositions[1]
+        self.myy = myPositions[2]
+
+        -- Update other derived properties
+        local baseImage = self.images[globApp.BUTTON_STATES.RELEASED] or self.images[globApp.BUTTON_STATES.PRESSED]
+        self.factorWidth = self.mywidth / baseImage:getWidth()
+        self.factorHeight = self.myheight / baseImage:getHeight()
+        self.myMaxx = self.myx + self.mywidth
+        self.myMaxy = self.myy + self.myheight
+    end
+    newButton.resize = newButton.resize
 
     table.insert(globApp.objects.buttons, newButton)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
@@ -108,65 +145,9 @@ function gui_buttons_draw(pageName)
 end
 
 --[[
-    Updates button positions and sizes when the window is resized.
+    The old gui_buttons_update function is now deprecated and removed.
+    Its logic has been replaced by the .resize() method on each button object.
 ]]
-function gui_buttons_update()
-    if globApp.resizeDetected then
-        for _, btns in ipairs(globApp.objects.buttons) do
-            if btns.objectType == "button" then
-                if globApp.lastSafeScreenArea and globApp.lastSafeScreenArea.w > 0 then
-                    local lastSafe = globApp.lastSafeScreenArea
-
-                    -- Reverse engineer the original relative position from the absolute coordinates
-                    local originalXRatio, originalYRatio
-                    local anchor = string.upper(btns.anchorPoint)
-
-                    if anchor == "LT" or anchor == "LC" or anchor == "LB" then
-                        originalXRatio = (btns.myx - lastSafe.x) / lastSafe.w
-                    elseif anchor == "CT" or anchor == "CC" or anchor == "CB" then
-                        originalXRatio = (btns.myx + btns.mywidth / 2 - lastSafe.x) / lastSafe.w
-                    elseif anchor == "RT" or anchor == "RC" or anchor == "RB" then
-                        originalXRatio = (btns.myx + btns.mywidth - lastSafe.x) / lastSafe.w
-                    end
-
-                    if anchor == "LT" or anchor == "CT" or anchor == "RT" then
-                        originalYRatio = (btns.myy - lastSafe.y) / lastSafe.h
-                    elseif anchor == "LC" or anchor == "CC" or anchor == "RC" then
-                        originalYRatio = (btns.myy + btns.myheight / 2 - lastSafe.y) / lastSafe.h
-                    elseif anchor == "LB" or anchor == "CB" or anchor == "RB" then
-                        originalYRatio = (btns.myy + btns.myheight - lastSafe.y) / lastSafe.h
-                    end
-
-                    -- Calculate size ratios relative to previous safe area
-                    local oldWidthRatio = btns.mywidth / lastSafe.w
-                    local oldHeightRatio = btns.myheight / lastSafe.h
-
-                    -- Set new absolute size based on the new safe area
-                    btns.mywidth = oldWidthRatio * globApp.safeScreenArea.w
-                    btns.myheight = oldHeightRatio * globApp.safeScreenArea.h
-
-                    -- Get new absolute position using the consistent relative values
-                    local myPositions = relativePosition(
-                        btns.anchorPoint, originalXRatio, originalYRatio,
-                        btns.mywidth, btns.myheight,
-                        globApp.safeScreenArea.x, globApp.safeScreenArea.y,
-                        globApp.safeScreenArea.w, globApp.safeScreenArea.h
-                    )
-
-                    btns.myx = myPositions[1]
-                    btns.myy = myPositions[2]
-
-                    -- Update derived properties
-                    local baseImage = btns.images[globApp.BUTTON_STATES.RELEASED] or btns.images[globApp.BUTTON_STATES.PRESSED]
-                    btns.factorWidth = btns.mywidth / baseImage:getWidth()
-                    btns.factorHeight = btns.myheight / baseImage:getHeight()
-                    btns.myMaxx = btns.myx + btns.mywidth
-                    btns.myMaxy = btns.myy + btns.myheight
-                end
-            end
-        end
-    end
-end
 
 --[[
     Handles the logic for when a mouse button or touch event is pressed down.

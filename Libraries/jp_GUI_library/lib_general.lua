@@ -95,6 +95,22 @@ function jpGUI_findTriangAngle (side_oposite, side_adjacent, resultType)
 end
 
 
+function gui_handle_resize()
+    -- This function will call the resize method for all active objects
+    -- For now, we iterate through each type separately.
+    for _, obj in ipairs(globApp.objects.buttons) do
+        if obj.resize then obj:resize() end
+    end
+    for _, obj in ipairs(globApp.objects.tables) do
+        if obj.resize then obj:resize() end
+    end
+    for _, obj in ipairs(globApp.objects.scrollBars) do
+        if obj.resize then obj:resize() end
+    end
+    -- TODO: Add loops for other object types like text boxes...
+end
+
+
 function jpGUI_update (dt)
 
 	--RESIZE TRIGGER CODE MUST GO BEFORE EVERYTHING THAT USES SAFESCREEN AREA TABLE
@@ -116,6 +132,8 @@ function jpGUI_update (dt)
 			globApp.safeScreenArea = getScreenSafeArea ()
 		end
 
+		gui_handle_resize()
+
 	end
 
 	globApp.txtBoxChangeDetected = txtInput_changeTrigger ()
@@ -124,14 +142,6 @@ function jpGUI_update (dt)
 					-- print (globApp.doesAnyTextBoxHaveEndingBlankSpace)
 		globApp.areCurrentPageRequiredInputTextBoxesEmpty = areRequiredTextBoxesEmpty ()
 	end
-
-	--GUI OBJECTS:
-	gui_buttons_update ()
-	gui_outputTextBoxes_update()
-	gui_scrollBar_update ()
-	gui_table_update ()
-
-
 
 	--UPDATES DEVELOPER DATA SHOWN ON EDGES OF 
 	updateDevDisplaysParameters (dt)

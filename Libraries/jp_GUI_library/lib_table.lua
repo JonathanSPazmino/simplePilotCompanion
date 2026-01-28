@@ -7,319 +7,224 @@ local recordErased = false
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
-
 function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
 	local t = {}
 
 	t.name = spreadSheetName
 	t.page = strgPage
+	t.objectType = "table"
 	t.type = strgspreadSheetType
 	t.rowsCount = determineSizeOfArray (dataTable, "rows")
 	t.collumnsCount = #headerTitles
 
-	t.fonts = {}
-		t.fonts.title = {}
-			t.fonts.title.size = 12
-			t.fonts.title.font = love.graphics.newFont(t.fonts.title.size)
-		t.fonts.headers = {}
-			t.fonts.headers.size = 12
-			t.fonts.headers.font = love.graphics.newFont(t.fonts.headers.size)
-		t.fonts.cells = {}
-			t.fonts.cells.size = 12
-			t.fonts.cells.font = love.graphics.newFont(t.fonts.cells.size)
+	-- Store original properties for resize
+	t.original = {
+		x = myX,
+		y = myY,
+		width = tableWidth,
+		height = tableHeight,
+		anchorPoint = anchorPoint,
+		fontSize = fontSize,
+		headerTitles = headerTitles,
+		tblCallbackFuncs = tblCallbackFuncs,
+		dataTable = dataTable
+	}
 
-	if strgImgspreadSheetBg ~= nil then --creates newImage if passed by callback
+	t.fonts = {
+		title = { size = 12, font = love.graphics.newFont(12) },
+		headers = { size = 12, font = love.graphics.newFont(12) },
+		cells = { size = 12, font = love.graphics.newFont(12) }
+	}
+
+	if strgImgspreadSheetBg ~= nil then
 		t.imgSpreadSheetBg = love.graphics.newImage(strgImgspreadSheetBg)
 	end
 
-	t.frame = {}
-		t.frame.width = (tableWidth * globApp.safeScreenArea.w)
-		t.frame.height = (tableHeight * globApp.safeScreenArea.h)
-		local framePositions = 
-			relativePosition(anchorPoint, 
-							myX, 
-							myY, 
-							t.frame.width, 
-							t.frame.height, 
-							globApp.safeScreenArea.x,
-							globApp.safeScreenArea.y, 
-							globApp.safeScreenArea.w, 
-							globApp.safeScreenArea.h)
-		t.frame.x = framePositions[1]
-		t.frame.y = framePositions[2]
+	-- Initialize all sub-tables
+	t.frame, t.masks, t.titleBox, t.titleCaption, t.headersBox, t.scrollBox, t.buttons, t.cells, t.verticalScrollBar, t.horizontalScrollBar = {},{},{},{},{},{},{},{},{},{}
 
-	t.masks = {}
-		t.masks.properties = {}
-			t.masks.properties.color = globApp.appColor --{rgbt}
-		t.masks.top = {}
-			t.masks.top.x = globApp.safeScreenArea.x
-			t.masks.top.y = globApp.safeScreenArea.y
-			t.masks.top.width = globApp.safeScreenArea.w
-			t.masks.top.height = t.frame.y - t.masks.top.y
-		t.masks.left = {}
-			t.masks.left.x = globApp.safeScreenArea.x
-			t.masks.left.y = globApp.safeScreenArea.y + t.masks.top.height
-			t.masks.left.width = t.frame.x - globApp.safeScreenArea.x
-			t.masks.left.height = t.frame.height
-		t.masks.right = {}
-			t.masks.right.x = t.frame.x + t.frame.width
-			t.masks.right.y = globApp.safeScreenArea.y + t.masks.top.height
-			t.masks.right.width = (globApp.safeScreenArea.x + globApp.safeScreenArea.w) - t.masks.right.x
-			t.masks.right.height = t.frame.height
-		t.masks.bottom = {}
-			t.masks.bottom.x = globApp.safeScreenArea.x
-			t.masks.bottom.y = t.frame.y + t.frame.height
-			t.masks.bottom.width = globApp.safeScreenArea.w
-			t.masks.bottom.height = globApp.safeScreenArea.y + globApp.safeScreenArea.h - t.masks.bottom.y
+	-- This internal function calculates all geometry. It's called on creation and again on resize.
+	local function calculate_geometry_and_layout(tbl)
+		local original = tbl.original
+		
+		-- Recalculate frame
+		tbl.frame.width = (original.width * globApp.safeScreenArea.w)
+		tbl.frame.height = (original.height * globApp.safeScreenArea.h)
+		local framePositions = relativePosition(original.anchorPoint, original.x, original.y, tbl.frame.width, tbl.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+		tbl.frame.x = framePositions[1]
+		tbl.frame.y = framePositions[2]
 
-	t.textMargin = 0.1
+		-- ADDED: Recalculate masks
+		tbl.masks = {}
+		tbl.masks.properties = {}
+		tbl.masks.properties.color = globApp.appColor
+		tbl.masks.top = {
+			x = globApp.safeScreenArea.x,
+			y = globApp.safeScreenArea.y,
+			width = globApp.safeScreenArea.w,
+			height = tbl.frame.y - globApp.safeScreenArea.y
+		}
+		tbl.masks.left = {
+			x = globApp.safeScreenArea.x,
+			y = globApp.safeScreenArea.y + tbl.masks.top.height,
+			width = tbl.frame.x - globApp.safeScreenArea.x,
+			height = tbl.frame.height
+		}
+		tbl.masks.right = {
+			x = tbl.frame.x + tbl.frame.width,
+			y = globApp.safeScreenArea.y + tbl.masks.top.height,
+			width = (globApp.safeScreenArea.x + globApp.safeScreenArea.w) - (tbl.frame.x + tbl.frame.width),
+			height = tbl.frame.height
+		}
+		tbl.masks.bottom = {
+			x = globApp.safeScreenArea.x,
+			y = tbl.frame.y + tbl.frame.height,
+			width = globApp.safeScreenArea.w,
+			height = (globApp.safeScreenArea.y + globApp.safeScreenArea.h) - (tbl.frame.y + tbl.frame.height)
+		}
 
+		-- Other base properties
+		tbl.rowHeight = tbl.fonts.cells.size + (tbl.fonts.cells.size * .4)
+		tbl.displayWidth = tbl.frame.width
+		tbl.displayHeight = original.height * globApp.safeScreenArea.h
 
-	t.minCollumnWidth = t.fonts.cells.size * 10
-	t.maxCollumnWidth = t.frame.width - t.fonts.cells.size
-	if t.collumnsCount == 1 then
-		t.collumWidth = t.frame.width - t.fonts.cells.size
-	elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size) / t.collumnsCount) < t.minCollumnWidth then
-		t.collumWidth = t.minCollumnWidth
-	elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size )/ t.collumnsCount) > t.minCollumnWidth then
-		t.collumWidth = ((t.frame.width -t.fonts.cells.size) / t.collumnsCount)
-	end
-
-
-
-	t.textWrapCellPercentWidth = t.collumWidth * 0.8 
-	t.rowHeight = t.fonts.cells.size + (t.fonts.cells.size * .4)
-
-	t.displayWidth = t.frame.width
-	t.displayHeight = tableHeight * globApp.safeScreenArea.h
-
-	------------------------FUNC CALLBACKS/BUTTONS--------------------
-	t.callbackFuncNames = {}
-	t.fullCallbackFuncs = {}
-	t.buttons = {}
-
-	local numOfCallbackButtons = 0
-
-	for i, cb in pairs(tblCallbackFuncs) do
-		numOfCallbackButtons = numOfCallbackButtons + 1
-	end 
-
-	local iterator1 = 0
-	for i=1, #tblCallbackFuncs, 1 do
-		local index = ""
-		for j, cb in  pairs (tblCallbackFuncs[i]) do 
-			index = j
-
-			iterator1 = iterator1 + 1
-
-			t.callbackFuncNames[index] = cb
-			t.fullCallbackFuncs[index] = ""
-			t.buttons[index] = {}
-			t.buttons[index].text = index
-			t.buttons[index].x = t.frame.x + (iterator1 * (t.displayWidth / #tblCallbackFuncs)) - (t.displayWidth / #tblCallbackFuncs)
-			t.buttons[index].y = t.frame.y + t.displayHeight - t.rowHeight
-			t.buttons[index].width = t.displayWidth / #tblCallbackFuncs
-			t.buttons[index].height = t.rowHeight
-			t.buttons[index].isFocused = false
-		end
-	end
-
-	t.titleBox = {}
-		t.titleBox.x = t.frame.x
-		t.titleBox.y = t.frame.y
-		t.titleBox.width = t.frame.width
-		t.titleBox.height = t.fonts.title.size * 1.3
-
-	t.titleCaption = {}
-		t.titleCaption.x = t.titleBox.x + (t.titleBox.width * .1)
-		t.titleCaption.y = t.titleBox.y + (t.titleBox.height * .1)
-		t.titleCaption.wrapWidth = t.titleBox.width * 0.8
-
-	t.headersBox = {}
-		t.headersBox.x = t.titleBox.x
-		t.headersBox.y = t.titleBox.y + t.titleBox.height
-		t.headersBox.w = t.titleBox.width
-		t.headersBox.h = 0
-
-
-	local headerData = headerTitles
-	local allTblHeaders = {}
-	for i=1, #dataTable, 1 do
-		allTblHeaders[i] = dataTable[i]["ID"]
-	end
-
-	-- uniqueHeaderFilter (dataTable, t.collumnsCount)
-				t.cells = {}
-				
-				-- New code to calculate uniformCellHeight
-				local maxOverallTextLineCount = 1
-				local actualCellFontHeight = returnFontInfo (t.fonts.cells.font, "height")
-	
-				-- Check headers
-				maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
-	
-				-- Check data rows
-				for i = 1, t.rowsCount, 1 do
-					local textTable = {}
-					for z=1, #headerData, 1 do
-						textTable[z] = table_lookUp (dataTable, i, headerData[z])
-					end
-					maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
-				end
-	
-				-- Calculate uniform cell height with 15% top/bottom padding
-				local cellPaddingFactor = 0.30 -- 15% top + 15% bottom
-				local uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + cellPaddingFactor)
-				t.uniformCellHeight = uniformCellHeight -- Store it for later use
-				-- End new code
-	
-				local cellPositions = {}	cellPositions.w = t.collumWidth
-	local previewsRowY = 0
-	local previewsRowH = 0
-	t.combinedRowsHeight = 0
-	
-	for i = 1, t.rowsCount + 1, 1 do
-		for j = 1, #headerData , 1 do
-
-			local cellName = (i .. "," .. j)
-			local cellData = "--empty--"
-			local scrollability = false
-			local cellRercordID = ""
-			
-			cellPositions.x = t.frame.x - t.collumWidth + (t.collumWidth * j )
-
-			if i == 1 then --takes care of the header row data
-
-				cellData = headerData[j]	
-				cellRercordID = "HEADER"
-
-				if j == 1 then
-
-					local maxTextLineCount = findMaxNumOfLinesNeeded (t.fonts.headers.font, t.textWrapCellPercentWidth, headerData)
-					local actualHeaderFontHeight = returnFontInfo (t.fonts.headers.font, "height")
-
-					cellPositions.y = t.headersBox.y
-					cellPositions.h = t.uniformCellHeight
-					t.headersBox.h = t.uniformCellHeight
-
-				end
-
-			elseif i > 1 then --takes care of the data rows data
-
-				local textTable = {}
-				
-				for z=1, #headerData, 1 do
-					textTable[z] = table_lookUp (dataTable, i-1,headerData[z])
-				end
-
-				if j == 1 then
-
-					for k, c in pairs(t.cells) do
-						 if c.row == (i - 1) and c.collumn == 1 then
-							previewsRowY = c.y
-							previewsRowH = c.height
-							-- print (c.height)
-						end
-					end
-
-					cellPositions.y = (previewsRowY + previewsRowH)
-					cellPositions.h = t.uniformCellHeight
-					t.combinedRowsHeight = t.combinedRowsHeight + cellPositions.h
-				end
-			
-				cellRercordID = allTblHeaders[i - 1]
-				
-				cellData = table_lookUp (dataTable, i-1,headerData[j])
-				scrollability = true
-
+		-- Recalculate Buttons
+        tbl.buttons = {}
+		local iterator1 = 0
+		for i=1, #original.tblCallbackFuncs, 1 do
+			local index = ""
+			for j, cb in pairs(original.tblCallbackFuncs[i]) do 
+				index = j
+				iterator1 = iterator1 + 1
+				tbl.buttons[index] = {
+					text = index,
+					x = tbl.frame.x + (iterator1 * (tbl.displayWidth / #original.tblCallbackFuncs)) - (tbl.displayWidth / #original.tblCallbackFuncs),
+					y = tbl.frame.y + tbl.displayHeight - tbl.rowHeight,
+					width = tbl.displayWidth / #original.tblCallbackFuncs,
+					height = tbl.rowHeight,
+					isFocused = false
+				}
 			end
-			
-			TableCell_create (cellName, cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, cellData, scrollability, t.cells,cellRercordID)
+		end
 
-		end --[[cell objects creation]]
+		-- Recalculate Boxes
+		tbl.titleBox = { x = tbl.frame.x, y = tbl.frame.y, width = tbl.frame.width, height = tbl.fonts.title.size * 1.3 }
+		tbl.titleCaption = { x = tbl.titleBox.x + (tbl.titleBox.width * .1), y = tbl.titleBox.y + (tbl.titleBox.height * .1), wrapWidth = tbl.titleBox.width * 0.8}
+		tbl.headersBox = { x = tbl.titleBox.x, y = tbl.titleBox.y + tbl.titleBox.height, w = tbl.titleBox.width, h = 0 }
 
+		-- Recalculate column width
+		tbl.minCollumnWidth = tbl.fonts.cells.size * 10
+		tbl.maxCollumnWidth = tbl.frame.width - tbl.fonts.cells.size
+		if tbl.collumnsCount == 1 then
+			tbl.collumWidth = tbl.frame.width - tbl.fonts.cells.size
+		else
+			tbl.collumWidth = ((tbl.frame.width - tbl.fonts.cells.size) / tbl.collumnsCount)
+			if tbl.collumWidth < tbl.minCollumnWidth then tbl.collumWidth = tbl.minCollumnWidth end
+		end
+		tbl.textWrapCellPercentWidth = tbl.collumWidth * 0.8
+		
+		-- On resize, we must recalculate cell positions. Recreating them is the safest way to implement this now.
+		tbl.cells = {}
+		local headerData = original.headerTitles
+		local dataTable = original.dataTable
+		local allTblHeaders = {}
+		for i=1, #dataTable, 1 do allTblHeaders[i] = dataTable[i]["ID"] end
+		
+		local maxOverallTextLineCount = 1
+		local actualCellFontHeight = returnFontInfo(tbl.fonts.cells.font, "height")
+		maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(tbl.fonts.headers.font, tbl.textWrapCellPercentWidth, headerData))
+		for i = 1, tbl.rowsCount, 1 do
+			local textTable = {}
+			for z=1, #headerData, 1 do textTable[z] = table_lookUp(dataTable, i, headerData[z]) end
+			maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(tbl.fonts.cells.font, tbl.textWrapCellPercentWidth, textTable))
+		end
+		tbl.uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + 0.30)
+		tbl.headersBox.h = tbl.uniformCellHeight
+		
+		local cellPositions = {w = tbl.collumWidth}
+		local previewsRowY, previewsRowH = tbl.headersBox.y, tbl.headersBox.h
+		tbl.combinedRowsHeight = 0
+		for i = 1, tbl.rowsCount + 1, 1 do
+			for j = 1, #headerData , 1 do
+				cellPositions.x = tbl.frame.x - tbl.collumWidth + (tbl.collumWidth * j)
+				if i == 1 then
+					cellPositions.y, cellPositions.h = tbl.headersBox.y, tbl.headersBox.h
+					TableCell_create((i..","..j), cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, headerData[j], false, tbl.cells, "HEADER")
+				else
+					if j == 1 then
+						cellPositions.y = (previewsRowY + previewsRowH)
+						cellPositions.h = tbl.uniformCellHeight
+						previewsRowY, previewsRowH = cellPositions.y, cellPositions.h
+						tbl.combinedRowsHeight = tbl.combinedRowsHeight + cellPositions.h
+					end
+					TableCell_create((i..","..j), cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, table_lookUp(dataTable, i-1, headerData[j]), true, tbl.cells, allTblHeaders[i-1])
+				end
+			end
+		end
+
+		-- Recalculate ScrollBox (depends on final header height)
+		tbl.scrollBox = {
+			x = tbl.frame.x,
+			y = tbl.frame.y + tbl.titleBox.height + tbl.headersBox.h,
+			width = tbl.frame.width - tbl.fonts.cells.size,
+			height = (tbl.displayHeight - ( (tbl.frame.y + tbl.titleBox.height + tbl.headersBox.h) - tbl.frame.y)) - (tbl.rowHeight * 2)
+		}
+
+		-- Recalculate scrollbar definitions
+		tbl.scrollableYequivPercent = (globApp.safeScreenArea.y + tbl.scrollBox.y) / globApp.safeScreenArea.h
+		tbl.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y / globApp.safeScreenArea.h
+		
+		tbl.verticalScrollBar = {
+			name = tbl.name .. "_vsb",
+			x = ((tbl.frame.x + tbl.frame.width) - (tbl.fonts.cells.size)) / globApp.safeScreenArea.w,
+			y = tbl.scrollableYequivPercent - tbl.y_difBetweenSafeAndTotalArea,
+			width = tbl.fonts.cells.size / globApp.safeScreenArea.w,
+			height = tbl.scrollBox.height / globApp.safeScreenArea.h
+		}
+		tbl.horizontalScrollBar = {
+			name = tbl.name .. "_hsb",
+			x = tbl.frame.x / globApp.safeScreenArea.w,
+			y = (tbl.scrollBox.y + tbl.scrollBox.height) / globApp.safeScreenArea.h,
+			width = tbl.scrollBox.width / globApp.safeScreenArea.w,
+			height = tbl.rowHeight / globApp.safeScreenArea.h
+		}
+
+		if tbl.rowsCount > 0 then tbl.avrgRowHeight = tbl.combinedRowsHeight / tbl.rowsCount else tbl.avrgRowHeight = 1 end
+		tbl.numRowsPerDisplay = tbl.scrollBox.height / tbl.avrgRowHeight
+		tbl.combinedCollumnsWidth = tbl.collumnsCount * tbl.collumWidth
+		if tbl.collumnsCount > 0 then tbl.avrgCollumnsWidht = tbl.collumWidth else tbl.avrgCollumnsWidht = 1 end
+		tbl.numCollumnsPerDisplay = tbl.scrollBox.width / tbl.collumWidth
 	end
 
-	t.scrollBox = {}
-		t.scrollBox.x = t.frame.x
-		t.scrollBox.y = t.frame.y + t.titleBox.height + t.headersBox.h
-		t.scrollBox.width = t.frame.width - t.fonts.cells.size
-		t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
+	-- NEW: The resize method for this object
+    function t:resize()
+        calculate_geometry_and_layout(self)
+        
+        -- Find and update child scrollbar objects
+        for _, sb in ipairs(globApp.objects.scrollBars) do
+            if sb.id == self.verticalScrollBar.name then
+				sb.original.x, sb.original.y, sb.original.width, sb.original.height = self.verticalScrollBar.x, self.verticalScrollBar.y, self.verticalScrollBar.width, self.verticalScrollBar.height
+				if sb.resize then sb:resize() end
+            elseif sb.id == self.horizontalScrollBar.name then
+                sb.original.x, sb.original.y, sb.original.width, sb.original.height = self.horizontalScrollBar.x, self.horizontalScrollBar.y, self.horizontalScrollBar.width, self.horizontalScrollBar.height
+				if sb.resize then sb:resize() end
+            end
+        end
+    end
+    t.resize = t.resize
 
-	t.scrollableYequivPercent = (globApp.safeScreenArea.y + t.scrollBox.y) / globApp.safeScreenArea.h 
+	-- Run initial calculations
+	calculate_geometry_and_layout(t)
 
-	t.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y /  globApp.safeScreenArea.h
-	t.verticalScrollBar = {}
-		t.verticalScrollBar.name = spreadSheetName .. "_vsb"
-		t.verticalScrollBar.x = ((t.frame.x + t.frame.width) -  (t.fonts.cells.size)) / globApp.safeScreenArea.w
-		t.verticalScrollBar.y = t.scrollableYequivPercent - t.y_difBetweenSafeAndTotalArea
-		t.verticalScrollBar.width = t.fonts.cells.size/ globApp.safeScreenArea.w --(t.frame.width * .05) / globApp.safeScreenArea.w
-		t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
-
-	t.horizontalScrollBar = {}
-		t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
-		t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
-		t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
-		t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w		t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
-
-	if t.rowsCount > 0 then
-		t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
-	else
-		t.avrgRowHeight = 1
-	end
-	t.numRowsPerDisplay = t.scrollBox.height / t.avrgRowHeight
-
-
-	t.combinedCollumnsWidth = t.collumnsCount * t.collumWidth
-	if t.collumnsCount > 0 then
-		t.avrgCollumnsWidht = t.collumWidth
-	else
-		t.avrgCollumnsWidht = 1
-	end
-	t.numCollumnsPerDisplay = t.scrollBox.width / t.collumWidth
-
-	t.dataCurrentVertPosition = 0.0
-	t.dataCurrentHorzPosition = 0.0
-	t.state = 1 --[[0 deactivated, 1 = released, 2 = pressed.]]
+	t.dataCurrentVertPosition, t.dataCurrentHorzPosition, t.state = 0.0, 0.0, 1
 
 	table.insert(globApp.objects.tables, t)
-
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
-	gui_scrollBar_create (
-		t.verticalScrollBar.name, --[id]
-		t.page, --[page]
-		t.verticalScrollBar.x, --[x]
-		t.verticalScrollBar.y, --[y]
-		t.verticalScrollBar.width, --[width]
-		t.verticalScrollBar.height, --[height]
-		"LT", --[anchor point]
-		t.numRowsPerDisplay, --[visible values]
-		t.rowsCount, --[total values]
-		t.dataCurrentVertPosition,--dataRelativePosition
-		"table-linked", --[sb type string]
-		"vertical", --[draw orientation: vertical or horizontal]
-		30, --[scroll speed: lower slow, bigger fast]
-		"spreadSheetScrollbarVertCallback"--[callback function]
-		)
-
-	gui_scrollBar_create (
-		t.horizontalScrollBar.name, --[id]
-		t.page, --[page]
-		t.horizontalScrollBar.x, --[x]
-		t.horizontalScrollBar.y, --[y]
-		t.horizontalScrollBar.width, --[width]
-		t.horizontalScrollBar.height, --[height]
-		"LT", --[anchor point]
-		t.numCollumnsPerDisplay , --[visible values]
-		t.collumnsCount, --[total values]
-		t.dataCurrentHorzPosition,--dataRelativePosition
-		"table-linked", --[sb type string]
-		"horizontal", --[draw orientation: vertical or horizontal]
-		30, --[scroll speed: lower slow, bigger fast]
-		"speadSheetScrollbarHorzCallback"--[callback function]
-		)
+	-- Create the scrollbar objects
+	gui_scrollBar_create (t.verticalScrollBar.name, t.page, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
+	gui_scrollBar_create (t.horizontalScrollBar.name, t.page, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
 end
 
 ------------------------------------------------------------
@@ -581,11 +486,11 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			t.dataCurrentHorzPosition = t.dataCurrentHorzPosition
 			t.state = 0 --[[0 deactivated, 1 = released, 2 = pressed.]]
 
-			scrollBar_update (t.verticalScrollBar.name, strgPage, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
-			scrollBar_update (t.horizontalScrollBar.name, strgPage, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
+			-- scrollBar_update calls removed as they were redundant and non-functional.
+			-- Resizing is now handled by the .resize() method on each object.
 
-			scrollBar_update (t.verticalScrollBar.name, strgPage, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
-			scrollBar_update (t.horizontalScrollBar.name, strgPage, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
+			-- scrollBar_update calls removed as they were redundant and non-functional.
+			-- Resizing is now handled by the .resize() method on each object.
 		end
 
 	end
@@ -1126,7 +1031,7 @@ function touchedCell (x, y, button, istouch, mySpreadSheet)
 						cell.x = cl.x
 						cell.y = cl.y
 						cell.row = cl.row
-						cell.collum = cl.collumn
+						cell.collum = cl.collum
 
 					end 
 

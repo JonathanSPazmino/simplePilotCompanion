@@ -138,6 +138,93 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		end
 
 	-- table.insert(scrollBars,t)
+	
+	function t:resize()
+		-- Use the original, relative values for recalculation
+		local original = self.original
+		
+		self.frame.height = original.height * globApp.safeScreenArea.h
+		self.frame.width = original.width * globApp.safeScreenArea.w
+		
+		self.frame.positions = 
+				relativePosition (original.anchorPoint, 
+									original.x,
+									original.y, 
+									self.frame.width, 
+									self.frame.height, 
+									globApp.safeScreenArea.x,
+									globApp.safeScreenArea.y, 
+									globApp.safeScreenArea.w, 
+									globApp.safeScreenArea.h)
+		self.frame.x = self.frame.positions[1] - globApp.safeScreenArea.x
+		self.frame.y = self.frame.positions[2] - globApp.safeScreenArea.y
+
+		if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
+			self.frame.y = self.frame.y + globApp.safeScreenArea.y
+		end
+		
+		if globApp.OperatingSystem ~= "iOS" and globApp.OperatingSystem ~= "Android" then
+			if self.orientation == "vertical" then
+
+				self.upButton.width = self.frame.width
+				self.upButton.height = self.frame.width
+				self.upButton.x = self.frame.x
+				self.upButton.y = self.frame.y
+				self.upButton.factorWidth = self.upButton.width / self.imgButtonUpArrow_active:getWidth ()
+				self.upButton.factorHeight = self.upButton.height / self.imgButtonUpArrow_active:getHeight ()
+				self.upButton.isActive = false
+
+
+				self.downButton.width = self.frame.width
+				self.downButton.height = self.frame.width
+				self.downButton.x = self.frame.x
+				self.downButton.y = self.frame.y + self.frame.height - self.downButton.height
+				self.downButton.factorWidth = self.downButton.width / self.imgButtonDownArrow_active:getWidth ()
+				self.downButton.factorHeight = self.downButton.height / self.imgButtonDownArrow_active:getHeight ()
+				self.downButton.isActive = false
+
+				self.frame.y = self.upButton.y + self.upButton.height
+				self.frame.height = self.downButton.y - self.frame.y
+			
+			elseif self.orientation == "horizontal" then
+
+				self.leftButton.width = self.frame.height
+				self.leftButton.height = self.frame.height
+				self.leftButton.x = self.frame.x
+				self.leftButton.y = self.frame.y
+				self.leftButton.factorWidth = self.leftButton.width / self.imgButtonLeftArrow_active:getWidth ()
+				self.leftButton.factorHeight = self.leftButton.height / self.imgButtonLeftArrow_active:getHeight ()
+				self.leftButton.isActive = false
+
+				self.rightButton.width = self.frame.height
+				self.rightButton.height = self.frame.height
+				self.rightButton.x = self.frame.x + self.frame.width - self.rightButton.width
+				self.rightButton.y = self.frame.y
+				self.rightButton.factorWidth = self.rightButton.width / self.imgButtonRightArrow_active:getWidth ()
+				self.rightButton.factorHeight = self.rightButton.height / self.imgButtonRightArrow_active:getHeight ()
+				self.rightButton.isActive = false
+
+				self.frame.x = self.leftButton.x + self.leftButton.width
+				self.frame.width = self.rightButton.x - self.frame.x
+
+			end
+		end
+
+		-- self.bar.position is updated externally, so we only recalculate its physical position
+		if self.orientation == "vertical" then
+			self.bar.width = self.frame.width
+			self.bar.height = determine_scrollingBarSize (self.numVisValues, self.numTotalValues) * self.frame.height
+			self.bar.x = self.frame.x
+			self.bar.y = self.frame.y + (self.bar.position * (self.frame.height - self.bar.height))
+		elseif self.orientation == "horizontal" then
+			self.bar.width = determine_scrollingBarSize (self.numVisValues, self.numTotalValues) * self.frame.width
+			self.bar.height = self.frame.height
+			self.bar.x = self.frame.x + (self.bar.position * (self.frame.width - self.bar.width))
+			self.bar.y = self.frame.y 
+		end
+	end
+	t.resize = t.resize
+
 	table.insert(globApp.objects.scrollBars, t)
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 	
@@ -153,102 +240,6 @@ end
 -- 		end
 -- 	end
 -- end
-
-
-function gui_scrollBar_update ()
-
-	if globApp.resizeDetected then
-
-		for i, sb in ipairs (globApp.objects.scrollBars) do
-
-			-- Use the original, relative values for recalculation
-			local original = sb.original
-			
-			sb.frame.height = original.height * globApp.safeScreenArea.h
-			sb.frame.width = original.width * globApp.safeScreenArea.w
-			
-			sb.frame.positions = 
-					relativePosition (original.anchorPoint, 
-										original.x,
-										original.y, 
-										sb.frame.width, 
-										sb.frame.height, 
-										globApp.safeScreenArea.x,
-										globApp.safeScreenArea.y, 
-										globApp.safeScreenArea.w, 
-										globApp.safeScreenArea.h)
-			sb.frame.x = sb.frame.positions[1] - globApp.safeScreenArea.x
-			sb.frame.y = sb.frame.positions[2] - globApp.safeScreenArea.y
-
-			if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then
-				sb.frame.y = sb.frame.y + globApp.safeScreenArea.y
-			end
-			
-			if globApp.OperatingSystem ~= "iOS" and globApp.OperatingSystem ~= "Android" then
-				if sb.orientation == "vertical" then
-
-					sb.upButton.width = sb.frame.width
-					sb.upButton.height = sb.frame.width
-					sb.upButton.x = sb.frame.x
-					sb.upButton.y = sb.frame.y
-					sb.upButton.factorWidth = sb.upButton.width / sb.imgButtonUpArrow_active:getWidth ()
-					sb.upButton.factorHeight = sb.upButton.height / sb.imgButtonUpArrow_active:getHeight ()
-					sb.upButton.isActive = false
-
-
-					sb.downButton.width = sb.frame.width
-					sb.downButton.height = sb.frame.width
-					sb.downButton.x = sb.frame.x
-					sb.downButton.y = sb.frame.y + sb.frame.height - sb.downButton.height
-					sb.downButton.factorWidth = sb.downButton.width / sb.imgButtonDownArrow_active:getWidth ()
-					sb.downButton.factorHeight = sb.downButton.height / sb.imgButtonDownArrow_active:getHeight ()
-					sb.downButton.isActive = false
-
-					sb.frame.y = sb.upButton.y + sb.upButton.height
-					sb.frame.height = sb.downButton.y - sb.frame.y
-				
-				elseif sb.orientation == "horizontal" then
-
-					sb.leftButton.width = sb.frame.height
-					sb.leftButton.height = sb.frame.height
-					sb.leftButton.x = sb.frame.x
-					sb.leftButton.y = sb.frame.y
-					sb.leftButton.factorWidth = sb.leftButton.width / sb.imgButtonLeftArrow_active:getWidth ()
-					sb.leftButton.factorHeight = sb.leftButton.height / sb.imgButtonLeftArrow_active:getHeight ()
-					sb.leftButton.isActive = false
-
-					sb.rightButton.width = sb.frame.height
-					sb.rightButton.height = sb.frame.height
-					sb.rightButton.x = sb.frame.x + sb.frame.width - sb.rightButton.width
-					sb.rightButton.y = sb.frame.y
-					sb.rightButton.factorWidth = sb.rightButton.width / sb.imgButtonRightArrow_active:getWidth ()
-					sb.rightButton.factorHeight = sb.rightButton.height / sb.imgButtonRightArrow_active:getHeight ()
-					sb.rightButton.isActive = false
-
-					sb.frame.x = sb.leftButton.x + sb.leftButton.width
-					sb.frame.width = sb.rightButton.x - sb.frame.x
-
-				end
-			end
-
-			-- sb.bar.position is updated externally, so we only recalculate its physical position
-			if sb.orientation == "vertical" then
-				sb.bar.width = sb.frame.width
-				sb.bar.height = determine_scrollingBarSize (sb.numVisValues, sb.numTotalValues) * sb.frame.height
-				sb.bar.x = sb.frame.x
-				sb.bar.y = sb.frame.y + (sb.bar.position * (sb.frame.height - sb.bar.height))
-			elseif sb.orientation == "horizontal" then
-				sb.bar.width = determine_scrollingBarSize (sb.numVisValues, sb.numTotalValues) * sb.frame.width
-				sb.bar.height = sb.frame.height
-				sb.bar.x = sb.frame.x + (sb.bar.position * (sb.frame.width - sb.bar.width))
-				sb.bar.y = sb.frame.y 
-			end
-
-		end
-
-	end
-
-end
 
 
 function gui_scrollBar_draw (pageName)
