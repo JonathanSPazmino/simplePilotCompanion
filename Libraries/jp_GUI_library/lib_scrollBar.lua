@@ -43,8 +43,13 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 
 		
 		t.frame = {}
+		if sbOrientation == "vertical" then
 			t.frame.height = height * globApp.safeScreenArea.h
+			t.frame.width = globApp.scrollbarThickness * globApp.appScale
+		elseif sbOrientation == "horizontal" then
+			t.frame.height = globApp.scrollbarThickness * globApp.appScale
 			t.frame.width = width * globApp.safeScreenArea.w
+		end
 			 
 			t.frame.positions = 
 					relativePosition (anchorPoint, 
@@ -143,8 +148,13 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		-- Use the original, relative values for recalculation
 		local original = self.original
 		
-		self.frame.height = original.height * globApp.safeScreenArea.h
-		self.frame.width = original.width * globApp.safeScreenArea.w
+		if self.orientation == "vertical" then
+			self.frame.height = original.height * globApp.safeScreenArea.h
+			self.frame.width = globApp.scrollbarThickness * globApp.appScale
+		elseif self.orientation == "horizontal" then
+			self.frame.height = globApp.scrollbarThickness * globApp.appScale
+			self.frame.width = original.width * globApp.safeScreenArea.w
+		end
 		
 		self.frame.positions = 
 				relativePosition (original.anchorPoint, 

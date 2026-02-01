@@ -1206,6 +1206,7 @@ end
 		globApp.userInput = "none"
 		globApp.mouseSensitivity = 2
 		globApp.touchSensitivity = 2
+		globApp.scrollbarThickness = 15
 		globApp.devCompanyAcronym = "GDS"
 		globApp.aboutPageContent = readAboutPageFile ()
 
