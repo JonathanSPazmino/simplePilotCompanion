@@ -77,6 +77,7 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
         -- ratio relative to the screen's safe area for later use.
         widthRatio = width / globApp.safeScreenArea.w,
         heightRatio = height / globApp.safeScreenArea.h,
+        aspectRatio = height / width,
         anchorPoint = anchorPoint
     }
 
@@ -104,8 +105,9 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
         local original = self.original
 
         -- Recalculate absolute size based on the new safe area and original ratio
-        self.mywidth = original.widthRatio * globApp.safeScreenArea.w
-        self.myheight = original.heightRatio * globApp.safeScreenArea.h
+        local newDims = gui_getObjectScaledDimensions(original.widthRatio, original.heightRatio, original.aspectRatio)
+        self.mywidth = newDims.width
+        self.myheight = newDims.height
 
         -- Recalculate absolute position using the consistent relative values
         local myPositions = relativePosition(

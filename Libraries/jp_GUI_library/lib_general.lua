@@ -95,6 +95,26 @@ function jpGUI_findTriangAngle (side_oposite, side_adjacent, resultType)
 end
 
 
+function gui_getObjectScaledDimensions(originalWidthRatio, originalHeightRatio, aspectRatio)
+    local newDimensions = {}
+
+    local boxWidth = originalWidthRatio * globApp.safeScreenArea.w
+    local boxHeight = originalHeightRatio * globApp.safeScreenArea.h
+
+    if boxWidth * aspectRatio <= boxHeight then
+        -- Width is the limiting dimension
+        newDimensions.width = boxWidth
+        newDimensions.height = boxWidth * aspectRatio
+    else
+        -- Height is the limiting dimension
+        newDimensions.height = boxHeight
+        newDimensions.width = boxHeight / aspectRatio
+    end
+
+    return newDimensions
+end
+
+
 function gui_handle_resize()
     -- This function will call the resize method for all active objects
     -- For now, we iterate through each type separately.
@@ -135,6 +155,8 @@ function jpGUI_update (dt)
 		gui_handle_resize()
 
 	end
+
+	gui_outputTextBoxes_update()
 
 	globApp.txtBoxChangeDetected = txtInput_changeTrigger ()
 	if globApp.txtBoxChangeDetected == true then

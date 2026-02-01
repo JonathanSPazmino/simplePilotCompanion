@@ -24,6 +24,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		y = myY,
 		width = tableWidth,
 		height = tableHeight,
+		aspectRatio = (tableHeight * globApp.safeScreenArea.h) / (tableWidth * globApp.safeScreenArea.w),
 		anchorPoint = anchorPoint,
 		fontSize = fontSize,
 		headerTitles = headerTitles,
@@ -49,8 +50,9 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		local original = tbl.original
 		
 		-- Recalculate frame
-		tbl.frame.width = (original.width * globApp.safeScreenArea.w)
-		tbl.frame.height = (original.height * globApp.safeScreenArea.h)
+		local newDims = gui_getObjectScaledDimensions(original.width, original.height, original.aspectRatio)
+		tbl.frame.width = newDims.width
+		tbl.frame.height = newDims.height
 		local framePositions = relativePosition(original.anchorPoint, original.x, original.y, tbl.frame.width, tbl.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 		tbl.frame.x = framePositions[1]
 		tbl.frame.y = framePositions[2]
