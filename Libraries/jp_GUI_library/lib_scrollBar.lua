@@ -17,9 +17,10 @@ gui_scrollBar_init_assets() -- Call the function immediately after its definitio
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
 
-function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback)
+function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback, assets)
 
 	local t = {}
+		t.assets = assets or {}
 
 		t.id = id
 		t.type = sbType --[[independent or table-linked]]
@@ -43,6 +44,9 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 
 		
 		t.frame = {}
+		if t.assets.frame then
+			t.frame.img = love.graphics.newImage(t.assets.frame)
+		end
 		if sbOrientation == "vertical" then
 			t.frame.height = height * globApp.safeScreenArea.h
 			t.frame.width = globApp.scrollbarThickness * globApp.appScale
@@ -71,10 +75,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		if globApp.OperatingSystem ~= "iOS" and globApp.OperatingSystem ~= "Android" then
 			if t.orientation == "vertical" then
 
-				t.imgButtonUpArrow_active = gui_scrollBar_assets.up_active
-				t.imgButtonUpArrow_inactive = gui_scrollBar_assets.up_inactive
-				t.imgButtonDownArrow_active = gui_scrollBar_assets.down_active
-				t.imgButtonDownArrow_inactive = gui_scrollBar_assets.down_inactive
+				t.imgButtonUpArrow_active = (t.assets.up_active and love.graphics.newImage(t.assets.up_active)) or gui_scrollBar_assets.up_active
+				t.imgButtonUpArrow_inactive = (t.assets.up_inactive and love.graphics.newImage(t.assets.up_inactive)) or gui_scrollBar_assets.up_inactive
+				t.imgButtonDownArrow_active = (t.assets.down_active and love.graphics.newImage(t.assets.down_active)) or gui_scrollBar_assets.down_active
+				t.imgButtonDownArrow_inactive = (t.assets.down_inactive and love.graphics.newImage(t.assets.down_inactive)) or gui_scrollBar_assets.down_inactive
 
 				t.upButton = {}
 					t.upButton.width = t.frame.width
@@ -99,10 +103,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 			
 			elseif t.orientation == "horizontal" then
 
-				t.imgButtonLeftArrow_active = gui_scrollBar_assets.left_active
-					t.imgButtonLeftArrow_inactive = gui_scrollBar_assets.left_inactive
-					t.imgButtonRightArrow_active = gui_scrollBar_assets.right_active
-					t.imgButtonRightArrow_inactive = gui_scrollBar_assets.right_inactive
+				t.imgButtonLeftArrow_active = (t.assets.left_active and love.graphics.newImage(t.assets.left_active)) or gui_scrollBar_assets.left_active
+				t.imgButtonLeftArrow_inactive = (t.assets.left_inactive and love.graphics.newImage(t.assets.left_inactive)) or gui_scrollBar_assets.left_inactive
+				t.imgButtonRightArrow_active = (t.assets.right_active and love.graphics.newImage(t.assets.right_active)) or gui_scrollBar_assets.right_active
+				t.imgButtonRightArrow_inactive = (t.assets.right_inactive and love.graphics.newImage(t.assets.right_inactive)) or gui_scrollBar_assets.right_inactive
 				
 				t.leftButton = {}
 					t.leftButton.width = t.frame.height
@@ -129,6 +133,9 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		end
 				
 		t.bar = {}
+		if t.assets.thumb then
+			t.bar.img = love.graphics.newImage(t.assets.thumb)
+		end
 			t.bar.position = dataRelativePosition
 		if t.orientation == "vertical" then
 			t.bar.width = t.frame.width
@@ -267,7 +274,12 @@ function gui_scrollBar_draw (pageName)
 											--SCROLLBAR FRAME
 					--------------------------------------------------------------------------
 					love.graphics.setColor(1, 1, 1, 1)
-					love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
+					if x.frame.img then
+						local imgW, imgH = x.frame.img:getDimensions()
+						love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / imgW, x.frame.height / imgH)
+					else
+						love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
+					end
 					
 					---------------------------------------------------------------------------
 											--BAR
@@ -277,7 +289,12 @@ function gui_scrollBar_draw (pageName)
 					elseif x.isFocused == false then
 						love.graphics.setColor(0, 1, 0, 1)
 					end
-					love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
+					if x.bar.img then
+						local imgW, imgH = x.bar.img:getDimensions()
+						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / imgW, x.bar.height / imgH)
+					else
+						love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
+					end
 					
 					---------------------------------------------------------------------------
 											--BUTTONS

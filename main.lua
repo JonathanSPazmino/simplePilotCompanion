@@ -179,9 +179,23 @@ function love.load()
     --SCROLLBARS
     ----------------------------------------------------------------------------
 
+  local scrollbarSprites = {
+    up_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_UpArrowButton_pushed.png",
+    up_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_UpArrowButton_released.png",
+    down_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_downArrowButton_pushed.png",
+    down_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_downArrowButton_released.png",
+    left_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_leftArrowButton_pushed.png",
+    left_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_leftArrowButton_released.png",
+    right_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_pushed.png",
+    right_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_released.png",
+    thumb = "Sprites/txtBox001_Focused.png",
+    frame = "Sprites/txtBox001_NotFocused.png"
+   }
+
+
     gui_scrollBar_create ("altScale", "MainMenu", 
         0.2, 0.65, .07, .3, "LT", 5, 51, 1, 
-        "independent", "vertical", 51, "roundSelectedAltitude")
+        "independent", "vertical", 51, "roundSelectedAltitude",scrollbarSprites)
 
     gui_scrollBar_create ("timeScale", "MainMenu", 
         0.73, 0.65, .07, .3, "LT", 5, 25, 1, 
