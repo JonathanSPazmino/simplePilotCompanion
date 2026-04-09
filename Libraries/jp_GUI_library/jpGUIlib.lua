@@ -3,7 +3,7 @@
 -- Created by Jonathan Pazmino
 -- Last Modified 7/20/2021
 
-MAIN_GDSGUI_VERSION = "0.7.1"
+MAIN_GDSGUI_VERSION = "0.7.2"
 
 local function requireGUILibraries ()
 
