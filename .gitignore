@@ -14,6 +14,9 @@ projectData.csv
 #gemini file
 GEMINI.md
 
+# Claude Code local session data
+.claude/
+
 # commented out due to need for back up
 
 # lua sources
