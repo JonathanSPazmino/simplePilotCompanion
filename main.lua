@@ -188,7 +188,7 @@ function love.load()
     left_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_leftArrowButton_released.png",
     right_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_pushed.png",
     right_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_released.png",
-    thumb = "Sprites/txtBox001_Focused.png",
+    thumb = "Sprites/screw.png",
     frame = "Sprites/txtBox001_NotFocused.png"
    }
 
@@ -197,9 +197,9 @@ function love.load()
         0.2, 0.65, .07, .3, "LT", 5, 51, 1, 
         "independent", "vertical", 51, "roundSelectedAltitude",scrollbarSprites)
 
-    gui_scrollBar_create ("timeScale", "MainMenu", 
-        0.73, 0.65, .07, .3, "LT", 5, 25, 1, 
-        "independent", "vertical", 25, "roundSelectedTime")
+    gui_scrollBar_create ("timeScale", "MainMenu",
+        0.73, 0.65, .07, .3, "LT", 5, 25, 1,
+        "independent", "vertical", 25, "roundSelectedTime", {thumb = "Sprites/screw.png"})
 
 
 

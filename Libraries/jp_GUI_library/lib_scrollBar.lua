@@ -282,15 +282,16 @@ function gui_scrollBar_draw (pageName)
 					---------------------------------------------------------------------------
 											--BAR
 					---------------------------------------------------------------------------
-					if x.isFocused == true then
-						love.graphics.setColor(0, 0, 1, 1)
-					elseif x.isFocused == false then
-						love.graphics.setColor(0, 1, 0, 1)
-					end
 					if x.bar.img then
+						love.graphics.setColor(1, 1, 1, 1)
 						local imgW, imgH = x.bar.img:getDimensions()
 						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / imgW, x.bar.height / imgH)
 					else
+						if x.isFocused == true then
+							love.graphics.setColor(0, 0, 1, 1)
+						else
+							love.graphics.setColor(0, 1, 0, 1)
+						end
 						love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
 					end
 					
