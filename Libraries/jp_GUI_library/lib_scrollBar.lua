@@ -1,18 +1,6 @@
 --scrollBar.lua
 
-gui_scrollBar_assets = {}
-
-function gui_scrollBar_init_assets()
-    gui_scrollBar_assets.up_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_pushed.png")
-    gui_scrollBar_assets.up_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
-    gui_scrollBar_assets.down_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_downArrowButton_pushed.png")
-    gui_scrollBar_assets.down_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_downArrowButton_released.png")
-    gui_scrollBar_assets.left_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_pushed.png")
-    gui_scrollBar_assets.left_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
-    gui_scrollBar_assets.right_active = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_rightArrowButton_pushed.png")
-    gui_scrollBar_assets.right_inactive = love.graphics.newImage(devSpritesPath .. "jpLoveGUI_rightArrowButton_released.png")
-end
-gui_scrollBar_init_assets() -- Call the function immediately after its definition
+local librarySpritesPath = "Libraries/jp_GUI_library/librarySprites/"
 
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
@@ -21,6 +9,16 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 
 	local t = {}
 		t.assets = assets or {}
+
+		-- Apply library sprite defaults for any nil sprite paths
+		t.assets.up_active     = t.assets.up_active     or (librarySpritesPath .. "jpLoveGUI_UpArrowButton_pushed.png")
+		t.assets.up_inactive   = t.assets.up_inactive   or (librarySpritesPath .. "jpLoveGUI_UpArrowButton_released.png")
+		t.assets.down_active   = t.assets.down_active   or (librarySpritesPath .. "jpLoveGUI_downArrowButton_pushed.png")
+		t.assets.down_inactive = t.assets.down_inactive or (librarySpritesPath .. "jpLoveGUI_downArrowButton_released.png")
+		t.assets.left_active   = t.assets.left_active   or (librarySpritesPath .. "jpLoveGUI_leftArrowButton_pushed.png")
+		t.assets.left_inactive = t.assets.left_inactive or (librarySpritesPath .. "jpLoveGUI_leftArrowButton_released.png")
+		t.assets.right_active  = t.assets.right_active  or (librarySpritesPath .. "jpLoveGUI_rightArrowButton_pushed.png")
+		t.assets.right_inactive= t.assets.right_inactive or (librarySpritesPath .. "jpLoveGUI_rightArrowButton_released.png")
 
 		t.id = id
 		t.type = sbType --[[independent or table-linked]]
@@ -75,10 +73,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		if globApp.OperatingSystem ~= "iOS" and globApp.OperatingSystem ~= "Android" then
 			if t.orientation == "vertical" then
 
-				t.imgButtonUpArrow_active = (t.assets.up_active and love.graphics.newImage(t.assets.up_active)) or gui_scrollBar_assets.up_active
-				t.imgButtonUpArrow_inactive = (t.assets.up_inactive and love.graphics.newImage(t.assets.up_inactive)) or gui_scrollBar_assets.up_inactive
-				t.imgButtonDownArrow_active = (t.assets.down_active and love.graphics.newImage(t.assets.down_active)) or gui_scrollBar_assets.down_active
-				t.imgButtonDownArrow_inactive = (t.assets.down_inactive and love.graphics.newImage(t.assets.down_inactive)) or gui_scrollBar_assets.down_inactive
+				t.imgButtonUpArrow_active     = love.graphics.newImage(t.assets.up_active)
+				t.imgButtonUpArrow_inactive   = love.graphics.newImage(t.assets.up_inactive)
+				t.imgButtonDownArrow_active   = love.graphics.newImage(t.assets.down_active)
+				t.imgButtonDownArrow_inactive = love.graphics.newImage(t.assets.down_inactive)
 
 				t.upButton = {}
 					t.upButton.width = t.frame.width
@@ -103,10 +101,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 			
 			elseif t.orientation == "horizontal" then
 
-				t.imgButtonLeftArrow_active = (t.assets.left_active and love.graphics.newImage(t.assets.left_active)) or gui_scrollBar_assets.left_active
-				t.imgButtonLeftArrow_inactive = (t.assets.left_inactive and love.graphics.newImage(t.assets.left_inactive)) or gui_scrollBar_assets.left_inactive
-				t.imgButtonRightArrow_active = (t.assets.right_active and love.graphics.newImage(t.assets.right_active)) or gui_scrollBar_assets.right_active
-				t.imgButtonRightArrow_inactive = (t.assets.right_inactive and love.graphics.newImage(t.assets.right_inactive)) or gui_scrollBar_assets.right_inactive
+				t.imgButtonLeftArrow_active    = love.graphics.newImage(t.assets.left_active)
+				t.imgButtonLeftArrow_inactive  = love.graphics.newImage(t.assets.left_inactive)
+				t.imgButtonRightArrow_active   = love.graphics.newImage(t.assets.right_active)
+				t.imgButtonRightArrow_inactive = love.graphics.newImage(t.assets.right_inactive)
 				
 				t.leftButton = {}
 					t.leftButton.width = t.frame.height
