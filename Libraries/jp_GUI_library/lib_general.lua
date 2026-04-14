@@ -1146,6 +1146,18 @@ function readAboutPageFile ()
 	end
 end
 
+function readLibraryInfoFile ()
+	local path = "Libraries/jp_GUI_library/jp_gui_library_info.txt"
+	local info = love.filesystem.getInfo(path)
+	if info ~= nil then
+		local contents, size = love.filesystem.read(path)
+		if size and size > 0 then
+			return contents
+		end
+	end
+	return "Library info file not found."
+end
+
 
 -------------------------------------------------------------------------------------
 							--PROJECT SELECTION 
@@ -1209,5 +1221,6 @@ end
 		globApp.scrollbarThickness = 15
 		globApp.devCompanyAcronym = "GDS"
 		globApp.aboutPageContent = readAboutPageFile ()
+		globApp.libraryInfoContent = readLibraryInfoFile ()
 
 	devSpritesPath = "Libraries/jp_GUI_library/librarySprites/"

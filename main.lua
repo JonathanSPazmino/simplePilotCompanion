@@ -194,12 +194,12 @@ function love.load()
 
 
     gui_scrollBar_create ("altScale", "MainMenu",
-        0.2, 0.65, 60, 185, "LT", 5, 51, 1,
-        "independent", "vertical", 51, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/screw.png"})
+        0.2, 0.65, 30, 185, "LT", 5, 52, 1,
+        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"})
 
     gui_scrollBar_create ("timeScale", "MainMenu",
-        0.8, 0.65, 60, 185, "RT", 5, 25, 1,
-        "independent", "vertical", 25, "roundSelectedTime", {thumb = "Sprites/screw.png"})
+        0.8, 0.65, 30, 185, "RT", 5, 26, 1,
+        "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"})
 
 
 
@@ -466,11 +466,11 @@ function saveCountdownTime()
 end
 
 function roundSelectedAltitude (pos)
-    selectedAltitude = math.max(0, math.ceil(51 * (1 - pos) - 1e-9) * 1000)
-end 
+    selectedAltitude = math.max(0, math.floor(51 * (1 - pos) + 0.5)) * 1000
+end
 
 
 function roundSelectedTime (pos)
-    selectedTime = math.max(0, math.ceil(25 * (1 - pos) - 1e-9))
-end 
+    selectedTime = math.max(0, math.floor(25 * (1 - pos) + 0.5))
+end
 

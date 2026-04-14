@@ -1,0 +1,139 @@
+================================================================================
+JP GUI LIBRARY
+Gateway Dynamic Software, LLC
+================================================================================
+
+PROPRIETARY NOTICE
+------------------
+This software library is the exclusive property of Gateway Dynamic Software,
+LLC. All rights reserved. Unauthorized use, reproduction, distribution, or
+modification of this library, in whole or in part, is strictly prohibited
+without the express written consent of Gateway Dynamic Software, LLC.
+
+For licensing inquiries contact Gateway Dynamic Software, LLC.
+
+================================================================================
+OVERVIEW
+================================================================================
+
+The JP GUI Library is a modular, reusable GUI framework built for LOVE2D (Lua).
+It provides a complete set of UI widgets, page management, responsive layout,
+and developer tooling suitable for mobile and desktop applications.
+
+The library is self-contained. Load it via a single require of jpGUIlib.lua,
+which in turn loads all modules in the correct order.
+
+Usage:
+  require("Libraries.jp_GUI_library.jpGUIlib")
+
+================================================================================
+MODULES
+================================================================================
+
+lib_general.lua
+  Core utilities, DPI scaling, window resize detection, and the globApp state
+  table. All library-wide shared state lives here. Must be loaded first.
+  Key globals: globApp, relativePosition(), smartScaling(), smartFontScaling()
+
+lib_buttons.lua
+  Button widget: creation, sprite-based drawing, click and touch handling.
+  Supports toggle, push-on-off, and selector button types.
+  Key functions: gui_button_create(), gui_button_setState()
+
+lib_pages.lua
+  Screen/page management and animated transitions. Pages are indexed by integer
+  ID and string name. Navigation uses loading pages with minimum display times.
+  Key functions: page_create(), page_switch(), pageBackground_draw()
+
+lib_scrollBar.lua
+  Vertical and horizontal scrollbars with discrete detent stepping, drag
+  interaction, sprite support for thumb and frame, and per-instance callbacks.
+  Key functions: gui_scrollBar_create(), gui_scrollBar_draw(),
+                 focus_scrollingBar(), holdAndDragScrollBar()
+
+lib_table.lua
+  Sortable, filterable data table display for scrollable content grids.
+
+lib_inputTxtBox.lua
+  Text input fields with configurable validation and focus management.
+  Key functions: gui_inputTextBox_create()
+
+lib_outputTxtBox.lua
+  Read-only text display boxes with automatic word wrapping and resize support.
+  Key functions: gui_outputTextBox_create(), gui_updateOutputTextBoxText()
+
+lib_drawGrid.lua
+  Grid rendering utilities for scrollable content areas.
+
+lib_saveLoad.lua
+  Persistent state save and load using LOVE2D filesystem.
+
+lib_timeControl.lua
+  Time-based event triggers for deferred or recurring callbacks.
+  Key functions: create_newTimeTrigger()
+
+lib_appFrame.lua
+  Application frame and window chrome management.
+
+lib_images.lua
+  Image asset caching to avoid redundant disk reads.
+
+lib_unitTests.lua
+  Developer testing framework. Tests run automatically at load time when
+  developer mode is enabled.
+  Key functions: devTest_execute(), gdsGUI_executeAllUnitTests()
+
+lib_devSettings.lua
+  Developer mode flags, debug overlays, the developer menu UI, unit test page,
+  screen size switcher, and this About page.
+
+================================================================================
+GLOBAL STATE (globApp)
+================================================================================
+
+globApp is the central state table defined in lib_general.lua. It holds:
+
+  globApp.objects         -- all registered UI objects (buttons, scrollbars, etc.)
+  globApp.safeScreenArea  -- screen dimensions accounting for OS safe insets
+  globApp.scrollbarThickness -- default scrollbar width/height (pixels)
+  globApp.OperatingSystem -- detected OS string ("iOS", "Android", "Windows", etc.)
+  globApp.developerMode   -- true when developer overlay is active
+  globApp.aboutPageContent -- contents of about.txt loaded at startup
+  globApp.libraryInfoContent -- contents of this file loaded at startup
+
+================================================================================
+RESPONSIVE LAYOUT
+================================================================================
+
+All coordinates are expressed as fractions of the safe screen area (0.0-1.0)
+and resolved to pixels at creation time and on every resize event.
+
+relativePosition(anchorPoint, x, y, w, h, safeX, safeY, safeW, safeH)
+  Returns absolute pixel coordinates for a given fractional position and anchor.
+  Anchor points: LT, LC, LB, CT, CC, CB, RT, RC, RB
+
+smartScaling("inverse", s1, s2, s3, s4, factor, axis)
+  Returns a DPI-aware pixel dimension scaled to the current screen size.
+
+================================================================================
+LOVE2D CALLBACK INTEGRATION
+================================================================================
+
+Call these library functions from your LOVE2D callbacks:
+
+  love.load()    -> (create objects with gui_*_create functions)
+  love.update(dt) -> jpGUI_update(dt)
+  love.draw()    -> jpGUI_draw(), drawPages()
+  love.resize()  -> (handled automatically via resize detection in update)
+  love.mousepressed/moved/released -> route to focus/drag/unfocus functions
+  love.touchpressed/moved/released -> same as above with istouch flag
+
+================================================================================
+VERSION HISTORY
+================================================================================
+
+See git log for detailed change history.
+
+================================================================================
+(c) Gateway Dynamic Software, LLC. All rights reserved.
+================================================================================

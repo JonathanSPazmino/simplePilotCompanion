@@ -47,9 +47,9 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		end
 		if sbOrientation == "vertical" then
 			t.frame.height = height
-			t.frame.width = globApp.scrollbarThickness
+			t.frame.width = width
 		elseif sbOrientation == "horizontal" then
-			t.frame.height = globApp.scrollbarThickness
+			t.frame.height = height
 			t.frame.width = width
 		end
 
@@ -155,9 +155,9 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		
 		if self.orientation == "vertical" then
 			self.frame.height = original.height
-			self.frame.width = globApp.scrollbarThickness
+			self.frame.width = original.width
 		elseif self.orientation == "horizontal" then
-			self.frame.height = globApp.scrollbarThickness
+			self.frame.height = original.height
 			self.frame.width = original.width
 		end
 

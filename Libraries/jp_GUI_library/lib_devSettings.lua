@@ -942,18 +942,17 @@ function createDevAboutMenuObjects ()
 		"openDevMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	--TXT OUTPUT BOX:
-	-- outputTxtBox_draw ("AboutContents",--[[Label name]]
-	-- 	thisPageName, --[[strg page]]
-	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
-	-- 	.5, --[[x percentage of screen]]
-	-- 	.5, --[[y percentage of screen]]
-	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-	-- 	smartScaling ("inverse", 1, 1, .8, .8, .8,"width"),--[[width]]
-	-- 	smartScaling ("inverse", 1, 1, .8, .8, .8,"height"), --[[height]]
-	-- 	{1,1,1,1},--[[rgba]]
-	-- 	globApp.aboutPageContent, --text
-	-- 	math.floor(smartFontScaling (0.04, 0.055))--[[font size]])
+	gui_outputTextBox_create("libraryInfoContents",
+		thisPageName,
+		"Sprites/invisibleBox.png",
+		.5,
+		.5,
+		"CC",
+		globApp.safeScreenArea.w * 0.8,
+		globApp.safeScreenArea.h * 0.8,
+		{1, 1, 1, 1},
+		globApp.libraryInfoContent or "Library info not loaded.",
+		math.floor(smartFontScaling(0.04, 0.055)))
 
 end 
 createDevAboutMenuObjects ()
