@@ -104,7 +104,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				tbl.buttons[index] = {
 					text = index,
 					x = tbl.frame.x + (iterator1 * (tbl.displayWidth / #original.tblCallbackFuncs)) - (tbl.displayWidth / #original.tblCallbackFuncs),
-					y = tbl.frame.y + tbl.displayHeight - tbl.rowHeight,
+					y = tbl.frame.y + tbl.displayHeight - 2 * tbl.rowHeight,
 					width = tbl.displayWidth / #original.tblCallbackFuncs,
 					height = tbl.rowHeight,
 					isFocused = false
@@ -186,7 +186,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		tbl.horizontalScrollBar = {
 			name = tbl.name .. "_hsb",
 			x = tbl.frame.x / globApp.safeScreenArea.w,
-			y = (tbl.scrollBox.y + tbl.scrollBox.height) / globApp.safeScreenArea.h,
+			y = (tbl.scrollBox.y + tbl.scrollBox.height + tbl.rowHeight) / globApp.safeScreenArea.h,
 			width = tbl.scrollBox.width,
 			height = tbl.rowHeight
 		}
@@ -319,7 +319,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 					t.buttons[index] = {}
 					t.buttons[index].text = index
 					t.buttons[index].x = t.frame.x + (iterator1 * (t.displayWidth / #tblCallbackFuncs)) - (t.displayWidth / #tblCallbackFuncs)
-					t.buttons[index].y = t.frame.y + t.displayHeight - t.rowHeight
+					t.buttons[index].y = t.frame.y + t.displayHeight - 2 * t.rowHeight
 					t.buttons[index].width = t.displayWidth / #tblCallbackFuncs
 					t.buttons[index].height = t.rowHeight
 					t.buttons[index].isFocused = false
@@ -459,7 +459,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			t.horizontalScrollBar = {}
 				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
-				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
+				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height + t.rowHeight) / globApp.safeScreenArea.h
 				t.horizontalScrollBar.width = t.scrollBox.width
 				t.horizontalScrollBar.height = t.rowHeight
 
@@ -1074,35 +1074,37 @@ function tableRow_Select (x,y,button,istouch)
 
 			for i, tbl in ipairs (myTable) do
 
-				for j, cl in ipairs (tbl.cells) do
+				if returnCurrentPageName() == tbl.page then
+					for j, cl in ipairs (tbl.cells) do
 
-					if cl.row ~= 1 then
+						if cl.row ~= 1 then
 
-						--determine if touch was made within scrollable area
-						if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height ) then
+							--determine if touch was made within scrollable area
+							if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height ) then
 
-							if  y >= cl.y and y <= (cl.y + cl.height) and cl.focused == false then
-								if cl.focused == false then
-									cl.focused = true
-								elseif cl.focused == true then
-									cl.focused = false
+								if  y >= cl.y and y <= (cl.y + cl.height) and cl.focused == false then
+									if cl.focused == false then
+										cl.focused = true
+									elseif cl.focused == true then
+										cl.focused = false
+									end
+
+								else
+
+								cl.focused = false
+
 								end
-
-							else
-
-							cl.focused = false
 
 							end
 
 						end
 
 					end
-
 				end
 
 			end
 
-		end 
+		end
 
 	end
 end
@@ -1222,15 +1224,17 @@ function tablefuncCallbackToString (strgFuncCallBackName, parameters)
 end
 
 function tableButtonsPressed (x,y,button,istouch)
-	
+
 	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch pressed" then
-		for i, tbl in ipairs (myTable) do 
-			for j, bt in pairs (tbl.buttons) do
-				if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
-					if bt.isFocused == false then
-						bt.isFocused = true
+		for i, tbl in ipairs (myTable) do
+			if returnCurrentPageName() == tbl.page then
+				for j, bt in pairs (tbl.buttons) do
+					if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
+						if bt.isFocused == false then
+							bt.isFocused = true
+						end
 					end
 				end
 			end
@@ -1243,41 +1247,43 @@ function tableButtonsReleased (x,y,button,istouch)
 	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch released" then
-		for i, tbl in ipairs (myTable) do 
-			for j, bt in pairs (tbl.buttons) do
-				if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
-					if bt.isFocused == true then
+		for i, tbl in ipairs (myTable) do
+			if returnCurrentPageName() == tbl.page then
+				for j, bt in pairs (tbl.buttons) do
+					if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
+						if bt.isFocused == true then
 
-						local isDataSelected = false
-						local selectedRow = {}
-						local selectedRcrdID = ""
-						local collumnIterator = 1
-						local callBackId = tbl.callbackFuncNames[bt.text]
-						local callBackParameters = {}
-						local wasFunctionDeclared = false
+							local isDataSelected = false
+							local selectedRow = {}
+							local selectedRcrdID = ""
+							local collumnIterator = 1
+							local callBackId = tbl.callbackFuncNames[bt.text]
+							local callBackParameters = {}
+							local wasFunctionDeclared = false
 
-						for k, cell in ipairs(tbl.cells) do
-							if cell.focused == true and collumnIterator == 1 then
-								isDataSelected = true
-								selectedRcrdID = cell.recordID
-								callBackParameters[1] = selectedRcrdID
-								collumnIterator = collumnIterator + 1
+							for k, cell in ipairs(tbl.cells) do
+								if cell.focused == true and collumnIterator == 1 then
+									isDataSelected = true
+									selectedRcrdID = cell.recordID
+									callBackParameters[1] = selectedRcrdID
+									collumnIterator = collumnIterator + 1
+								end
 							end
-						end
 
-						local func = callBackId
+							local func = callBackId
 
-						if _G[func] then 
-						    wasFunctionDeclared = true
-						else
-							print ("Callback " .. callBackId .. " was NOT declared, for button " .. bt.text .. ", please declare one!")
-						end
+							if _G[func] then
+							    wasFunctionDeclared = true
+							else
+								print ("Callback " .. callBackId .. " was NOT declared, for button " .. bt.text .. ", please declare one!")
+							end
 
-						if selectedRcrdID ~= "" and wasFunctionDeclared == true then
-							local callback = loadstring(tablefuncCallbackToString (callBackId, callBackParameters))
-							callback () --executes callback
+							if selectedRcrdID ~= "" and wasFunctionDeclared == true then
+								local callback = loadstring(tablefuncCallbackToString (callBackId, callBackParameters))
+								callback () --executes callback
+							end
+							bt.isFocused = false
 						end
-						bt.isFocused = false
 					end
 				end
 			end
