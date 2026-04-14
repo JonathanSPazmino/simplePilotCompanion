@@ -104,7 +104,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				tbl.buttons[index] = {
 					text = index,
 					x = tbl.frame.x + (iterator1 * (tbl.displayWidth / #original.tblCallbackFuncs)) - (tbl.displayWidth / #original.tblCallbackFuncs),
-					y = tbl.frame.y + tbl.displayHeight - 2 * tbl.rowHeight,
+					y = tbl.frame.y + tbl.displayHeight - tbl.rowHeight,
 					width = tbl.displayWidth / #original.tblCallbackFuncs,
 					height = tbl.rowHeight,
 					isFocused = false
@@ -186,7 +186,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		tbl.horizontalScrollBar = {
 			name = tbl.name .. "_hsb",
 			x = tbl.frame.x / globApp.safeScreenArea.w,
-			y = (tbl.scrollBox.y + tbl.scrollBox.height + tbl.rowHeight) / globApp.safeScreenArea.h,
+			y = (tbl.scrollBox.y + tbl.scrollBox.height) / globApp.safeScreenArea.h,
 			width = tbl.scrollBox.width,
 			height = tbl.rowHeight
 		}
@@ -319,7 +319,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 					t.buttons[index] = {}
 					t.buttons[index].text = index
 					t.buttons[index].x = t.frame.x + (iterator1 * (t.displayWidth / #tblCallbackFuncs)) - (t.displayWidth / #tblCallbackFuncs)
-					t.buttons[index].y = t.frame.y + t.displayHeight - 2 * t.rowHeight
+					t.buttons[index].y = t.frame.y + t.displayHeight - t.rowHeight
 					t.buttons[index].width = t.displayWidth / #tblCallbackFuncs
 					t.buttons[index].height = t.rowHeight
 					t.buttons[index].isFocused = false
@@ -459,7 +459,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			t.horizontalScrollBar = {}
 				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
-				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height + t.rowHeight) / globApp.safeScreenArea.h
+				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
 				t.horizontalScrollBar.width = t.scrollBox.width
 				t.horizontalScrollBar.height = t.rowHeight
 
@@ -596,8 +596,8 @@ function gui_table_draw (pageName)
 					--TABLE FONT SIZE
 					love.graphics.setFont(x.fonts.cells.font)
 
-					--TABLE TOTAL BG AREA 
-					love.graphics.setColor(1, 0, 0, 1)
+					--TABLE TOTAL BG AREA
+					love.graphics.setColor(.3, .3, .3, 1)
 					love.graphics.rectangle("fill", x.titleBox.x, x.titleBox.y, x.displayWidth, x.displayHeight)
 
 					--SCROLLABLE SPACE
