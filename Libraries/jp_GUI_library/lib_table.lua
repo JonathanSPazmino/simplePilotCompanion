@@ -135,16 +135,20 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		local allTblHeaders = {}
 		for i=1, #dataTable, 1 do allTblHeaders[i] = dataTable[i]["ID"] end
 		
-		local maxOverallTextLineCount = 1
+		-- Header cell height: lines needed for header text + one font-size of padding on each side
+		local headerLineCount = math.max(1, findMaxNumOfLinesNeeded(tbl.fonts.headers.font, tbl.textWrapCellPercentWidth, headerData))
+		local actualHeaderFontHeight = returnFontInfo(tbl.fonts.headers.font, "height")
+		tbl.headersBox.h = (actualHeaderFontHeight * headerLineCount) + (2 * tbl.fonts.headers.size)
+
+		-- Data cell height: sized for the widest data row content only
+		local maxDataLineCount = 1
 		local actualCellFontHeight = returnFontInfo(tbl.fonts.cells.font, "height")
-		maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(tbl.fonts.headers.font, tbl.textWrapCellPercentWidth, headerData))
 		for i = 1, tbl.rowsCount, 1 do
 			local textTable = {}
 			for z=1, #headerData, 1 do textTable[z] = table_lookUp(dataTable, i, headerData[z]) end
-			maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(tbl.fonts.cells.font, tbl.textWrapCellPercentWidth, textTable))
+			maxDataLineCount = math.max(maxDataLineCount, findMaxNumOfLinesNeeded(tbl.fonts.cells.font, tbl.textWrapCellPercentWidth, textTable))
 		end
-		tbl.uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + 0.30)
-		tbl.headersBox.h = tbl.uniformCellHeight
+		tbl.uniformCellHeight = (actualCellFontHeight * maxDataLineCount) * (1 + 0.30)
 		
 		local cellPositions = {w = tbl.collumWidth}
 		local previewsRowY, previewsRowH = tbl.headersBox.y, tbl.headersBox.h
@@ -353,27 +357,22 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			-- uniqueHeaderFilter (dataTable, t.collumnsCount)
 			t.cells = {}
 			
-			-- New code to calculate uniformCellHeight
-			local maxOverallTextLineCount = 1
-			local actualCellFontHeight = returnFontInfo (t.fonts.cells.font, "height")
+			-- Header cell height: lines needed for header text + one font-size of padding on each side
+			local headerLineCount = math.max(1, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
+			local actualHeaderFontHeight = returnFontInfo(t.fonts.headers.font, "height")
+			t.headersBox.h = (actualHeaderFontHeight * headerLineCount) + (2 * t.fonts.headers.size)
 
-			-- Check headers
-			maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
-
-			-- Check data rows
+			-- Data cell height: sized for the widest data row content only
+			local maxDataLineCount = 1
+			local actualCellFontHeight = returnFontInfo(t.fonts.cells.font, "height")
 			for i = 1, t.rowsCount, 1 do
 				local textTable = {}
 				for z=1, #headerData, 1 do
-					textTable[z] = table_lookUp (dataTable, i, headerData[z])
+					textTable[z] = table_lookUp(dataTable, i, headerData[z])
 				end
-				maxOverallTextLineCount = math.max(maxOverallTextLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
+				maxDataLineCount = math.max(maxDataLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
 			end
-
-			-- Calculate uniform cell height with 15% top/bottom padding
-			local cellPaddingFactor = 0.30 -- 15% top + 15% bottom
-			local uniformCellHeight = (actualCellFontHeight * maxOverallTextLineCount) * (1 + cellPaddingFactor)
-			t.uniformCellHeight = uniformCellHeight -- Store it for later use
-			-- End new code
+			t.uniformCellHeight = (actualCellFontHeight * maxDataLineCount) * (1 + 0.30)
 
 			local cellPositions = {}
 			cellPositions.w = t.collumWidth
@@ -397,13 +396,8 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 						cellRercordID = "HEADER"
 
 						if j == 1 then
-
-							local maxTextLineCount = findMaxNumOfLinesNeeded (t.fonts.headers.font, t.textWrapCellPercentWidth, headerData)
-							local actualHeaderFontHeight = returnFontInfo (t.fonts.headers.font, "height")
-
 							cellPositions.y = t.headersBox.y
-												cellPositions.h = t.uniformCellHeight
-												t.headersBox.h = t.uniformCellHeight
+							cellPositions.h = t.headersBox.h
 						end
 
 					elseif i > 1 then --takes care of the data rows data

@@ -197,10 +197,10 @@ function draw_gui ()
 		end
 	end
 
-	gui_buttons_draw (activePageName)
 	gui_outputTxtBox_draw (activePageName)
 	gui_table_draw (activePageName)
 	gui_scrollBar_draw (activePageName)
+	gui_buttons_draw (activePageName)
 
 end
 
