@@ -46,22 +46,22 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 			t.frame.img = love.graphics.newImage(t.assets.frame)
 		end
 		if sbOrientation == "vertical" then
-			t.frame.height = height * globApp.safeScreenArea.h
-			t.frame.width = globApp.scrollbarThickness * globApp.appScale
+			t.frame.height = height
+			t.frame.width = globApp.scrollbarThickness
 		elseif sbOrientation == "horizontal" then
-			t.frame.height = globApp.scrollbarThickness * globApp.appScale
-			t.frame.width = width * globApp.safeScreenArea.w
+			t.frame.height = globApp.scrollbarThickness
+			t.frame.width = width
 		end
-			 
-			t.frame.positions = 
-					relativePosition (anchorPoint, 
+
+			t.frame.positions =
+					relativePosition (anchorPoint,
 										x,
-										y, 
-										t.frame.width, 
-										t.frame.height, 
+										y,
+										t.frame.width,
+										t.frame.height,
 										globApp.safeScreenArea.x,
-										globApp.safeScreenArea.y, 
-										globApp.safeScreenArea.w, 
+										globApp.safeScreenArea.y,
+										globApp.safeScreenArea.w,
 										globApp.safeScreenArea.h)
 			t.frame.x = t.frame.positions[1] - globApp.safeScreenArea.x
 			t.frame.y = t.frame.positions[2] - globApp.safeScreenArea.y
@@ -137,14 +137,14 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 			t.bar.position = dataRelativePosition
 		if t.orientation == "vertical" then
 			t.bar.width = t.frame.width
-			t.bar.height = determine_scrollingBarSize (t.numVisValues, t.numTotalValues) * t.frame.height
+			t.bar.height = t.frame.width  -- square thumb: height equals scrollbar width
 			t.bar.x = t.frame.x
 			t.bar.y = t.frame.y + (t.bar.position * (t.frame.height - t.bar.height))
 		elseif t.orientation == "horizontal" then
-			t.bar.width = determine_scrollingBarSize (t.numVisValues, t.numTotalValues) * t.frame.width
+			t.bar.width = t.frame.height  -- square thumb: width equals scrollbar height
 			t.bar.height = t.frame.height
 			t.bar.x = t.frame.x + (t.bar.position * (t.frame.width - t.bar.width))
-			t.bar.y = t.frame.y 
+			t.bar.y = t.frame.y
 		end
 
 	-- table.insert(scrollBars,t)
@@ -154,22 +154,22 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		local original = self.original
 		
 		if self.orientation == "vertical" then
-			self.frame.height = original.height * globApp.safeScreenArea.h
-			self.frame.width = globApp.scrollbarThickness * globApp.appScale
+			self.frame.height = original.height
+			self.frame.width = globApp.scrollbarThickness
 		elseif self.orientation == "horizontal" then
-			self.frame.height = globApp.scrollbarThickness * globApp.appScale
-			self.frame.width = original.width * globApp.safeScreenArea.w
+			self.frame.height = globApp.scrollbarThickness
+			self.frame.width = original.width
 		end
-		
-		self.frame.positions = 
-				relativePosition (original.anchorPoint, 
+
+		self.frame.positions =
+				relativePosition (original.anchorPoint,
 									original.x,
-									original.y, 
-									self.frame.width, 
-									self.frame.height, 
+									original.y,
+									self.frame.width,
+									self.frame.height,
 									globApp.safeScreenArea.x,
-									globApp.safeScreenArea.y, 
-									globApp.safeScreenArea.w, 
+									globApp.safeScreenArea.y,
+									globApp.safeScreenArea.w,
 									globApp.safeScreenArea.h)
 		self.frame.x = self.frame.positions[1] - globApp.safeScreenArea.x
 		self.frame.y = self.frame.positions[2] - globApp.safeScreenArea.y
@@ -228,14 +228,14 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		-- self.bar.position is updated externally, so we only recalculate its physical position
 		if self.orientation == "vertical" then
 			self.bar.width = self.frame.width
-			self.bar.height = determine_scrollingBarSize (self.numVisValues, self.numTotalValues) * self.frame.height
+			self.bar.height = self.frame.width  -- square thumb: height equals scrollbar width
 			self.bar.x = self.frame.x
 			self.bar.y = self.frame.y + (self.bar.position * (self.frame.height - self.bar.height))
 		elseif self.orientation == "horizontal" then
-			self.bar.width = determine_scrollingBarSize (self.numVisValues, self.numTotalValues) * self.frame.width
+			self.bar.width = self.frame.height  -- square thumb: width equals scrollbar height
 			self.bar.height = self.frame.height
 			self.bar.x = self.frame.x + (self.bar.position * (self.frame.width - self.bar.width))
-			self.bar.y = self.frame.y 
+			self.bar.y = self.frame.y
 		end
 	end
 	t.resize = t.resize

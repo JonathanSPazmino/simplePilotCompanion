@@ -93,12 +93,14 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 
 		-- Recalculate Buttons
         tbl.buttons = {}
+        tbl.callbackFuncNames = {}
 		local iterator1 = 0
 		for i=1, #original.tblCallbackFuncs, 1 do
 			local index = ""
-			for j, cb in pairs(original.tblCallbackFuncs[i]) do 
+			for j, cb in pairs(original.tblCallbackFuncs[i]) do
 				index = j
 				iterator1 = iterator1 + 1
+				tbl.callbackFuncNames[index] = cb
 				tbl.buttons[index] = {
 					text = index,
 					x = tbl.frame.x + (iterator1 * (tbl.displayWidth / #original.tblCallbackFuncs)) - (tbl.displayWidth / #original.tblCallbackFuncs),
@@ -173,23 +175,20 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			height = (tbl.displayHeight - ( (tbl.frame.y + tbl.titleBox.height + tbl.headersBox.h) - tbl.frame.y)) - (tbl.rowHeight * 2)
 		}
 
-		-- Recalculate scrollbar definitions
-		tbl.scrollableYequivPercent = (globApp.safeScreenArea.y + tbl.scrollBox.y) / globApp.safeScreenArea.h
-		tbl.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y / globApp.safeScreenArea.h
-		
+		-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP)
 		tbl.verticalScrollBar = {
 			name = tbl.name .. "_vsb",
-			x = ((tbl.frame.x + tbl.frame.width) - (tbl.fonts.cells.size)) / globApp.safeScreenArea.w,
-			y = tbl.scrollableYequivPercent - tbl.y_difBetweenSafeAndTotalArea,
-			width = tbl.fonts.cells.size / globApp.safeScreenArea.w,
-			height = tbl.scrollBox.height / globApp.safeScreenArea.h
+			x = (tbl.frame.x + tbl.frame.width - tbl.fonts.cells.size) / globApp.safeScreenArea.w,
+			y = tbl.scrollBox.y / globApp.safeScreenArea.h,
+			width = tbl.fonts.cells.size,
+			height = tbl.scrollBox.height
 		}
 		tbl.horizontalScrollBar = {
 			name = tbl.name .. "_hsb",
 			x = tbl.frame.x / globApp.safeScreenArea.w,
 			y = (tbl.scrollBox.y + tbl.scrollBox.height) / globApp.safeScreenArea.h,
-			width = tbl.scrollBox.width / globApp.safeScreenArea.w,
-			height = tbl.rowHeight / globApp.safeScreenArea.h
+			width = tbl.scrollBox.width,
+			height = tbl.rowHeight
 		}
 
 		if tbl.rowsCount > 0 then tbl.avrgRowHeight = tbl.combinedRowsHeight / tbl.rowsCount else tbl.avrgRowHeight = 1 end
@@ -448,25 +447,21 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				t.scrollBox.width = t.frame.width - t.fonts.cells.size
 				t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
 
-			t.scrollableYequivPercent = t.scrollBox.y / globApp.safeScreenArea.h
-
-			t.y_difBetweenSafeAndTotalArea = globApp.safeScreenArea.y /  globApp.safeScreenArea.h
-			
+			-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP)
 			t.verticalScrollBar = {}
 				t.verticalScrollBar.name = spreadSheetName .. "_vsb"
-				t.verticalScrollBar.x = ((t.frame.x + t.frame.width) -  (t.fonts.cells.size)) / globApp.safeScreenArea.w
-				t.verticalScrollBar.y = t.scrollableYequivPercent - t.y_difBetweenSafeAndTotalArea
-				t.verticalScrollBar.width = t.fonts.cells.size/ globApp.safeScreenArea.w
-				t.verticalScrollBar.height = t.scrollBox.height / globApp.safeScreenArea.h
+				t.verticalScrollBar.x = (t.frame.x + t.frame.width - t.fonts.cells.size) / globApp.safeScreenArea.w
+				t.verticalScrollBar.y = t.scrollBox.y / globApp.safeScreenArea.h
+				t.verticalScrollBar.width = t.fonts.cells.size
+				t.verticalScrollBar.height = t.scrollBox.height
 			--IMPORTANT: DONT REMOVE FOLLOWING LINE
-
 
 			t.horizontalScrollBar = {}
 				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
 				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
-				t.horizontalScrollBar.width = t.scrollBox.width / globApp.safeScreenArea.w
-				t.horizontalScrollBar.height = t.rowHeight / globApp.safeScreenArea.h
+				t.horizontalScrollBar.width = t.scrollBox.width
+				t.horizontalScrollBar.height = t.rowHeight
 
 			if t.rowsCount > 0 then
 				t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount

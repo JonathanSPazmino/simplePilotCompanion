@@ -193,12 +193,12 @@ function love.load()
    }
 
 
-    gui_scrollBar_create ("altScale", "MainMenu", 
-        0.2, 0.65, .07, .3, "LT", 5, 51, 1, 
-        "independent", "vertical", 51, "roundSelectedAltitude",scrollbarSprites)
+    gui_scrollBar_create ("altScale", "MainMenu",
+        0.2, 0.65, 60, 185, "LT", 5, 51, 1,
+        "independent", "vertical", 51, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/screw.png"})
 
     gui_scrollBar_create ("timeScale", "MainMenu",
-        0.73, 0.65, .07, .3, "LT", 5, 25, 1,
+        0.8, 0.65, 60, 185, "RT", 5, 25, 1,
         "independent", "vertical", 25, "roundSelectedTime", {thumb = "Sprites/screw.png"})
 
 

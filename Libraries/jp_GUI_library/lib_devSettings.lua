@@ -840,9 +840,9 @@ createUnitTestInfoMenuObjects ()
 
 local screenSimulators = {}
 
-function createScreenSimulator (screenName, dpiWidht, dpiHeight, tblUnsafeScreen)
-	screenSimultorData = createNewProjectData ({"name","dpiWidht","dpiHeight", "tblUnsafeScreen"}, {screenName, dpiWidht, dpiHeight, tblUnsafeScreen}, screenSimulators, "SML", 7)
-	
+function createScreenSimulator (screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity)
+	screenSimultorData = createNewProjectData ({"name","dpiWidht","dpiHeight", "tblUnsafeScreen", "simulatedDensity"}, {screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity or 1}, screenSimulators, "SML", 7)
+
 	table.insert(screenSimulators, screenSimultorData)
 end
 
@@ -852,12 +852,12 @@ end
 
 function ScreenSimulatorsInit ()
 	--VERTICAL
-	createScreenSimulator ("iphone12_vertical", 320, 626, {0,0.07,1,0.86}) --xywh
+	createScreenSimulator ("iphone16pro_vertical", 320, 617, {0,0.07,1,0.86}, 3) --xywh
 	createScreenSimulator ("smsngS7Edge_vertical", 336, 640, {0,0,1,1})
 	createScreenSimulator ("ipadAir2_vertical", 768, 1004, {0,0,1,1})
 
 	--HORIZONTAL
-	createScreenSimulator ("iphone12_Horizontal", 626, 320, {0.07, 0.0, .86,.90})
+	createScreenSimulator ("iphone16pro_horizontal", 617, 320, {0.07, 0.0, .86,.90}, 3)
 	createScreenSimulator ("smsngS7Edge_horizontal", 640, 336, {0,0,1,1})
 	createScreenSimulator ("ipadAir2_horizontal", 1024, 748, {0,0,1,1})
 end
@@ -912,7 +912,8 @@ function changeScreenSize (par1, par2, par3)
 
 			love.window.setMode(screenSim.dpiWidht, screenSim.dpiHeight)
 			love.window.setPosition(0, 40)
-			
+			globApp.appScale = screenSim.simulatedDensity
+
 			if screenSim.tblUnsafeScreen ~= nil then
 				globApp.safeScreenArea = jpGUI_simulateWinUnsafeArea (screenSim.tblUnsafeScreen[1], screenSim.tblUnsafeScreen[2], screenSim.tblUnsafeScreen[3], screenSim.tblUnsafeScreen[4])
 				globApp.isScreenSimulated = true
