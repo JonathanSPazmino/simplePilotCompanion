@@ -156,7 +156,7 @@ function jpGUI_update (dt)
 
 	end
 
-	gui_outputTextBoxes_update()
+	gui_outputTextBoxes_update(dt)
 
 	globApp.txtBoxChangeDetected = txtInput_changeTrigger ()
 	if globApp.txtBoxChangeDetected == true then
@@ -914,8 +914,10 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 			tableRow_Select (x,y,button,istouch)
 
 			tableButtonsReleased (x,y,button,istouch)
-			
+
 			unfocus_scrollingBar (x,y,button,istouch)
+
+			gui_touchReleasedOutputTxtBox (x, y)
 
 			globApp.userInput = "none"
 
@@ -927,12 +929,15 @@ end
 
 
 function gdsGUI_mousemoved (x, y, button, istouch, presses)
+	-- NOTE: in LÖVE's love.mousemoved signature, the 3rd/4th params are dx/dy.
+	-- The existing code names them 'button' and 'istouch' — preserved as-is.
+	-- So here: button = dx, istouch = dy.
 
-	local buttonName = gdsGUI_convertButtonNumToString (button)
+	holdAndDragScrollBar (x, y, button, istouch)
 
-
-
-	holdAndDragScrollBar (x,y,button,istouch)
+	-- Pass mouse drag deltas into the output textbox scroll system.
+	-- button = dx, istouch = dy (see note above).
+	gui_touchScrollOutputTxtBox(nil, x, y, button, istouch, nil, nil, nil)
 
 end
 
@@ -1064,6 +1069,8 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 	tableButtonsReleased (x,y,button,istouch)
 
 	unfocus_scrollingBar (x,y,button,istouch)
+
+	gui_touchReleasedOutputTxtBox (x, y)
 
 	globApp.userInput = "none"
 
