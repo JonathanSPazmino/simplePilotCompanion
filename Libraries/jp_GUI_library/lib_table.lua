@@ -4,6 +4,81 @@
 globApp.objects.tables = {}
 local recordErased = false
 
+-- ---------------------------------------------------------------------------
+--  MOMENTUM SCROLL PHYSICS CONSTANTS  (mirrors lib_outputTxtBox.lua values)
+-- ---------------------------------------------------------------------------
+local TBL_SCROLL_FRICTION  = 3.5
+local TBL_SPRING_OMEGA     = 18.0
+local TBL_SPRING_K         = TBL_SPRING_OMEGA * TBL_SPRING_OMEGA
+local TBL_SPRING_C         = 2.0 * TBL_SPRING_OMEGA
+local TBL_RUBBER_BAND      = 0.35
+local TBL_COAST_STOP_VEL   = 8.0
+local TBL_BOUNCE_STOP_DISP = 0.5
+local TBL_BOUNCE_STOP_VEL  = 5.0
+
+-- ---------------------------------------------------------------------------
+--  PRIVATE HELPERS
+-- ---------------------------------------------------------------------------
+
+-- Vertical scroll limits: offsetY = 0 is natural top; minOff < 0 when content overflows.
+local function _getTblScrollLimitsY(tbl)
+	local minOff = math.min(0, tbl.scrollBox.height - tbl.combinedRowsHeight)
+	return minOff, 0
+end
+
+-- Horizontal scroll limits.
+local function _getTblScrollLimitsX(tbl)
+	local minOff = math.min(0, tbl.scrollBox.width - tbl.combinedCollumnsWidth)
+	return minOff, 0
+end
+
+-- Elastic rubber-band resistance past boundaries.
+local function _applyTblRubberBand(offset, minOffset, maxOffset)
+	if offset < minOffset then
+		return minOffset + (offset - minOffset) * TBL_RUBBER_BAND
+	elseif offset > maxOffset then
+		return maxOffset + (offset - maxOffset) * TBL_RUBBER_BAND
+	end
+	return offset
+end
+
+-- Recompute every cell's screen position from its natural (unscrolled) position
+-- plus the current scroll offsets.  Header row (row == 1) is X-scrolled only.
+local function _applyTblScrollOffset(tbl)
+	for _, cl in ipairs(tbl.cells) do
+		cl.x = cl.naturalX + tbl.scroll.offsetX
+		if cl.row ~= 1 then
+			cl.y = cl.naturalY + tbl.scroll.offsetY
+		end
+	end
+end
+
+-- Push the current scroll offset back into the linked scrollbar positions.
+local function _syncTblScrollbars(tbl)
+	if tbl.combinedRowsHeight > tbl.scrollBox.height then
+		local spanY = tbl.combinedRowsHeight - tbl.scrollBox.height
+		local pos = math.max(0, math.min(1, -tbl.scroll.offsetY / spanY))
+		for _, sb in ipairs(globApp.objects.scrollBars) do
+			if sb.id == tbl.verticalScrollBar.name then
+				updateScrollingBarPosition(sb, pos)
+				tbl.dataCurrentVertPosition = pos
+				break
+			end
+		end
+	end
+	if tbl.combinedCollumnsWidth > tbl.scrollBox.width then
+		local spanX = tbl.combinedCollumnsWidth - tbl.scrollBox.width
+		local pos = math.max(0, math.min(1, -tbl.scroll.offsetX / spanX))
+		for _, sb in ipairs(globApp.objects.scrollBars) do
+			if sb.id == tbl.horizontalScrollBar.name then
+				updateScrollingBarPosition(sb, pos)
+				tbl.dataCurrentHorzPosition = pos
+				break
+			end
+		end
+	end
+end
+
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
@@ -179,18 +254,20 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			height = (tbl.displayHeight - ( (tbl.frame.y + tbl.titleBox.height + tbl.headersBox.h) - tbl.frame.y)) - (tbl.rowHeight * 2)
 		}
 
-		-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP)
+		-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP).
+		-- Subtract safeScreenArea.y/x before dividing so the scrollbar creation code does not
+		-- double-add the safe-area offset on mobile (iOS/Android add it back internally).
 		tbl.verticalScrollBar = {
 			name = tbl.name .. "_vsb",
 			x = (tbl.frame.x + tbl.frame.width - tbl.fonts.cells.size) / globApp.safeScreenArea.w,
-			y = tbl.scrollBox.y / globApp.safeScreenArea.h,
+			y = (tbl.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
 			width = tbl.fonts.cells.size,
 			height = tbl.scrollBox.height
 		}
 		tbl.horizontalScrollBar = {
 			name = tbl.name .. "_hsb",
 			x = tbl.frame.x / globApp.safeScreenArea.w,
-			y = (tbl.scrollBox.y + tbl.scrollBox.height) / globApp.safeScreenArea.h,
+			y = (tbl.scrollBox.y + tbl.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
 			width = tbl.scrollBox.width,
 			height = tbl.rowHeight
 		}
@@ -200,6 +277,29 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		tbl.combinedCollumnsWidth = tbl.collumnsCount * tbl.collumWidth
 		if tbl.collumnsCount > 0 then tbl.avrgCollumnsWidht = tbl.collumWidth else tbl.avrgCollumnsWidht = 1 end
 		tbl.numCollumnsPerDisplay = tbl.scrollBox.width / tbl.collumWidth
+
+		-- Initialise (or re-clamp on resize) the momentum scroll state.
+		if not tbl.scroll then
+			tbl.scroll = {
+				offsetY    = 0,
+				velocityY  = 0,
+				offsetX    = 0,
+				velocityX  = 0,
+				phase      = "idle",
+				isDragging = false,
+			}
+		else
+			-- Clamp preserved offset to new geometry, reset physics.
+			local minY, _ = _getTblScrollLimitsY(tbl)
+			local minX, _ = _getTblScrollLimitsX(tbl)
+			tbl.scroll.offsetY    = math.max(minY, math.min(0, tbl.scroll.offsetY))
+			tbl.scroll.offsetX    = math.max(minX, math.min(0, tbl.scroll.offsetX))
+			tbl.scroll.velocityY  = 0
+			tbl.scroll.velocityX  = 0
+			tbl.scroll.phase      = "idle"
+			tbl.scroll.isDragging = false
+			_applyTblScrollOffset(tbl)
+		end
 	end
 
 	-- NEW: The resize method for this object
@@ -441,11 +541,12 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				t.scrollBox.width = t.frame.width - t.fonts.cells.size
 				t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
 
-			-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP)
+			-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP).
+			-- Subtract safeScreenArea offset before dividing to avoid double-add on mobile.
 			t.verticalScrollBar = {}
 				t.verticalScrollBar.name = spreadSheetName .. "_vsb"
 				t.verticalScrollBar.x = (t.frame.x + t.frame.width - t.fonts.cells.size) / globApp.safeScreenArea.w
-				t.verticalScrollBar.y = t.scrollBox.y / globApp.safeScreenArea.h
+				t.verticalScrollBar.y = (t.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h
 				t.verticalScrollBar.width = t.fonts.cells.size
 				t.verticalScrollBar.height = t.scrollBox.height
 			--IMPORTANT: DONT REMOVE FOLLOWING LINE
@@ -453,7 +554,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			t.horizontalScrollBar = {}
 				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
 				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
-				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height) / globApp.safeScreenArea.h
+				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h
 				t.horizontalScrollBar.width = t.scrollBox.width
 				t.horizontalScrollBar.height = t.rowHeight
 
@@ -738,6 +839,8 @@ function TableCell_create (name, x, y, width, height, myRow, myCollumn, content,
 		newCell.name = name
 		newCell.x = x
 		newCell.y = y
+		newCell.naturalX = x   -- unscrolled reference position
+		newCell.naturalY = y
 		newCell.row = myRow
 		newCell.collumn = myCollumn
 		newCell.width = width
@@ -896,109 +999,149 @@ function table_lookUp (array, rcrdIndex, header)
 	return cellContent
 end
 
+-- Called from gdsGUI_touchmoved and gdsGUI_mousemoved.
+-- Applies rubber-band drag and accumulates velocity for momentum physics.
 function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
-	--isolate table
-	local myTable = globApp.objects.tables
-	local spreadSheetExist = false
-	local totalRows = 0
-	local totalCollums = 0
+	-- Accept both touch-slide and mouse-button-held drags.
+	local isGestureActive = (globApp.userInput == "slide") or love.mouse.isDown(1)
+	if not isGestureActive then return end
 
-	--determine if it is just a tap or click
-	local justATapOrClick = true
-	if globApp.userInput == "slide" then
-		justATapOrClick = false
-	end 
+	local activePage = returnCurrentPageName()
+	for _, tbl in ipairs(globApp.objects.tables) do
+		if not tbl.scroll then goto continue end
+		if tbl.page ~= activePage then goto continue end
 
-	if justATapOrClick == false then 
-		--determine if there are spreadsheets available 
-		for i, tbls in ipairs (myTable) do 
-			if i > 0 then
-				spreadSheetExist = true
+		-- Only act when pointer is inside the scrollable area.
+		if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
+		   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) then
+
+			tbl.scroll.isDragging = true
+			tbl.scroll.phase      = "coasting"  -- arms physics for release
+
+			local frameDt = love.timer.getDelta()
+
+			-- VERTICAL
+			local minY, maxY = _getTblScrollLimitsY(tbl)
+			if minY < -0.5 then  -- content taller than viewport
+				tbl.scroll.offsetY = _applyTblRubberBand(tbl.scroll.offsetY + dy, minY, maxY)
+				if frameDt > 0 then
+					local rawVelY = dy / frameDt
+					tbl.scroll.velocityY = tbl.scroll.velocityY * 0.5 + rawVelY * 0.5
+				end
 			end
-			totalRows = tbls.rowsCount 
-			totalCollums = tbls.collumnsCount
+
+			-- HORIZONTAL
+			local minX, maxX = _getTblScrollLimitsX(tbl)
+			if minX < -0.5 then  -- content wider than viewport
+				tbl.scroll.offsetX = _applyTblRubberBand(tbl.scroll.offsetX + dx, minX, maxX)
+				if frameDt > 0 then
+					local rawVelX = dx / frameDt
+					tbl.scroll.velocityX = tbl.scroll.velocityX * 0.5 + rawVelX * 0.5
+				end
+			end
+
+			_applyTblScrollOffset(tbl)
+			_syncTblScrollbars(tbl)
+			break
+		end
+		::continue::
+	end
+end
+
+-- Called from gdsGUI_touchreleased and gdsGUI_mousereleased.
+-- Seeds the correct physics phase from accumulated drag velocity.
+function gui_touchReleasedTableScroll (x, y)
+	for _, tbl in ipairs(globApp.objects.tables) do
+		if tbl.scroll and tbl.scroll.isDragging then
+			tbl.scroll.isDragging = false
+
+			local minY, maxY = _getTblScrollLimitsY(tbl)
+			local minX, maxX = _getTblScrollLimitsX(tbl)
+
+			local outOfBoundsY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
+			local outOfBoundsX = tbl.scroll.offsetX < minX or tbl.scroll.offsetX > maxX
+
+			if outOfBoundsY or outOfBoundsX then
+				tbl.scroll.phase = "bouncing"
+			elseif math.abs(tbl.scroll.velocityY) > TBL_COAST_STOP_VEL or
+			       math.abs(tbl.scroll.velocityX) > TBL_COAST_STOP_VEL then
+				tbl.scroll.phase = "coasting"
+			else
+				tbl.scroll.phase     = "idle"
+				tbl.scroll.velocityY = 0
+				tbl.scroll.velocityX = 0
+			end
+		end
+	end
+end
+
+-- Called every frame from jpGUI_update(dt). Runs coasting and spring-back physics.
+function gui_table_physics_update (dt)
+	if not dt or dt <= 0 then return end
+
+	local activePage = returnCurrentPageName()
+	for _, tbl in ipairs(globApp.objects.tables) do
+		if not tbl.scroll then goto continue end
+		if tbl.page ~= activePage then goto continue end
+		if tbl.scroll.isDragging or tbl.scroll.phase == "idle" then goto continue end
+
+		local minY, maxY = _getTblScrollLimitsY(tbl)
+		local minX, maxX = _getTblScrollLimitsX(tbl)
+		local changed = false
+
+		if tbl.scroll.phase == "coasting" then
+			-- Exponential friction on both axes.
+			local decay = math.exp(-TBL_SCROLL_FRICTION * dt)
+			tbl.scroll.velocityY = tbl.scroll.velocityY * decay
+			tbl.scroll.velocityX = tbl.scroll.velocityX * decay
+			tbl.scroll.offsetY   = tbl.scroll.offsetY + tbl.scroll.velocityY * dt
+			tbl.scroll.offsetX   = tbl.scroll.offsetX + tbl.scroll.velocityX * dt
+			changed = true
+
+			local outY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
+			local outX = tbl.scroll.offsetX < minX or tbl.scroll.offsetX > maxX
+			if outY or outX then
+				tbl.scroll.phase = "bouncing"
+			elseif math.abs(tbl.scroll.velocityY) < TBL_COAST_STOP_VEL and
+			       math.abs(tbl.scroll.velocityX) < TBL_COAST_STOP_VEL then
+				tbl.scroll.phase     = "idle"
+				tbl.scroll.velocityY = 0
+				tbl.scroll.velocityX = 0
+			end
+
+		elseif tbl.scroll.phase == "bouncing" then
+			-- Critically-damped spring back to nearest boundary on each axis.
+			local targetY   = math.max(minY, math.min(maxY, tbl.scroll.offsetY))
+			local dispY     = tbl.scroll.offsetY - targetY
+			local springAccY = (-TBL_SPRING_K * dispY) + (-TBL_SPRING_C * tbl.scroll.velocityY)
+			tbl.scroll.velocityY = tbl.scroll.velocityY + springAccY * dt
+			tbl.scroll.offsetY   = tbl.scroll.offsetY   + tbl.scroll.velocityY * dt
+
+			local targetX   = math.max(minX, math.min(maxX, tbl.scroll.offsetX))
+			local dispX     = tbl.scroll.offsetX - targetX
+			local springAccX = (-TBL_SPRING_K * dispX) + (-TBL_SPRING_C * tbl.scroll.velocityX)
+			tbl.scroll.velocityX = tbl.scroll.velocityX + springAccX * dt
+			tbl.scroll.offsetX   = tbl.scroll.offsetX   + tbl.scroll.velocityX * dt
+			changed = true
+
+			-- Settle when displacement and velocity are negligible on both axes.
+			local newDispY = math.abs(tbl.scroll.offsetY - targetY)
+			local newDispX = math.abs(tbl.scroll.offsetX - targetX)
+			if newDispY < TBL_BOUNCE_STOP_DISP and math.abs(tbl.scroll.velocityY) < TBL_BOUNCE_STOP_VEL and
+			   newDispX < TBL_BOUNCE_STOP_DISP and math.abs(tbl.scroll.velocityX) < TBL_BOUNCE_STOP_VEL then
+				tbl.scroll.offsetY   = targetY
+				tbl.scroll.offsetX   = targetX
+				tbl.scroll.velocityY = 0
+				tbl.scroll.velocityX = 0
+				tbl.scroll.phase     = "idle"
+			end
 		end
 
-		--skip code if no spreadsheet is present
-		if spreadSheetExist == true then
-			--identify touch or click within any cell
-			for i, tbl in ipairs (myTable) do
-				for j, cl in ipairs (tbl.cells) do 
-					if cl.row == 2 then
-						if cl.y < (tbl.scrollBox.y) and (cl.y + dy) < (tbl.scrollBox.y) then
-							isScrollUpAvlbl = true
-						else
-							isScrollUpAvlbl = false
-						end
-					end
-					if cl.row == totalRows + 1 then
-						if (cl.y + cl.height) > (tbl.scrollBox.y + tbl.scrollBox.height) and (cl.y + cl.height + dy) > (tbl.scrollBox.y + tbl.scrollBox.height) then
-							isScrollDownAvlbl = true
-						else
-							isScrollDownAvlbl = false
-						end
-					end
-					if cl.collumn == 1 then
-						if cl.x < (tbl.scrollBox.x) and (cl.x + dx) < (tbl.scrollBox.x) then
-							isScrollLeftAvlbl = true
-						else
-							isScrollLeftAvlbl = false
-						end
-					end
-					if cl.collumn == totalCollums then
-						if (cl.x + cl.width) > (tbl.scrollBox.x + tbl.scrollBox.width) and (cl.x + cl.width + dx) > (tbl.scrollBox.x + tbl.scrollBox.width) then
-							isScrollRightAvlbl = true
-						else
-							isScrollRightAvlbl = false
-						end
-					end
-				end
-
-				for j, cl in ipairs (tbl.cells) do
-					--determine if touch was made within scrollable area
-					if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height ) then
-						if cl.row ~= 1 then
-							--VERTICAL SCROLLING LOGIC
-							if (isScrollUpAvlbl == true and dy > 0) or (isScrollDownAvlbl == true and dy < 0) then
-								cl.y = cl.y + dy
-								local new_v_pos = returnTblRowsToScrollBoxVerticalPosition()
-								for _, sb in ipairs(globApp.objects.scrollBars) do
-									if sb.id == tbl.verticalScrollBar.name then
-										updateScrollingBarPosition(sb, new_v_pos)
-										tbl.dataCurrentVertPosition = new_v_pos
-										break
-									end
-								end
-	
-							end
-							--HORIZONTAL SCROLLING LOGIC
-							if (isScrollLeftAvlbl == true and dx > 0) or (isScrollRightAvlbl == true and dx < 0) then
-							-- print (isScrollRightAvlbl)
-								cl.x = cl.x + dx
-
-								local new_h_pos = returnTblCollumnsToScrollHorizontalPosition()
-								for _, sb in ipairs(globApp.objects.scrollBars) do
-									if sb.id == tbl.horizontalScrollBar.name then
-										updateScrollingBarPosition(sb, new_h_pos)
-										tbl.dataCurrentHorzPosition = new_h_pos
-										break
-									end
-								end
-							end
-						elseif cl.row == 1 then
-							--HORIZONTAL SCROLLING LOGIC
-							if (isScrollLeftAvlbl == true and dx > 0) or (isScrollRightAvlbl == true and dx < 0) then
-							-- print (isScrollRightAvlbl)
-								cl.x = cl.x + dx
-
-							end
-
-						end
-					end
-				end
-
-			end
-		end 
+		if changed then
+			_applyTblScrollOffset(tbl)
+			_syncTblScrollbars(tbl)
+		end
+		::continue::
 	end
 end
 
@@ -1478,124 +1621,33 @@ function tableDeleteButton_released (x,y,button,istouch)
 end
 
 function spreadSheetScrollbarVertCallback (position)
-	for i, t in ipairs (globApp.objects.tables) do
-
-		local lowerY = t.scrollBox.y
-		local upperY = lowerY - t.combinedRowsHeight + t.scrollBox.height
-		local spanY = lowerY - upperY
-		local collumnCount = 0
-
-		if t.state == 1 then
-
-			local thisY = 0
-			local nextY = 0
-			local baseY = 0
-
-			if t.combinedRowsHeight < t.scrollBox.height then
-
-				baseY = t.scrollBox.y
-
-			else
-
-				for j, cl in ipairs (t.cells) do 
-
-					if cl.row ~= 1 then
-
-						collumnCount = collumnCount + 1
-
-						if cl.row == 2 then
-
-							if collumnCount == 1 then
-								baseY = lowerY - (spanY * position)
-								thisY = baseY
-								nexty = thisY + cl.height
-							end
-
-							cl.y = thisY
-							
-						elseif cl.row > 2 then
-
-							if collumnCount == 1 then
-								thisY = nexty
-								nexty = thisY + cl.height
-							end
-
-							cl.y = thisY
-
-						end
-
-						if collumnCount == t.collumnsCount then
-							collumnCount = 0
-						end
-
-						t.dataCurrentVertPosition = position
-						
-					end -- closes 'if cl.row ~= 1'
-
-				end -- closes 'for j, cl'
-
-			end -- closes 'if t.combinedRowsHeight < t.scrollBox.height' and its 'else' part
-		
-		end -- closes 'if t.state == 1'
-
-	end -- closes 'for i, t'
-end -- closes 'function spreadSheetScrollbarVertCallback (position)'
+	for _, t in ipairs(globApp.objects.tables) do
+		if t.state == 1 and t.scroll then
+			if t.combinedRowsHeight > t.scrollBox.height then
+				local spanY = t.combinedRowsHeight - t.scrollBox.height
+				t.scroll.offsetY = -(spanY * position)
+				t.scroll.velocityY = 0
+				t.scroll.phase = "idle"
+			end
+			t.dataCurrentVertPosition = position
+			_applyTblScrollOffset(t)
+		end
+	end
+end
 
 
 function speadSheetScrollbarHorzCallback (position)
-
-	for i, t in ipairs (globApp.objects.tables) do
-
-		local lowerX = t.scrollBox.x
-		local upperX = lowerX - t.combinedCollumnsWidth + t.scrollBox.width
-		local spanX = lowerX - upperX
-		local collumnCount = 0
-
-		if t.state == 1 then
-
-			local thisX = 0
-			local nextX = 0
-			local baseX = 0
-
-			if t.combinedCollumnsWidth < t.scrollBox.width then
-				baseX = t.scrollBox.x
-			else
-
-				for j, cl in ipairs (t.cells) do 
-
-					collumnCount = collumnCount + 1
-
-					if collumnCount == 1 then
-
-						baseX = lowerX - (spanX * position)
-						thisX = baseX
-						nextX = thisX + cl.width
-
-						cl.x = thisX
-							
-					elseif collumnCount > 1 then
-
-						thisX = nextX
-						nextX = thisX + cl.width
-
-
-						cl.x = thisX
-
-
-						if collumnCount == t.collumnsCount then
-							collumnCount = 0
-						end
-
-						t.dataCurrentHorzPosition = position
-						
-					end
-
-				end
-
+	for _, t in ipairs(globApp.objects.tables) do
+		if t.state == 1 and t.scroll then
+			if t.combinedCollumnsWidth > t.scrollBox.width then
+				local spanX = t.combinedCollumnsWidth - t.scrollBox.width
+				t.scroll.offsetX = -(spanX * position)
+				t.scroll.velocityX = 0
+				t.scroll.phase = "idle"
 			end
-		
+			t.dataCurrentHorzPosition = position
+			_applyTblScrollOffset(t)
 		end
-
 	end
 end
 
@@ -1621,57 +1673,23 @@ function findMaxNumOfLinesNeeded (thisFont, wrapWidth, txt)
 end
 
 function returnTblRowsToScrollBoxVerticalPosition ()
-	--[[ returns values 0 to 1 for 0 to 100 percent vertical displacement of 
-	of rows, 0 means lowermost point of first row (2) and 100 means highermost point of
-	first row (2)]]
-	local result = nil
-
-	for i, t in ipairs (globApp.objects.tables) do
-
-		local lowerY = t.scrollBox.y
-		local upperY = lowerY - t.combinedRowsHeight + t.scrollBox.height
-		local spanY = -(lowerY - upperY)
-
-		for j, cl in ipairs (t.cells) do
-
-			if cl.row == 2 then
-
-				result = (cl.y - lowerY * 1 ) / spanY
-
-				return result
-
-			end
-
+	for _, t in ipairs(globApp.objects.tables) do
+		if t.scroll and t.combinedRowsHeight > t.scrollBox.height then
+			local spanY = t.combinedRowsHeight - t.scrollBox.height
+			return math.max(0, math.min(1, -t.scroll.offsetY / spanY))
 		end
-
+		return 0
 	end
+	return 0
 end
 
 function returnTblCollumnsToScrollHorizontalPosition ()
-
-	--[[ returns values 0 to 1 for 0 to 100 percent horizontal displacement of 
-	of collumns, 0 means right-most point of first collumn (1) and 100 means left-most point of
-	first collumn (1)]]
-	local result = nil
-
-	for i, t in ipairs (globApp.objects.tables) do
-
-		local rightY = t.scrollBox.x
-		local leftY = rightY - t.combinedCollumnsWidth + t.scrollBox.width
-		local spanX = -(rightY - leftY)
-
-		for j, cl in ipairs (t.cells) do
-
-			if cl.collumn == 1 then
-
-				result = (cl.x - rightY * 1 ) / spanX
-
-				return result
-
-			end
-
+	for _, t in ipairs(globApp.objects.tables) do
+		if t.scroll and t.combinedCollumnsWidth > t.scrollBox.width then
+			local spanX = t.combinedCollumnsWidth - t.scrollBox.width
+			return math.max(0, math.min(1, -t.scroll.offsetX / spanX))
 		end
-
+		return 0
 	end
-
+	return 0
 end

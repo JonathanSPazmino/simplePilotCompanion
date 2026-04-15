@@ -157,6 +157,7 @@ function jpGUI_update (dt)
 	end
 
 	gui_outputTextBoxes_update(dt)
+	gui_table_physics_update(dt)
 
 	globApp.txtBoxChangeDetected = txtInput_changeTrigger ()
 	if globApp.txtBoxChangeDetected == true then
@@ -918,6 +919,7 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 			unfocus_scrollingBar (x,y,button,istouch)
 
 			gui_touchReleasedOutputTxtBox (x, y)
+			gui_touchReleasedTableScroll (x, y)
 
 			globApp.userInput = "none"
 
@@ -935,9 +937,10 @@ function gdsGUI_mousemoved (x, y, button, istouch, presses)
 
 	holdAndDragScrollBar (x, y, button, istouch)
 
-	-- Pass mouse drag deltas into the output textbox scroll system.
+	-- Pass mouse drag deltas into the output textbox and table scroll systems.
 	-- button = dx, istouch = dy (see note above).
 	gui_touchScrollOutputTxtBox(nil, x, y, button, istouch, nil, nil, nil)
+	touchScrollSpreadShett(nil, x, y, button, istouch, nil, nil, nil)
 
 end
 
@@ -1071,6 +1074,7 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 	unfocus_scrollingBar (x,y,button,istouch)
 
 	gui_touchReleasedOutputTxtBox (x, y)
+	gui_touchReleasedTableScroll (x, y)
 
 	globApp.userInput = "none"
 
