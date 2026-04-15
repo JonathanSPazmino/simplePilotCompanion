@@ -12,6 +12,7 @@ local function requireGUILibraries ()
 
 	-- lib_general must be loaded first to initialize globApp
 	require (pathToLibrary .. "lib_general") --[[general functions]]
+	require (pathToLibrary .. "lib_haptics") --[[haptic feedback]]
 	require (pathToLibrary .. "lib_pages") --[[handles all app pages]]
 	require (pathToLibrary .. "lib_buttons") --[[contains buttons related code]]
 	require (pathToLibrary .. "lib_drawGrid") --[[handles draw grids for scrollable sprites]]

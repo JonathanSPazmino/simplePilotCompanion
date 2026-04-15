@@ -82,7 +82,7 @@ end
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
-function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles, hapticEnabled)
 
 	local t = {}
 
@@ -90,6 +90,7 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 	t.page = strgPage
 	t.objectType = "table"
 	t.type = strgspreadSheetType
+	t.hapticEnabled = (hapticEnabled == true)
 	t.rowsCount = determineSizeOfArray (dataTable, "rows")
 	t.collumnsCount = #headerTitles
 
@@ -1022,6 +1023,7 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
 			-- VERTICAL
 			local minY, maxY = _getTblScrollLimitsY(tbl)
+			local prevInBoundsY = (tbl.scroll.offsetY >= minY and tbl.scroll.offsetY <= maxY)
 			if minY < -0.5 then  -- content taller than viewport
 				tbl.scroll.offsetY = _applyTblRubberBand(tbl.scroll.offsetY + dy, minY, maxY)
 				if frameDt > 0 then
@@ -1032,11 +1034,21 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
 			-- HORIZONTAL
 			local minX, maxX = _getTblScrollLimitsX(tbl)
+			local prevInBoundsX = (tbl.scroll.offsetX >= minX and tbl.scroll.offsetX <= maxX)
 			if minX < -0.5 then  -- content wider than viewport
 				tbl.scroll.offsetX = _applyTblRubberBand(tbl.scroll.offsetX + dx, minX, maxX)
 				if frameDt > 0 then
 					local rawVelX = dx / frameDt
 					tbl.scroll.velocityX = tbl.scroll.velocityX * 0.5 + rawVelX * 0.5
+				end
+			end
+
+			-- Fire haptic once when a scroll boundary is first crossed.
+			if tbl.hapticEnabled then
+				local nowOutY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
+				local nowOutX = tbl.scroll.offsetX < minX or tbl.scroll.offsetX > maxX
+				if (prevInBoundsY and nowOutY) or (prevInBoundsX and nowOutX) then
+					gui_haptic_vibrate()
 				end
 			end
 

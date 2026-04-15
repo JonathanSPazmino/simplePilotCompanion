@@ -54,7 +54,7 @@ end
 --[[
     Creates a new button and adds it to the global button list.
 ]]
-function gui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState)
+function gui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState, hapticEnabled)
     local newButton = {}
 
     newButton.name = label
@@ -99,6 +99,7 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
     newButton.deactivated = (initialState == globApp.BUTTON_STATES.DEACTIVATED)
     newButton.state = initialState
     newButton.callbackFunc = callbackFunc
+    newButton.hapticEnabled = (hapticEnabled == true)
 
     -- The new resize method for this object
     function newButton:resize()
@@ -165,14 +166,17 @@ function gui_button_pressed(x, y, button, istouch)
             if p.type == "toggle" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED
+                    if p.hapticEnabled then gui_haptic_vibrate() end
                     _executeCallback(p)
                 elseif p.state == globApp.BUTTON_STATES.PRESSED then
                     p.state = globApp.BUTTON_STATES.RELEASED
+                    if p.hapticEnabled then gui_haptic_vibrate() end
                     _executeCallback(p)
                 end
             elseif p.type == "pushonoff" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED
+                    if p.hapticEnabled then gui_haptic_vibrate() end
                     -- For pushonoff, callback is usually on release.
                 end
             end
