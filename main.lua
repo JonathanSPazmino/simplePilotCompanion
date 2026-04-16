@@ -61,7 +61,7 @@ function love.load()
     selectedAltitude = 0
     selectedTime = 0
     selectedDegree = 0
-    selectedKnobPos = 1
+    selectedKnobPos = 36
 
     ---------------------------------------------------------------------------
     -- BUTTONS
@@ -198,12 +198,12 @@ function love.load()
     -- ROTARY KNOB
     ---------------------------------------------------------------------------
     gui_rotaryKnob_create(
-        "mainKnob", "MainMenu",
+        "runwayKnob", "MainMenu",
         0.32, 0.52, "CC",
-        globApp.safeScreenArea.w * 0.16,
-        10, 0,
-        "Sprites/resetButton_released.png",
-        "Sprites/resetButton_pushed.png",
+        globApp.safeScreenArea.w * 0.40,
+        36, 0,
+        "Sprites/knob_runway_released.png",
+        "Sprites/runwayNumber_pushed.png",
         "mainKnobChanged",
         true
     )
@@ -299,7 +299,7 @@ function love.update(dt)
     end
     gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
 
-    gui_updateOutputTextBoxText("knobPosDisplay", "knob:\n" .. selectedKnobPos .. " / 10")
+    gui_updateOutputTextBoxText("knobPosDisplay", "RWY:\n" .. selectedKnobPos )
 
     -- Update GUI
     jpGUI_update(dt)
@@ -532,8 +532,10 @@ function roundSelectedDegree (pos)
     selectedDegree = math.max(0, math.floor(8 * (1 - pos) + 0.5))
 end
 
--- Called by the rotary knob with a normalized position (0 = detent 1, 1 = detent 10).
+-- Called by the runway knob with a normalized position (index / 36).
+-- Detent 0 (12 o'clock) = runway 36; detents 1-35 = runways 1-35.
 function mainKnobChanged(pos)
-    selectedKnobPos = math.floor(pos * 10 + 0.5) + 1  -- convert 0-(N-1)/N range to 1-10
+    local index = math.floor(pos * 36 + 0.5) % 36
+    selectedKnobPos = (index == 0) and 36 or index
 end
 
