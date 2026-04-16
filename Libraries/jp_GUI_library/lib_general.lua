@@ -127,6 +127,9 @@ function gui_handle_resize()
     for _, obj in ipairs(globApp.objects.scrollBars) do
         if obj.resize then obj:resize() end
     end
+    for _, obj in ipairs(globApp.objects.rotaryKnobs) do
+        if obj.resize then obj:resize() end
+    end
     -- TODO: Add loops for other object types like text boxes...
 end
 
@@ -201,6 +204,7 @@ function draw_gui ()
 	gui_outputTxtBox_draw (activePageName)
 	gui_table_draw (activePageName)
 	gui_scrollBar_draw (activePageName)
+	gui_rotaryKnob_draw (activePageName)
 	gui_buttons_draw (activePageName)
 
 end
@@ -888,6 +892,8 @@ gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
 		focus_scrollingBar ("mouse", x,y,button,istouch)
 
+		gui_rotaryKnob_pressed ("mouse", x, y)
+
 		-- Mark tables where mouse press started inside the scrollable area.
 		local activePage = returnCurrentPageName()
 		for _, tbl in ipairs(globApp.objects.tables) do
@@ -929,6 +935,8 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 
 			unfocus_scrollingBar ("mouse", x,y,button,istouch)
 
+			gui_rotaryKnob_released ("mouse")
+
 			gui_touchReleasedOutputTxtBox (x, y)
 			gui_touchReleasedTableScroll (x, y)
 
@@ -947,6 +955,9 @@ function gdsGUI_mousemoved (x, y, button, istouch, presses)
 	-- So here: button = dx, istouch = dy.
 
 	holdAndDragScrollBar ("mouse", x, y, button, istouch)
+
+	-- button = dx, istouch = dy for this callback (see note above).
+	gui_rotaryKnob_moved ("mouse", x, y, button, istouch)
 
 	-- Pass mouse drag deltas into the output textbox and table scroll systems.
 	-- button = dx, istouch = dy (see note above).
@@ -1016,6 +1027,8 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	focus_scrollingBar (id, x,y,1,true)
 
+	gui_rotaryKnob_pressed (id, x, y)
+
 	tableRow_Select (x,y,1,true)
 
 	-- Mark tables where touch started inside the scrollable area.
@@ -1040,8 +1053,9 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 	local slideSensitivityPixelsPositive = slideSensitivity
 	local slideSensitivityPixelsNegative = -(slideSensitivity)
 
-	-- Handle scrollbar drag for this specific touch independently (supports simultaneous scrollbars).
+	-- Handle scrollbar and knob drag for this specific touch independently.
 	holdAndDragScrollBar (id, x, y, 1, true)
+	gui_rotaryKnob_moved (id, x, y, dx, dy)
 
 	for i, tchs in ipairs (touches) do --isolate to first touch only
 
@@ -1095,6 +1109,8 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 	tableButtonsReleased (x,y,button,istouch)
 
 	unfocus_scrollingBar (id, x,y,1,true)
+
+	gui_rotaryKnob_released (id)
 
 	gui_touchReleasedOutputTxtBox (x, y)
 	gui_touchReleasedTableScroll (x, y)

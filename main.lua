@@ -61,6 +61,7 @@ function love.load()
     selectedAltitude = 0
     selectedTime = 0
     selectedDegree = 0
+    selectedKnobPos = 1
 
     ---------------------------------------------------------------------------
     -- BUTTONS
@@ -176,7 +177,7 @@ function love.load()
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
 
     gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        .25, .5, "CC",
+        .25, .44, "CC",
         globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
         colorYellow, requiredFPMtext, 12
     )
@@ -188,9 +189,29 @@ function love.load()
     local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
 
     gui_outputTextBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
-        .75, .5, "CC",
+        .75, .44, "CC",
         globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
         colorYellow, requiredDistText, 12
+    )
+
+    ---------------------------------------------------------------------------
+    -- ROTARY KNOB
+    ---------------------------------------------------------------------------
+    gui_rotaryKnob_create(
+        "mainKnob", "MainMenu",
+        0.32, 0.52, "CC",
+        globApp.safeScreenArea.w * 0.16,
+        10, 0,
+        "Sprites/resetButton_released.png",
+        "Sprites/resetButton_pushed.png",
+        "mainKnobChanged",
+        true
+    )
+
+    gui_outputTextBox_create("knobPosDisplay", "MainMenu", "Sprites/invisibleBox.png",
+        .72, .52, "CC",
+        globApp.safeScreenArea.w * .38, globApp.safeScreenArea.h * .07,
+        colorYellow, "knob:\n1 / 10", 12
     )
 
 
@@ -277,6 +298,8 @@ function love.update(dt)
         requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
     end
     gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
+
+    gui_updateOutputTextBoxText("knobPosDisplay", "knob:\n" .. selectedKnobPos .. " / 10")
 
     -- Update GUI
     jpGUI_update(dt)
@@ -507,5 +530,10 @@ end
 
 function roundSelectedDegree (pos)
     selectedDegree = math.max(0, math.floor(8 * (1 - pos) + 0.5))
+end
+
+-- Called by the rotary knob with a normalized position (0 = detent 1, 1 = detent 10).
+function mainKnobChanged(pos)
+    selectedKnobPos = math.floor(pos * 10 + 0.5) + 1  -- convert 0-(N-1)/N range to 1-10
 end
 

@@ -21,6 +21,7 @@ local function requireGUILibraries ()
 	require (pathToLibrary .. "lib_saveLoad") --[[save and load data code]]
 	require (pathToLibrary .. "lib_table") --[[data display tables]]
 	require (pathToLibrary .. "lib_scrollBar")--[[scrollbars]]
+	require (pathToLibrary .. "lib_rotaryKnobs")--[[rotary knob controls]]
 	require (pathToLibrary .. "lib_timeControl") --[[time triggers callbacks]]
 	require (pathToLibrary .. "lib_appFrame")--[[app frame]]
 	require (pathToLibrary .. "lib_images")--[[images]]
