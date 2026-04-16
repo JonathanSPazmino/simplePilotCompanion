@@ -60,6 +60,7 @@ end
 function love.load()
     selectedAltitude = 0
     selectedTime = 0
+    selectedDegree = 0
 
     ---------------------------------------------------------------------------
     -- BUTTONS
@@ -69,7 +70,7 @@ function love.load()
         "Sprites/resetButton_deactivated.png", .95, .3, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED
+        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
     )
 
     gui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
@@ -77,7 +78,7 @@ function love.load()
         "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED
+        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
     )
 
     gui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
@@ -85,7 +86,7 @@ function love.load()
         "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED
+        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
     )
 
     gui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -93,7 +94,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 
     gui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -101,7 +102,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 
     gui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -109,7 +110,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .05, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 
     gui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -117,7 +118,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED
+        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 
 
@@ -126,7 +127,7 @@ function love.load()
         "Sprites/invisibleBox.png", 
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
-        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED
+        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 	
 	---------------------------------------------------------------------------
@@ -148,30 +149,48 @@ function love.load()
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
     gui_outputTextBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .2, .6, "CC",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        .15, .6, "CC",
+        globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
         colorYellow, textAltSlctd, 12
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
     gui_outputTextBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .8, .6, "CC",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
+        .5, .6, "CC",
+        globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
         colorYellow, textTimeSlctd, 12
+    )
+
+    local textDegreeSlctd = "deg:\n" .. selectedDegree .. "°"
+    
+    gui_outputTextBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
+        .82, .6, "CC",
+        globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
+        colorYellow, textDegreeSlctd, 12
     )
 
     local requiredFPM = 0
     if selectedTime > 0 then
         requiredFPM = math.ceil(selectedAltitude / selectedTime)
-    else
-        requiredFPM = 0
     end
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
 
     gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        .5, .5, "CC",
-        globApp.safeScreenArea.w * .25, globApp.safeScreenArea.h * .08,
-        colorYellow, requiredFPMtext, 18
+        .25, .5, "CC",
+        globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
+        colorYellow, requiredFPMtext, 12
+    )
+
+    local requiredDistance = 0
+    if selectedDegree > 0 and selectedAltitude > 0 then
+        requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
+    end
+    local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
+
+    gui_outputTextBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
+        .75, .5, "CC",
+        globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
+        colorYellow, requiredDistText, 12
     )
 
 
@@ -194,13 +213,16 @@ function love.load()
 
 
     gui_scrollBar_create ("altScale", "MainMenu",
-        0.2, 0.65, 30, 185, "LT", 5, 52, 1,
-        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"})
+        0.16, 0.65, 30, 185, "CT", 5, 52, 1,
+        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
 
     gui_scrollBar_create ("timeScale", "MainMenu",
-        0.8, 0.65, 30, 185, "RT", 5, 26, 1,
-        "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"})
+        0.50, 0.65, 30, 185, "CT", 5, 26, 1,
+        "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
 
+    gui_scrollBar_create ("deg", "MainMenu",
+        0.82, 0.65, 30, 185, "CT", 5, 8, 1,
+        "independent", "vertical", 8, "roundSelectedDegree", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
 
 
 
@@ -240,12 +262,21 @@ function love.update(dt)
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     gui_updateOutputTextBoxText("selectedTimeBox", textTimeSlctd)
 
+    local textDegreeSlctd = "deg:\n" .. selectedDegree .. "°"
+    gui_updateOutputTextBoxText("selectedDegreeBox", textDegreeSlctd)
+
     local requiredFPM = 0
     if selectedTime > 0 then
         requiredFPM = math.ceil(selectedAltitude / selectedTime)
     end
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
     gui_updateOutputTextBoxText("requiredFPM", requiredFPMtext)
+
+    local requiredDistance = 0
+    if selectedDegree > 0 and selectedAltitude > 0 then
+        requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
+    end
+    gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
 
     -- Update GUI
     jpGUI_update(dt)
@@ -472,5 +503,9 @@ end
 
 function roundSelectedTime (pos)
     selectedTime = math.max(0, math.floor(25 * (1 - pos) + 0.5))
+end
+
+function roundSelectedDegree (pos)
+    selectedDegree = math.max(0, math.floor(8 * (1 - pos) + 0.5))
 end
 

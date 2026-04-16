@@ -735,7 +735,8 @@ function createDevUnitTestMenuObjects ()
 		smartFontScaling (0.025, 0.032),--[[font size]]
 		{	[1] = "name", 
 			[2]= "result", 
-			[3] = "failingParameter"})
+			[3] = "failingParameter"},
+		true)
 
 
 
@@ -882,7 +883,8 @@ print ("running")
 		smartFontScaling (0.025, 0.032),--[[font size]]
 		{	[1]= "name", 
 			[2]= "dpiWidht", 
-			[3]= "dpiHeight"})
+			[3]= "dpiHeight"},
+		true)
 
 
 	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 

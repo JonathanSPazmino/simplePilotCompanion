@@ -282,23 +282,25 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		-- Initialise (or re-clamp on resize) the momentum scroll state.
 		if not tbl.scroll then
 			tbl.scroll = {
-				offsetY    = 0,
-				velocityY  = 0,
-				offsetX    = 0,
-				velocityX  = 0,
-				phase      = "idle",
-				isDragging = false,
+				offsetY           = 0,
+				velocityY         = 0,
+				offsetX           = 0,
+				velocityX         = 0,
+				phase             = "idle",
+				isDragging        = false,
+				touchStartedInside = false,
 			}
 		else
 			-- Clamp preserved offset to new geometry, reset physics.
 			local minY, _ = _getTblScrollLimitsY(tbl)
 			local minX, _ = _getTblScrollLimitsX(tbl)
-			tbl.scroll.offsetY    = math.max(minY, math.min(0, tbl.scroll.offsetY))
-			tbl.scroll.offsetX    = math.max(minX, math.min(0, tbl.scroll.offsetX))
-			tbl.scroll.velocityY  = 0
-			tbl.scroll.velocityX  = 0
-			tbl.scroll.phase      = "idle"
-			tbl.scroll.isDragging = false
+			tbl.scroll.offsetY           = math.max(minY, math.min(0, tbl.scroll.offsetY))
+			tbl.scroll.offsetX           = math.max(minX, math.min(0, tbl.scroll.offsetX))
+			tbl.scroll.velocityY         = 0
+			tbl.scroll.velocityX         = 0
+			tbl.scroll.phase             = "idle"
+			tbl.scroll.isDragging        = false
+			tbl.scroll.touchStartedInside = false
 			_applyTblScrollOffset(tbl)
 		end
 	end
@@ -1012,9 +1014,11 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 		if not tbl.scroll then goto continue end
 		if tbl.page ~= activePage then goto continue end
 
-		-- Only act when pointer is inside the scrollable area.
+		-- Only act when pointer is inside the scrollable area AND the touch/drag
+		-- originated inside it (prevents dragging from outside into the scroll area).
 		if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
-		   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) then
+		   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) and
+		   tbl.scroll.touchStartedInside then
 
 			tbl.scroll.isDragging = true
 			tbl.scroll.phase      = "coasting"  -- arms physics for release
@@ -1034,7 +1038,6 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
 			-- HORIZONTAL
 			local minX, maxX = _getTblScrollLimitsX(tbl)
-			local prevInBoundsX = (tbl.scroll.offsetX >= minX and tbl.scroll.offsetX <= maxX)
 			if minX < -0.5 then  -- content wider than viewport
 				tbl.scroll.offsetX = _applyTblRubberBand(tbl.scroll.offsetX + dx, minX, maxX)
 				if frameDt > 0 then
@@ -1043,11 +1046,10 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 				end
 			end
 
-			-- Fire haptic once when a scroll boundary is first crossed.
+			-- Fire haptic once when the vertical scroll boundary is first crossed (top/bottom only).
 			if tbl.hapticEnabled then
 				local nowOutY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
-				local nowOutX = tbl.scroll.offsetX < minX or tbl.scroll.offsetX > maxX
-				if (prevInBoundsY and nowOutY) or (prevInBoundsX and nowOutX) then
+				if prevInBoundsY and nowOutY then
 					gui_haptic_vibrate()
 				end
 			end
@@ -1064,6 +1066,9 @@ end
 -- Seeds the correct physics phase from accumulated drag velocity.
 function gui_touchReleasedTableScroll (x, y)
 	for _, tbl in ipairs(globApp.objects.tables) do
+		if tbl.scroll then
+			tbl.scroll.touchStartedInside = false  -- reset so next press re-evaluates origin
+		end
 		if tbl.scroll and tbl.scroll.isDragging then
 			tbl.scroll.isDragging = false
 

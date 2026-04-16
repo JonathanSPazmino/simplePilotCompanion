@@ -886,11 +886,22 @@ gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
 		tableButtonsPressed (x,y,button,istouch)
 
-		focus_scrollingBar (x,y,button,istouch)
+		focus_scrollingBar ("mouse", x,y,button,istouch)
+
+		-- Mark tables where mouse press started inside the scrollable area.
+		local activePage = returnCurrentPageName()
+		for _, tbl in ipairs(globApp.objects.tables) do
+			if tbl.scroll and tbl.page == activePage then
+				if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
+				   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) then
+					tbl.scroll.touchStartedInside = true
+				end
+			end
+		end
 
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
 
-			open_DevPgByEightTapping (x,y,button,istouch) -- opens and closes devPage 
+			open_DevPgByEightTapping (x,y,button,istouch) -- opens and closes devPage
 
 		end
 
@@ -916,7 +927,7 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 
 			tableButtonsReleased (x,y,button,istouch)
 
-			unfocus_scrollingBar (x,y,button,istouch)
+			unfocus_scrollingBar ("mouse", x,y,button,istouch)
 
 			gui_touchReleasedOutputTxtBox (x, y)
 			gui_touchReleasedTableScroll (x, y)
@@ -935,7 +946,7 @@ function gdsGUI_mousemoved (x, y, button, istouch, presses)
 	-- The existing code names them 'button' and 'istouch' — preserved as-is.
 	-- So here: button = dx, istouch = dy.
 
-	holdAndDragScrollBar (x, y, button, istouch)
+	holdAndDragScrollBar ("mouse", x, y, button, istouch)
 
 	-- Pass mouse drag deltas into the output textbox and table scroll systems.
 	-- button = dx, istouch = dy (see note above).
@@ -1001,11 +1012,22 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 	gui_button_pressed (x,y,1,true) --runs when clicked on created buttons
 
-	tableButtonsPressed (x,y,button,istouch)
+	tableButtonsPressed (x,y,1,true)
 
-	focus_scrollingBar (x,y,button,istouch)
+	focus_scrollingBar (id, x,y,1,true)
 
-	tableRow_Select (x,y,button,istouch)
+	tableRow_Select (x,y,1,true)
+
+	-- Mark tables where touch started inside the scrollable area.
+	local activePage = returnCurrentPageName()
+	for _, tbl in ipairs(globApp.objects.tables) do
+		if tbl.scroll and tbl.page == activePage then
+			if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
+			   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) then
+				tbl.scroll.touchStartedInside = true
+			end
+		end
+	end
 
 end
 
@@ -1018,6 +1040,9 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 	local slideSensitivityPixelsPositive = slideSensitivity
 	local slideSensitivityPixelsNegative = -(slideSensitivity)
 
+	-- Handle scrollbar drag for this specific touch independently (supports simultaneous scrollbars).
+	holdAndDragScrollBar (id, x, y, 1, true)
+
 	for i, tchs in ipairs (touches) do --isolate to first touch only
 
 		if i == 1 then
@@ -1026,11 +1051,9 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 
 				globApp.userInput = "slide"
 
-			end 
+			end
 
 			gui_button_released (x, y, 1, istouch, presses)
-
-			holdAndDragScrollBar (x,y,button,istouch)
 
 			touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
@@ -1071,7 +1094,7 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 
 	tableButtonsReleased (x,y,button,istouch)
 
-	unfocus_scrollingBar (x,y,button,istouch)
+	unfocus_scrollingBar (id, x,y,1,true)
 
 	gui_touchReleasedOutputTxtBox (x, y)
 	gui_touchReleasedTableScroll (x, y)

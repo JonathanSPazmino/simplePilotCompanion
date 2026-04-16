@@ -33,6 +33,8 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		t.callbackString = callback
 		t.hapticEnabled = (hapticEnabled == true)
 		t._prevSnapIndex = -1
+		t._hapticFiredOnFocus = false
+		t.focusTouchId = nil
 
 		t.original = {
 			x = x,
@@ -414,14 +416,19 @@ function updateScrollingBarPosition (sb, dataPercPosition)
 end
 
 
-function focus_scrollingBar (x,y,button,istouch)
+function focus_scrollingBar (id, x,y,button,istouch)
 
-	if button == 1 or globApp.userInput == "touch pressed" then 
+	if button == 1 or globApp.userInput == "touch pressed" then
 
 		for i, sb in ipairs (globApp.objects.scrollBars) do
 
+			-- Thumb focus: fire haptic once on initial tap, track which touch owns this scrollbar.
 			if x >= sb.bar.x and x <= (sb.bar.x + sb.bar.width) and y >= sb.bar.y and y <= sb.bar.y + sb.bar.height then
-				sb.isFocused = true
+				if not sb.isFocused then
+					sb.isFocused = true
+					sb.focusTouchId = id
+					if sb.hapticEnabled then gui_haptic_vibrate() end
+				end
 			end
 
 			local stepSize = 0
@@ -435,10 +442,8 @@ function focus_scrollingBar (x,y,button,istouch)
 						if not sb.upButton.isActive then -- Only step if not already active (first press)
 							sb.upButton.isActive = true
 							-- Discrete step for up arrow
-							local prevPos = sb.bar.position
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
-							if sb.hapticEnabled and sb.bar.position ~= prevPos then gui_haptic_vibrate() end
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -451,10 +456,8 @@ function focus_scrollingBar (x,y,button,istouch)
 						if not sb.downButton.isActive then -- Only step if not already active (first press)
 							sb.downButton.isActive = true
 							-- Discrete step for down arrow
-							local prevPos = sb.bar.position
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
-							if sb.hapticEnabled and sb.bar.position ~= prevPos then gui_haptic_vibrate() end
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -468,10 +471,8 @@ function focus_scrollingBar (x,y,button,istouch)
 						if not sb.leftButton.isActive then -- Only step if not already active (first press)
 							sb.leftButton.isActive = true
 							-- Discrete step for left arrow
-							local prevPos = sb.bar.position
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
-							if sb.hapticEnabled and sb.bar.position ~= prevPos then gui_haptic_vibrate() end
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -484,10 +485,8 @@ function focus_scrollingBar (x,y,button,istouch)
 						if not sb.rightButton.isActive then -- Only step if not already active (first press)
 							sb.rightButton.isActive = true
 							-- Discrete step for right arrow
-							local prevPos = sb.bar.position
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
 							updateScrollingBarPosition(sb, sb.bar.position)
-							if sb.hapticEnabled and sb.bar.position ~= prevPos then gui_haptic_vibrate() end
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -503,28 +502,37 @@ function focus_scrollingBar (x,y,button,istouch)
 end
 
 
-function unfocus_scrollingBar (x,y,button,istouch)
+function unfocus_scrollingBar (id, x,y,button,istouch)
 	if button == 1 or globApp.userInput == "touch released" then --isolate to mouse use
 		for i, sb in ipairs (globApp.objects.scrollBars) do
-			sb.isFocused = false
-			sb._prevSnapIndex = -1  -- reset so the next drag fires haptic on first detent
+			-- Arrow buttons are desktop-only; always reset their active state on any release
+			-- so they never stay visually stuck in the pressed state.
 			if sb.orientation == "vertical" then
-				if sb.upButton then sb.upButton.isActive = false end
+				if sb.upButton   then sb.upButton.isActive   = false end
 				if sb.downButton then sb.downButton.isActive = false end
 			elseif sb.orientation == "horizontal" then
-				if sb.leftButton then sb.leftButton.isActive = false end
+				if sb.leftButton  then sb.leftButton.isActive  = false end
 				if sb.rightButton then sb.rightButton.isActive = false end
+			end
+			-- Thumb focus is per-touch: only unfocus the scrollbar owned by this interaction.
+			if sb.focusTouchId == id then
+				sb.isFocused = false
+				sb._prevSnapIndex = -1
+				sb.focusTouchId = nil
 			end
 		end
 	end
 end
 
 
-function holdAndDragScrollBar (x,y,button,istouch, devMode)
-	--moves scrolling bar up or down when the bar is cocused and dragged
+function holdAndDragScrollBar (id, x,y,button,istouch, devMode)
+	--moves scrolling bar up or down when the bar is focused and dragged
 	--runs using the love.mouseMoved callback function
 
-	for i, sb in ipairs (globApp.objects.scrollBars) do--scroll through avialable scrollbars
+	for i, sb in ipairs (globApp.objects.scrollBars) do--scroll through available scrollbars
+		-- Only drag the scrollbar that was originally focused by this touch/mouse interaction.
+		if sb.focusTouchId ~= id then goto continue end
+
 		if sb.orientation == "vertical" then
 			totalPositionSpan = sb.frame.height - sb.bar.height
 		elseif sb.orientation == "horizontal" then
@@ -541,18 +549,15 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 					elseif (y + sb.bar.height) > (sb.frame.y + sb.frame.height)then
 						sb.bar.y = (sb.frame.y + sb.frame.height) - sb.bar.height
 					end
-					                    -- Snap to nearest increment
-					                    if sb.numTotalValues and sb.numTotalValues > 1 then
-					                        sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
-					                        local snapIdx = math.floor(sb.bar.position * (sb.numTotalValues - 1) + 0.5)
-					                        sb.bar.position = snapIdx / (sb.numTotalValues - 1)
-					                        if sb.hapticEnabled and snapIdx ~= sb._prevSnapIndex then
-					                            gui_haptic_vibrate()
-					                            sb._prevSnapIndex = snapIdx
-					                        end
-					                    else
-					                        sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
-					                    end
+					-- Snap to nearest increment
+					if sb.numTotalValues and sb.numTotalValues > 1 then
+						sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
+						local snapIdx = math.floor(sb.bar.position * (sb.numTotalValues - 1) + 0.5)
+						sb.bar.position = snapIdx / (sb.numTotalValues - 1)
+						sb._prevSnapIndex = snapIdx
+					else
+						sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
+					end
 					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				elseif sb.orientation == "horizontal" then
 					if x - (sb.bar.width / 2) >= sb.frame.x and ((x - (sb.bar.width / 2)) + sb.bar.width) <= (sb.frame.x + sb.frame.width) then
@@ -567,14 +572,11 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 					if sb.numTotalValues and sb.numTotalValues > 1 then
 						local snapIdx = math.floor(sb.bar.position * (sb.numTotalValues - 1) + 0.5)
 						sb.bar.position = snapIdx / (sb.numTotalValues - 1)
-						if sb.hapticEnabled and snapIdx ~= sb._prevSnapIndex then
-							gui_haptic_vibrate()
-							sb._prevSnapIndex = snapIdx
-						end
+						sb._prevSnapIndex = snapIdx
 					end
 					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
 				end
-				
+
 				if sb.callbackString ~= nil then
 					_G[sb.callbackString](sb.bar.position)
 				elseif sb.callbackString == nil then
@@ -588,6 +590,8 @@ function holdAndDragScrollBar (x,y,button,istouch, devMode)
 				result.sBarPosition = sb.bar.position
 			return result
 		end
+
+		::continue::
 	end
 end
 
