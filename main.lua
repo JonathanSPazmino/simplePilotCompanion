@@ -58,18 +58,20 @@ end
 -- LOVE CALLBACKS
 -------------------------------------------------------------------------------
 function love.load()
-    selectedAltitude = 0
-    selectedTime = 0
-    selectedDegree = 0
+    selectedAltitude      = 0
+    selectedTime          = 0
+    selectedDegree        = 0
     selectedKnobPos       = 36
     selectedWindDirection = 360
+    selectedWindSpeed     = 0
+    selectedWindGust      = 0
 
     ---------------------------------------------------------------------------
     -- BUTTONS
     ---------------------------------------------------------------------------
     gui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", .95, .3, "RT",
+        "Sprites/resetButton_deactivated.png", .90, .15, "RT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
@@ -77,7 +79,7 @@ function love.load()
 
     gui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", .725, .3, "LT",
+        "Sprites/pausePlayButton_deactivated.png", .75, .15, "CT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
@@ -85,7 +87,7 @@ function love.load()
 
     gui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", .55, .3, "LT",
+        "Sprites/timerModeButton_deactivated.png", .6, .15, "LT",
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
@@ -128,7 +130,7 @@ function love.load()
        "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
         "Sprites/invisibleBox.png", 
         .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .1,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true
     )
 	
@@ -137,34 +139,34 @@ function love.load()
     ---------------------------------------------------------------------------
     gui_outputTextBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
         .05, .05, "LT",
-        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .2,
+        globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .1,
         colorYellow, utcPrintString, 12
     )
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gui_outputTextBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
         .90, .05, "RT",
-        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .2,
+        globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .1,
         colorYellow, text, 12
     )
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     
     gui_outputTextBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .15, .6, "CC",
+        .5, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
         colorYellow, textAltSlctd, 12
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
     gui_outputTextBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        .5, .6, "CC",
+        .15, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
         colorYellow, textTimeSlctd, 12
     )
 
-    local textDegreeSlctd = "deg:\n" .. selectedDegree .. "°"
-    
+    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
+
     gui_outputTextBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
         .82, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
@@ -178,8 +180,8 @@ function love.load()
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
 
     gui_outputTextBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        .25, .44, "CC",
-        globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
+        .33, .8, "CC",
+        globApp.safeScreenArea.w * .2, globApp.safeScreenArea.h * .1,
         colorYellow, requiredFPMtext, 12
     )
 
@@ -190,8 +192,8 @@ function love.load()
     local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
 
     gui_outputTextBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
-        .75, .44, "CC",
-        globApp.safeScreenArea.w * .40, globApp.safeScreenArea.h * .08,
+        .66, .8, "CC",
+        globApp.safeScreenArea.w * .2, globApp.safeScreenArea.h * .1,
         colorYellow, requiredDistText, 12
     )
 
@@ -200,8 +202,8 @@ function love.load()
     ---------------------------------------------------------------------------
     gui_dualRotaryKnob_create(
         "runwayKnob", "MainMenu",
-        0.32, 0.32, "CC",
-        globApp.safeScreenArea.w * 0.40,
+        0.28, 0.30, "CC",
+        globApp.safeScreenArea.w * 0.47,
         -- Outer knob: wind direction (36 detents, 360°/10°/20°…/350°)
         36, 0,
         "Sprites/knob_runway_released.png", "Sprites/runwayNumber_pushed.png",
@@ -214,10 +216,10 @@ function love.load()
         true
     )
 
-    gui_outputTextBox_create("knobPosDisplay", "MainMenu", "Sprites/invisibleBox.png",
-        .72, .52, "CC",
-        globApp.safeScreenArea.w * .38, globApp.safeScreenArea.h * .07,
-        colorYellow, "knob:\n1 / 10", 12
+    gui_outputTextBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
+        .28, .48, "CC",
+        globApp.safeScreenArea.w * .44, globApp.safeScreenArea.h * .1,
+        colorYellow, "WIND: 36000KT", 11
     )
 
 
@@ -239,17 +241,38 @@ function love.load()
    }
 
 
-    gui_scrollBar_create ("altScale", "MainMenu",
-        0.16, 0.65, 30, 185, "CT", 5, 52, 1,
-        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
-
+    --LEFT TO RIGHT
     gui_scrollBar_create ("timeScale", "MainMenu",
-        0.50, 0.65, 30, 185, "CT", 5, 26, 1,
+        0.16, 0.65, 30, 185, "CT", 5, 26, 1,
         "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
 
+    gui_scrollBar_create ("altScale", "MainMenu",
+        0.50, 0.65, 30, 185, "CT", 5, 52, 1,
+        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+
     gui_scrollBar_create ("deg", "MainMenu",
-        0.82, 0.65, 30, 185, "CT", 5, 8, 1,
-        "independent", "vertical", 8, "roundSelectedDegree", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+        0.82, 0.65, 30, 185, "CT", 5, 33, 1,
+        "independent", "vertical", 33, "roundSelectedDegree", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+
+    local knobSize    = globApp.safeScreenArea.w * 0.45
+    local windSBTopY  = 0.32 - (knobSize * 0.5) / globApp.safeScreenArea.h
+    local windGustSBX = 0.62 + 35 / globApp.safeScreenArea.w
+    gui_scrollBar_create ("windSpeed", "MainMenu",
+        0.62, windSBTopY, 30, math.floor(knobSize), "CT", 5, 46, 1,
+        "independent", "vertical", 46, "windSpeedChanged",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true)
+
+    gui_scrollBar_create ("windGust", "MainMenu",
+        windGustSBX, windSBTopY, 30, math.floor(knobSize), "CT", 5, 61, 1,
+        "independent", "vertical", 61, "windGustChanged",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true)
+
+    local windLabelY = windSBTopY + math.floor(knobSize) / globApp.safeScreenArea.h + 0.025
+    gui_outputTextBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
+        (0.62 + windGustSBX) / 2, windLabelY, "CT",
+        90, globApp.safeScreenArea.h * 0.065,
+        colorYellow, "wind:\nspeed  gust", 12
+    )
 
 
 
@@ -289,7 +312,7 @@ function love.update(dt)
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     gui_updateOutputTextBoxText("selectedTimeBox", textTimeSlctd)
 
-    local textDegreeSlctd = "deg:\n" .. selectedDegree .. "°"
+    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
     gui_updateOutputTextBoxText("selectedDegreeBox", textDegreeSlctd)
 
     local requiredFPM = 0
@@ -305,9 +328,14 @@ function love.update(dt)
     end
     gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
 
-    gui_updateOutputTextBoxText("knobPosDisplay",
-        "RWY: " .. string.format("%02d", selectedKnobPos) ..
-        "\nwind: " .. selectedWindDirection .. "°")
+    local windDir = string.format("%03d", selectedWindDirection)
+    local windSpd = string.format("%02d", selectedWindSpeed)
+    if selectedWindGust > selectedWindSpeed then
+        gui_updateOutputTextBoxText("crosswindData",
+            "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT")
+    else
+        gui_updateOutputTextBoxText("crosswindData", "WIND: " .. windDir .. windSpd .. "KT")
+    end
 
     -- Update GUI
     jpGUI_update(dt)
@@ -537,7 +565,16 @@ function roundSelectedTime (pos)
 end
 
 function roundSelectedDegree (pos)
-    selectedDegree = math.max(0, math.floor(8 * (1 - pos) + 0.5))
+    selectedDegree = math.floor(32 * (1 - pos) + 0.5) * 0.25
+end
+
+function windSpeedChanged(pos)
+    selectedWindSpeed = math.floor(45 * (1 - pos) + 0.5)
+end
+
+function windGustChanged(pos)
+    local range = 60 - selectedWindSpeed
+    selectedWindGust = selectedWindSpeed + math.floor(range * (1 - pos) + 0.5)
 end
 
 -- Inner knob callback: runway selector.
