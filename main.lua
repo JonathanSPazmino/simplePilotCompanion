@@ -61,7 +61,8 @@ function love.load()
     selectedAltitude = 0
     selectedTime = 0
     selectedDegree = 0
-    selectedKnobPos = 36
+    selectedKnobPos       = 36
+    selectedWindDirection = 360
 
     ---------------------------------------------------------------------------
     -- BUTTONS
@@ -197,14 +198,19 @@ function love.load()
     ---------------------------------------------------------------------------
     -- ROTARY KNOB
     ---------------------------------------------------------------------------
-    gui_rotaryKnob_create(
+    gui_dualRotaryKnob_create(
         "runwayKnob", "MainMenu",
-        0.32, 0.52, "CC",
+        0.32, 0.32, "CC",
         globApp.safeScreenArea.w * 0.40,
+        -- Outer knob: wind direction (36 detents, 360°/10°/20°…/350°)
         36, 0,
-        "Sprites/knob_runway_released.png",
-        "Sprites/runwayNumber_pushed.png",
+        "Sprites/knob_runway_released.png", "Sprites/runwayNumber_pushed.png",
         "mainKnobChanged",
+        36, 0,
+        "Sprites/knob_wind_released.png", "Sprites/knob_wind_pushed.png",
+        "windKnobChanged",
+        -- Inner knob: runway (36 detents, RWY 36/01/02…/35)
+        
         true
     )
 
@@ -299,7 +305,9 @@ function love.update(dt)
     end
     gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
 
-    gui_updateOutputTextBoxText("knobPosDisplay", "RWY:\n" .. selectedKnobPos )
+    gui_updateOutputTextBoxText("knobPosDisplay",
+        "RWY: " .. string.format("%02d", selectedKnobPos) ..
+        "\nwind: " .. selectedWindDirection .. "°")
 
     -- Update GUI
     jpGUI_update(dt)
@@ -532,10 +540,19 @@ function roundSelectedDegree (pos)
     selectedDegree = math.max(0, math.floor(8 * (1 - pos) + 0.5))
 end
 
--- Called by the runway knob with a normalized position (index / 36).
--- Detent 0 (12 o'clock) = runway 36; detents 1-35 = runways 1-35.
+-- Inner knob callback: runway selector.
+-- Detent 0 (12 o'clock) = RWY 36; detents 1-35 = RWY 01-35 clockwise.
 function mainKnobChanged(pos)
-    local index = math.floor(pos * 36 + 0.5) % 36
+    local index     = math.floor(pos * 36 + 0.5) % 36
     selectedKnobPos = (index == 0) and 36 or index
+end
+
+-- Outer knob callback: wind direction.
+-- Same detent layout as runway but values are runway × 10 (10°–360°).
+-- Detent 0 (12 o'clock) = 360°; detents 1-35 = 10°, 20°, …, 350°.
+function windKnobChanged(pos)
+    local index           = math.floor(pos * 36 + 0.5) % 36
+    local runway          = (index == 0) and 36 or index
+    selectedWindDirection = runway * 10
 end
 
