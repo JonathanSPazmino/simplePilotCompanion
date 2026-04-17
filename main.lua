@@ -202,7 +202,7 @@ function love.load()
     ---------------------------------------------------------------------------
     gui_dualRotaryKnob_create(
         "runwayKnob", "MainMenu",
-        0.28, 0.30, "CC",
+        0.26, 0.30, "CC",
         globApp.safeScreenArea.w * 0.47,
         -- Outer knob: wind direction (36 detents, 360°/10°/20°…/350°)
         36, 0,
@@ -217,8 +217,8 @@ function love.load()
     )
 
     gui_outputTextBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
-        .28, .48, "CC",
-        globApp.safeScreenArea.w * .44, globApp.safeScreenArea.h * .1,
+        .26, .435, "CT",
+        globApp.safeScreenArea.w * .46, globApp.safeScreenArea.h * .12,
         colorYellow, "WIND: 36000KT", 11
     )
 
@@ -330,12 +330,22 @@ function love.update(dt)
 
     local windDir = string.format("%03d", selectedWindDirection)
     local windSpd = string.format("%02d", selectedWindSpeed)
-    if selectedWindGust > selectedWindSpeed then
-        gui_updateOutputTextBoxText("crosswindData",
-            "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT")
+    local hasGust = selectedWindGust > selectedWindSpeed
+    local windLine
+    if hasGust then
+        windLine = "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT"
     else
-        gui_updateOutputTextBoxText("crosswindData", "WIND: " .. windDir .. windSpd .. "KT")
+        windLine = "WIND: " .. windDir .. windSpd .. "KT"
     end
+    local rwyLine = "RWY: " .. string.format("%02d", selectedKnobPos)
+    local susXW, susSide, susHT, susLabel = calcWindComponents(selectedWindDirection, selectedWindSpeed, selectedKnobPos * 10)
+    local susLine = "SUS XW:" .. susXW .. susSide .. " " .. susLabel .. ":" .. susHT
+    local crosswindText = windLine .. "\n" .. rwyLine .. "\n" .. susLine
+    if hasGust then
+        local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, selectedKnobPos * 10)
+        crosswindText = crosswindText .. "\nGST XW:" .. gstXW .. gstSide .. " " .. gstLabel .. ":" .. gstHT
+    end
+    gui_updateOutputTextBoxText("crosswindData", crosswindText)
 
     -- Update GUI
     jpGUI_update(dt)
@@ -566,6 +576,17 @@ end
 
 function roundSelectedDegree (pos)
     selectedDegree = math.floor(32 * (1 - pos) + 0.5) * 0.25
+end
+
+function calcWindComponents(windDir, windSpd, rwyHeading)
+    local relAngle = math.rad(windDir - rwyHeading)
+    local sinA = math.sin(relAngle)
+    local cosA = math.cos(relAngle)
+    local xw    = math.abs(math.floor(windSpd * sinA + 0.5))
+    local ht    = math.floor(windSpd * cosA + 0.5)
+    local side  = (sinA >= 0) and "R" or "L"
+    local label = (ht >= 0) and "HW" or "TW"
+    return xw, side, math.abs(ht), label
 end
 
 function windSpeedChanged(pos)
