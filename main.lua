@@ -36,6 +36,17 @@ local timer = {
     running = false      -- Timer running state
 }
 
+-- Dirty-flag sentinels: values that can never match real state on first frame.
+local _prevTimerT        = -1
+local _prevTimerMode     = ""
+local _prevAltitude      = -1
+local _prevTime          = -1
+local _prevDegree        = -1e9
+local _prevWindDir       = -1
+local _prevWindSpeed     = -1
+local _prevWindGust      = -1
+local _prevKnobPos       = -1
+
 -- Countdown finished blink state
 local blink = {active = false, timer = 0, state = false}
 
@@ -303,50 +314,67 @@ function love.update(dt)
         gui_updateOutputTextBoxText("utcData", utcPrintString)
     end
 
-    local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    gui_updateOutputTextBoxText("timerTopRight", text)
-
-    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    gui_updateOutputTextBoxText("selectedAltitudeBox", textAltSlctd)
-
-    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    gui_updateOutputTextBoxText("selectedTimeBox", textTimeSlctd)
-
-    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
-    gui_updateOutputTextBoxText("selectedDegreeBox", textDegreeSlctd)
-
-    local requiredFPM = 0
-    if selectedTime > 0 then
-        requiredFPM = math.ceil(selectedAltitude / selectedTime)
+    if timer.t ~= _prevTimerT or timer.mode ~= _prevTimerMode then
+        gui_updateOutputTextBoxText("timerTopRight", timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S")
+        _prevTimerT, _prevTimerMode = timer.t, timer.mode
     end
-    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
-    gui_updateOutputTextBoxText("requiredFPM", requiredFPMtext)
 
-    local requiredDistance = 0
-    if selectedDegree > 0 and selectedAltitude > 0 then
-        requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
+    if selectedAltitude ~= _prevAltitude then
+        gui_updateOutputTextBoxText("selectedAltitudeBox", "Alt:\n" .. selectedAltitude .. " FT")
+        _prevAltitude = selectedAltitude
     end
-    gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
 
-    local windDir = string.format("%03d", selectedWindDirection)
-    local windSpd = string.format("%02d", selectedWindSpeed)
-    local hasGust = selectedWindGust > selectedWindSpeed
-    local windLine
-    if hasGust then
-        windLine = "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT"
-    else
-        windLine = "WIND: " .. windDir .. windSpd .. "KT"
+    if selectedTime ~= _prevTime then
+        gui_updateOutputTextBoxText("selectedTimeBox", "time:\n" .. selectedTime .. " min")
+        _prevTime = selectedTime
     end
-    local rwyLine = "RWY: " .. string.format("%02d", selectedKnobPos)
-    local susXW, susSide, susHT, susLabel = calcWindComponents(selectedWindDirection, selectedWindSpeed, selectedKnobPos * 10)
-    local susLine = "SUS XW:" .. susXW .. susSide .. " " .. susLabel .. ":" .. susHT
-    local crosswindText = windLine .. "\n" .. rwyLine .. "\n" .. susLine
-    if hasGust then
-        local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, selectedKnobPos * 10)
-        crosswindText = crosswindText .. "\nGST XW:" .. gstXW .. gstSide .. " " .. gstLabel .. ":" .. gstHT
-                     .. "\nGust Factor: " .. (selectedWindGust - selectedWindSpeed)
+
+    if selectedDegree ~= _prevDegree then
+        gui_updateOutputTextBoxText("selectedDegreeBox", "deg:\n" .. string.format("%.2f", selectedDegree) .. "°")
+        _prevDegree = selectedDegree
     end
-    gui_updateOutputTextBoxText("crosswindData", crosswindText)
+
+    if selectedAltitude ~= _prevAltitude or selectedTime ~= _prevTime then
+        local requiredFPM = 0
+        if selectedTime > 0 then requiredFPM = math.ceil(selectedAltitude / selectedTime) end
+        gui_updateOutputTextBoxText("requiredFPM", "req:\n" .. requiredFPM .. " fpm")
+    end
+
+    if selectedAltitude ~= _prevAltitude or selectedDegree ~= _prevDegree then
+        local requiredDistance = 0
+        if selectedDegree > 0 and selectedAltitude > 0 then
+            requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
+        end
+        gui_updateOutputTextBoxText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
+    end
+
+    -- Update sentinels for the combined checks above.
+    _prevAltitude, _prevTime, _prevDegree = selectedAltitude, selectedTime, selectedDegree
+
+    if selectedWindDirection ~= _prevWindDir or selectedWindSpeed ~= _prevWindSpeed or
+       selectedWindGust ~= _prevWindGust or selectedKnobPos ~= _prevKnobPos then
+        local windDir = string.format("%03d", selectedWindDirection)
+        local windSpd = string.format("%02d", selectedWindSpeed)
+        local hasGust = selectedWindGust > selectedWindSpeed
+        local windLine
+        if hasGust then
+            windLine = "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT"
+        else
+            windLine = "WIND: " .. windDir .. windSpd .. "KT"
+        end
+        local rwyLine = "RWY: " .. string.format("%02d", selectedKnobPos)
+        local susXW, susSide, susHT, susLabel = calcWindComponents(selectedWindDirection, selectedWindSpeed, selectedKnobPos * 10)
+        local susLine = "SUS XW:" .. susXW .. susSide .. " " .. susLabel .. ":" .. susHT
+        local crosswindText = windLine .. "\n" .. rwyLine .. "\n" .. susLine
+        if hasGust then
+            local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, selectedKnobPos * 10)
+            crosswindText = crosswindText .. "\nGST XW:" .. gstXW .. gstSide .. " " .. gstLabel .. ":" .. gstHT
+                         .. "\nGust Factor: " .. (selectedWindGust - selectedWindSpeed)
+        end
+        gui_updateOutputTextBoxText("crosswindData", crosswindText)
+        _prevWindDir, _prevWindSpeed, _prevWindGust, _prevKnobPos =
+            selectedWindDirection, selectedWindSpeed, selectedWindGust, selectedKnobPos
+    end
 
     -- Update GUI
     jpGUI_update(dt)

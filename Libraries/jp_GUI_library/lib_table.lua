@@ -52,6 +52,23 @@ local function _applyTblScrollOffset(tbl)
 			cl.y = cl.naturalY + tbl.scroll.offsetY
 		end
 	end
+
+	-- Rebuild draw caches: header cells (fixed list) and visible data cells (y-culled).
+	local vc = tbl.visibleCells
+	local hc = tbl.headerCells
+	if not vc then tbl.visibleCells = {}; vc = tbl.visibleCells end
+	if not hc then tbl.headerCells  = {}; hc = tbl.headerCells  end
+	for i = #vc, 1, -1 do vc[i] = nil end
+	for i = #hc, 1, -1 do hc[i] = nil end
+	local sbY    = tbl.scrollBox.y
+	local sbYmax = sbY + tbl.scrollBox.height
+	for _, cl in ipairs(tbl.cells) do
+		if cl.row == 1 then
+			hc[#hc + 1] = cl
+		elseif cl.y + cl.height > sbY and cl.y < sbYmax then
+			vc[#vc + 1] = cl
+		end
+	end
 end
 
 -- Push the current scroll offset back into the linked scrollbar positions.
@@ -593,6 +610,9 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 
 			-- scrollBar_update calls removed as they were redundant and non-functional.
 			-- Resizing is now handled by the .resize() method on each object.
+
+			-- Prime draw caches after data rebuild.
+			if t.scroll then _applyTblScrollOffset(t) end
 		end
 
 	end
@@ -710,31 +730,24 @@ function gui_table_draw (pageName)
 					love.graphics.rectangle("fill", x.scrollBox.x, x.scrollBox.y, x.scrollBox.width, x.scrollBox.height)
 
 					--CELLS:
-					for j,cells in pairs(x.cells) do
+					local _vc = x.visibleCells or x.cells
+					for j, cells in ipairs(_vc) do
 
-						if cells.row ~= 1 then
+						if cells.focused == false then
 
-							if cells.y + cells.height > x.scrollBox.y and cells.y < x.scrollBox.y + x.scrollBox.height then
+							love.graphics.setColor(.5, .5, .5, 1)
+							love.graphics.rectangle("line", cells.x, cells.y, cells.width, cells.height)
 
-								if cells.focused == false then
-								
-									love.graphics.setColor(.5, .5, .5, 1)
-									love.graphics.rectangle("line", cells.x, cells.y, cells.width, cells.height)
+							love.graphics.setColor(1, 1, 1, 1)
+							love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
-									love.graphics.setColor(1, 1, 1, 1)
-									love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
+						elseif cells.focused == true then
 
-								elseif cells.focused == true then
+							love.graphics.setColor(0, 1, 0, 1)
+							love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
 
-									love.graphics.setColor(0, 1, 0, 1)
-									love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
-
-									love.graphics.setColor(1, 0, 0, 1)
-									love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
-
-								end
-
-							end
+							love.graphics.setColor(1, 0, 0, 1)
+							love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
 						end
 
@@ -753,18 +766,14 @@ function gui_table_draw (pageName)
 					--HEADERS
 					love.graphics.setFont(x.fonts.headers.font)
 
-					for j,cells in ipairs (x.cells) do
+					local _hc = x.headerCells or x.cells
+					for j, cells in ipairs(_hc) do
 
-						if cells.row == 1 then
-							
-							love.graphics.setColor(.3, .3, .3, 1)
-							
-							love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
+						love.graphics.setColor(.3, .3, .3, 1)
+						love.graphics.rectangle("fill", cells.x, cells.y, cells.width, cells.height)
 
-							love.graphics.setColor(0, 1, 0, 1)
-							love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
-
-						end
+						love.graphics.setColor(0, 1, 0, 1)
+						love.graphics.printf(cells.content, cells.x + (cells.width * 0.05), cells.y + (cells.height * 0.05), (cells.width * 0.95), "center")
 
 					end
 					

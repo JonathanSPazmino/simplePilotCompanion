@@ -48,6 +48,7 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		t.frame = {}
 		if t.assets.frame then
 			t.frame.img = love.graphics.newImage(t.assets.frame)
+			t._dimFrameW, t._dimFrameH = t.frame.img:getDimensions()
 		end
 		if sbOrientation == "vertical" then
 			t.frame.height = height
@@ -82,6 +83,10 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 				t.imgButtonDownArrow_active   = love.graphics.newImage(t.assets.down_active)
 				t.imgButtonDownArrow_inactive = love.graphics.newImage(t.assets.down_inactive)
 
+				-- Cache pixel dimensions so draw never calls getDimensions() per frame.
+				t._dimUpW,   t._dimUpH   = t.imgButtonUpArrow_inactive:getDimensions()
+				t._dimDownW, t._dimDownH = t.imgButtonDownArrow_inactive:getDimensions()
+
 				t.upButton = {}
 					t.upButton.width = t.frame.width
 					t.upButton.height = t.frame.width
@@ -102,14 +107,18 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 
 				t.frame.y = t.upButton.y + t.upButton.height
 					t.frame.height = t.downButton.y - t.frame.y
-			
+
 			elseif t.orientation == "horizontal" then
 
 				t.imgButtonLeftArrow_active    = love.graphics.newImage(t.assets.left_active)
 				t.imgButtonLeftArrow_inactive  = love.graphics.newImage(t.assets.left_inactive)
 				t.imgButtonRightArrow_active   = love.graphics.newImage(t.assets.right_active)
 				t.imgButtonRightArrow_inactive = love.graphics.newImage(t.assets.right_inactive)
-				
+
+				-- Cache pixel dimensions so draw never calls getDimensions() per frame.
+				t._dimLeftW,  t._dimLeftH  = t.imgButtonLeftArrow_inactive:getDimensions()
+				t._dimRightW, t._dimRightH = t.imgButtonRightArrow_inactive:getDimensions()
+
 				t.leftButton = {}
 					t.leftButton.width = t.frame.height
 					t.leftButton.height = t.frame.height
@@ -137,6 +146,7 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		t.bar = {}
 		if t.assets.thumb then
 			t.bar.img = love.graphics.newImage(t.assets.thumb)
+			t._dimBarW, t._dimBarH = t.bar.img:getDimensions()
 		end
 			t.bar.position = dataRelativePosition
 		if t.orientation == "vertical" then
@@ -277,8 +287,7 @@ function gui_scrollBar_draw (pageName)
 					--------------------------------------------------------------------------
 					love.graphics.setColor(1, 1, 1, 1)
 					if x.frame.img then
-						local imgW, imgH = x.frame.img:getDimensions()
-						love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / imgW, x.frame.height / imgH)
+						love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / x._dimFrameW, x.frame.height / x._dimFrameH)
 					else
 						love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
 					end
@@ -288,8 +297,7 @@ function gui_scrollBar_draw (pageName)
 					---------------------------------------------------------------------------
 					if x.bar.img then
 						love.graphics.setColor(1, 1, 1, 1)
-						local imgW, imgH = x.bar.img:getDimensions()
-						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / imgW, x.bar.height / imgH)
+						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
 					else
 						if x.isFocused == true then
 							love.graphics.setColor(0, 0, 1, 1)
@@ -306,13 +314,12 @@ function gui_scrollBar_draw (pageName)
 					if x.orientation == "vertical" then
 						if x.upButton then
 							love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
+							local imgW, imgH = x._dimUpW, x._dimUpH
 							if x.upButton.isActive == false then
-								local imgW, imgH = x.imgButtonUpArrow_inactive:getDimensions()
 								local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
 								local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonUpArrow_inactive, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
 							else
-								local imgW, imgH = x.imgButtonUpArrow_active:getDimensions()
 								local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
 								local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonUpArrow_active, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
@@ -321,13 +328,12 @@ function gui_scrollBar_draw (pageName)
 
 						if x.downButton then
 							love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
+							local imgW, imgH = x._dimDownW, x._dimDownH
 							if x.downButton.isActive == false then
-								local imgW, imgH = x.imgButtonDownArrow_inactive:getDimensions()
 								local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
 								local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonDownArrow_inactive, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
 							else
-								local imgW, imgH = x.imgButtonDownArrow_active:getDimensions()
 								local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
 								local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonDownArrow_active, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
@@ -336,13 +342,12 @@ function gui_scrollBar_draw (pageName)
 					elseif x.orientation == "horizontal" then
 						if x.leftButton then
 							love.graphics.rectangle("fill", x.leftButton.x, x.leftButton.y, x.leftButton.width, x.leftButton.height)
+							local imgW, imgH = x._dimLeftW, x._dimLeftH
 							if x.leftButton.isActive == false then
-								local imgW, imgH = x.imgButtonLeftArrow_inactive:getDimensions()
 								local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
 								local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonLeftArrow_inactive, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
 							else
-								local imgW, imgH = x.imgButtonLeftArrow_active:getDimensions()
 								local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
 								local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonLeftArrow_active, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
@@ -350,13 +355,12 @@ function gui_scrollBar_draw (pageName)
 						end
 						if x.rightButton then
 							love.graphics.rectangle("fill", x.rightButton.x, x.rightButton.y, x.rightButton.width, x.rightButton.height)
+							local imgW, imgH = x._dimRightW, x._dimRightH
 							if x.rightButton.isActive == false then
-								local imgW, imgH = x.imgButtonRightArrow_inactive:getDimensions()
 								local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
 								local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonRightArrow_inactive, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
 							else
-								local imgW, imgH = x.imgButtonRightArrow_active:getDimensions()
 								local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
 								local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
 								love.graphics.draw(x.imgButtonRightArrow_active, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
