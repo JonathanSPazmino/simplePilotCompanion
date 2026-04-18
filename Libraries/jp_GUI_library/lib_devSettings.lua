@@ -98,10 +98,9 @@ function updateDevDisplaysParameters (dt)
 	end
 
 	--RUNS CONTINUOUSLY
-	devDataDisplay.topRow.fpsData.timer = devDataDisplay.topRow.fpsData.period
 	devDataDisplay.topRow.fpsData.timer = devDataDisplay.topRow.fpsData.timer - dt
 	if devDataDisplay.topRow.fpsData.timer <= 0 then
-		devDataDisplay.topRow.fpsData.fps = math.ceil(1.0 / dt)
+		devDataDisplay.topRow.fpsData.fps = love.timer.getFPS()
 		devDataDisplay.topRow.fpsData.timer = devDataDisplay.topRow.fpsData.period
 		devDataDisplay.topRow.fpsData.display = "FPS: ".. devDataDisplay.topRow.fpsData.fps
 	end
