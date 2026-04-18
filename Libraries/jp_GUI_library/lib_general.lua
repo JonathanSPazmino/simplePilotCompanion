@@ -237,48 +237,48 @@ function relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseW
 
 	if string.upper(anchorPoint) == "LT" then
 
-		result[1] = baseX + (x * baseWidth)
-		result[2] = baseY + (y * baseHeight)
+		result[1] = math.floor(baseX + (x * baseWidth))
+		result[2] = math.floor(baseY + (y * baseHeight))
 
 	elseif string.upper(anchorPoint) == "LC" then
 
-		result[1] = baseX + (x * baseWidth)
-		result[2] = baseY + (y * baseHeight) - height/2
+		result[1] = math.floor(baseX + (x * baseWidth))
+		result[2] = math.floor(baseY + (y * baseHeight) - height/2)
 
 	elseif string.upper(anchorPoint) == "LB" then
 
-		result[1] = baseX + (x * baseWidth)
-		result[2] = baseY + (y * baseHeight) - height
+		result[1] = math.floor(baseX + (x * baseWidth))
+		result[2] = math.floor(baseY + (y * baseHeight) - height)
 
 	elseif string.upper(anchorPoint) == "CT" then
 
-		result[1] = baseX + (x * baseWidth) - width /2
-		result[2] = baseY + (y * baseHeight)
+		result[1] = math.floor(baseX + (x * baseWidth) - width/2)
+		result[2] = math.floor(baseY + (y * baseHeight))
 
 	elseif string.upper(anchorPoint) == "CC" then
 
-		result[1] = baseX + ((x * baseWidth) - width /2)
-		result[2] = baseY + ((y * baseHeight) - height/2)
+		result[1] = math.floor(baseX + ((x * baseWidth) - width/2))
+		result[2] = math.floor(baseY + ((y * baseHeight) - height/2))
 
 	elseif string.upper(anchorPoint) == "CB" then
 
-		result[1] = baseX + (x * baseWidth) - width /2
-		result[2] = baseY + (y * baseHeight) - height
+		result[1] = math.floor(baseX + (x * baseWidth) - width/2)
+		result[2] = math.floor(baseY + (y * baseHeight) - height)
 
 	elseif string.upper(anchorPoint) == "RT" then
 
-		result[1] = baseX + (x * baseWidth) - width
-		result[2] = baseY + (y * baseHeight) 
+		result[1] = math.floor(baseX + (x * baseWidth) - width)
+		result[2] = math.floor(baseY + (y * baseHeight))
 
 	elseif string.upper(anchorPoint) == "RC" then
 
-		result[1] = baseX + (x * baseWidth) - width
-		result[2] = baseY + (y * baseHeight) - height / 2
+		result[1] = math.floor(baseX + (x * baseWidth) - width)
+		result[2] = math.floor(baseY + (y * baseHeight) - height/2)
 
 	elseif string.upper(anchorPoint) == "RB" then
 
-		result[1] = baseX + (x * baseWidth) - width
-		result[2] = baseY + (y * baseHeight) - height
+		result[1] = math.floor(baseX + (x * baseWidth) - width)
+		result[2] = math.floor(baseY + (y * baseHeight) - height)
 
 	end
 
