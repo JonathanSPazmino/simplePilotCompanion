@@ -15,6 +15,7 @@ local TBL_RUBBER_BAND      = 0.35
 local TBL_COAST_STOP_VEL   = 8.0
 local TBL_BOUNCE_STOP_DISP = 0.5
 local TBL_BOUNCE_STOP_VEL  = 5.0
+local TBL_AXIS_LOCK_PX     = 6.0   -- accumulated pixels before dominant axis is chosen
 
 -- ---------------------------------------------------------------------------
 --  PRIVATE HELPERS
@@ -289,6 +290,9 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 				phase             = "idle",
 				isDragging        = false,
 				touchStartedInside = false,
+				axisLock          = nil,
+				accumDx           = 0,
+				accumDy           = 0,
 			}
 		else
 			-- Clamp preserved offset to new geometry, reset physics.
@@ -301,6 +305,9 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			tbl.scroll.phase             = "idle"
 			tbl.scroll.isDragging        = false
 			tbl.scroll.touchStartedInside = false
+			tbl.scroll.axisLock          = nil
+			tbl.scroll.accumDx           = 0
+			tbl.scroll.accumDy           = 0
 			_applyTblScrollOffset(tbl)
 		end
 	end
@@ -1020,15 +1027,38 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 		   y >= tbl.scrollBox.y and y <= (tbl.scrollBox.y + tbl.scrollBox.height) and
 		   tbl.scroll.touchStartedInside then
 
+			-- First frame of a new drag: reset axis detection accumulators.
+			if not tbl.scroll.isDragging then
+				tbl.scroll.axisLock = nil
+				tbl.scroll.accumDx  = 0
+				tbl.scroll.accumDy  = 0
+			end
+
 			tbl.scroll.isDragging = true
 			tbl.scroll.phase      = "coasting"  -- arms physics for release
+
+			-- Accumulate raw movement until a dominant axis can be chosen.
+			if not tbl.scroll.axisLock then
+				tbl.scroll.accumDx = tbl.scroll.accumDx + math.abs(dx)
+				tbl.scroll.accumDy = tbl.scroll.accumDy + math.abs(dy)
+				if tbl.scroll.accumDx + tbl.scroll.accumDy >= TBL_AXIS_LOCK_PX then
+					if tbl.scroll.accumDx >= tbl.scroll.accumDy then
+						tbl.scroll.axisLock = "horizontal"
+					else
+						tbl.scroll.axisLock = "vertical"
+					end
+				end
+			end
+
+			local allowV = (tbl.scroll.axisLock == nil) or (tbl.scroll.axisLock == "vertical")
+			local allowH = (tbl.scroll.axisLock == nil) or (tbl.scroll.axisLock == "horizontal")
 
 			local frameDt = love.timer.getDelta()
 
 			-- VERTICAL
 			local minY, maxY = _getTblScrollLimitsY(tbl)
 			local prevInBoundsY = (tbl.scroll.offsetY >= minY and tbl.scroll.offsetY <= maxY)
-			if minY < -0.5 then  -- content taller than viewport
+			if allowV and minY < -0.5 then  -- content taller than viewport
 				tbl.scroll.offsetY = _applyTblRubberBand(tbl.scroll.offsetY + dy, minY, maxY)
 				if frameDt > 0 then
 					local rawVelY = dy / frameDt
@@ -1038,7 +1068,7 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 
 			-- HORIZONTAL
 			local minX, maxX = _getTblScrollLimitsX(tbl)
-			if minX < -0.5 then  -- content wider than viewport
+			if allowH and minX < -0.5 then  -- content wider than viewport
 				tbl.scroll.offsetX = _applyTblRubberBand(tbl.scroll.offsetX + dx, minX, maxX)
 				if frameDt > 0 then
 					local rawVelX = dx / frameDt
@@ -1071,6 +1101,16 @@ function gui_touchReleasedTableScroll (x, y)
 		end
 		if tbl.scroll and tbl.scroll.isDragging then
 			tbl.scroll.isDragging = false
+
+			-- Kill velocity on the axis that was not scrolled.
+			if tbl.scroll.axisLock == "vertical" then
+				tbl.scroll.velocityX = 0
+			elseif tbl.scroll.axisLock == "horizontal" then
+				tbl.scroll.velocityY = 0
+			end
+			tbl.scroll.axisLock = nil
+			tbl.scroll.accumDx  = 0
+			tbl.scroll.accumDy  = 0
 
 			local minY, maxY = _getTblScrollLimitsY(tbl)
 			local minX, maxX = _getTblScrollLimitsX(tbl)
@@ -1115,9 +1155,16 @@ function gui_table_physics_update (dt)
 			tbl.scroll.offsetX   = tbl.scroll.offsetX + tbl.scroll.velocityX * dt
 			changed = true
 
-			local outY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
+			-- Clamp X at its hard limits so reaching the horizontal edge doesn't
+			-- kill vertical momentum; Y overscroll still triggers spring-back.
 			local outX = tbl.scroll.offsetX < minX or tbl.scroll.offsetX > maxX
-			if outY or outX then
+			if outX then
+				tbl.scroll.offsetX   = math.max(minX, math.min(maxX, tbl.scroll.offsetX))
+				tbl.scroll.velocityX = 0
+			end
+
+			local outY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
+			if outY then
 				tbl.scroll.phase = "bouncing"
 			elseif math.abs(tbl.scroll.velocityY) < TBL_COAST_STOP_VEL and
 			       math.abs(tbl.scroll.velocityX) < TBL_COAST_STOP_VEL then

@@ -344,6 +344,7 @@ function love.update(dt)
     if hasGust then
         local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, selectedKnobPos * 10)
         crosswindText = crosswindText .. "\nGST XW:" .. gstXW .. gstSide .. " " .. gstLabel .. ":" .. gstHT
+                     .. "\nGust Factor: " .. (selectedWindGust - selectedWindSpeed)
     end
     gui_updateOutputTextBoxText("crosswindData", crosswindText)
 
