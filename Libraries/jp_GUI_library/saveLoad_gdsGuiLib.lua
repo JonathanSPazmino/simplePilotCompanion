@@ -11,7 +11,7 @@ function gdsGui_saveLoad_createProjectData ( arrDataLabels, arrData, dataTable, 
       further use]]
    local labelsCount = 0
    local dataPiecesCount = 0
-   local recordIDLength = (string.len(globApp.devCompanyAcronym) + string.len(recordIDLocator) +  numIDRandomDigit + 10 --[[not changeable]])
+   local recordIDLength = 20  -- GDS + 17 digits = 20 chars
 
 
    local isThereNilLabels = gdsGui_saveLoad_hasNilValues (arrDataLabels)
@@ -160,19 +160,9 @@ function gdsGui_saveLoad_hasInvalidIDs (table, recordIDLocator, idLength)
 
          if j == "ID" then
             local s = thisID
-            
-            if string.len(s) ~= idLength then
+            -- validate GDS format: GDS + 17 digits = 20 chars
+            if not string.match(s, "^GDS%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") then
                invalidID = true
-               -- print "ID length doesn't match the values in the provided table"
-            end
-
-            local from, to = string.find(s, recordIDLocator)
-            
-            if from ~= nil and to ~= nil then
-
-            else 
-                invalidID = true
-               -- print "The provided record ID does not match the record IDs found in the provided table"
             end
          end
 
@@ -191,17 +181,20 @@ end
 
 function gdsGui_saveLoad_createIdNumber (recordsTable, recordIDLocator, numRandomDigits)
 
-   --[[ INFO: creates a serial number based on GDS code, timestamp last 4, 7 
-         random nums from 0 to 9, and character E for end, checks if 
-         table contains this serialnumber and re-runs code to create a 
-         unique code that is not yet created
+   --[[ INFO: creates a unique 10-character ID in the format GDS#####AZ
+         where ##### is 5 random digits (00000-99999).
+         Checks for duplicates and regenerates until unique.
+
+         FORMAT:  GDS  +  17 digits  =  20 characters
+         EXAMPLE: GDS73941028563719402
 
          INPUT:
-         recordTable: ------------Table--------------special formated table
-         table={[1]={["ID" = ID ]}}
+         recordsTable: -----------Table--------------special formatted table
+         recordIDLocator:---------String--------------field name holding the ID
+         numRandomDigits:---------Number--------------reserved, fixed at 5
 
          OUTPUT:
-         SN-----------------------String-------------representing SN
+         result-------------------String-------------10-char GDS ID
       ]]
 
    local result
@@ -212,32 +205,20 @@ function gdsGui_saveLoad_createIdNumber (recordsTable, recordIDLocator, numRando
 
       iterate = false
 
-      local ID = {}
-         ID["SIGNATURE"] = globApp.devCompanyAcronym
-         ID["IDLOCATOR"] = recordIDLocator
-         ID["TIMESTAMP"] = string.sub(os.time(), 8, 11) --[[ 3 digit timestamp]]
-         ID["RANDOMSTRING"] = ""
-         ID["RANDOMDIGITS"] = {}
-         for j=1,numRandomDigits,1 do
-            ID["RANDOMDIGITS"][j] = math.random(0,9)
-            ID["RANDOMSTRING"]=(ID["RANDOMSTRING"] .. ID["RANDOMDIGITS"][j])
-         end
-         ID["END_ID"] = "E"
+      local digits = ""
+      for i = 1, 17 do
+         digits = digits .. math.random(0, 9)
+      end
+      local newSerialNumber = "GDS" .. digits
 
-      local newSerialNumber = (ID["SIGNATURE"] .. ID["IDLOCATOR"].. string.sub(os.date("%Y%m%d"), 3, 8) .. ID["TIMESTAMP"] .. ID["RANDOMSTRING"] ..ID["END_ID"])
-      local doesRecordExits = gdsGui_saveLoad_doesSerialExist (recordsTable, newSerialNumber)
+      local doesRecordExist = gdsGui_saveLoad_doesSerialExist(recordsTable, newSerialNumber)
 
-      if doesRecordExits == true then
-
+      if doesRecordExist == true then
          numIteration = numIteration + 1
-
-         iterate = true 
-         print ("New Project ID was remade " .. numIteration .. "x because it was duplicated")
-
-      elseif doesRecordExits == false then
-         
+         iterate = true
+         print("New ID was remade " .. numIteration .. "x due to collision")
+      else
          result = newSerialNumber
-
       end
 
    end
@@ -427,104 +408,73 @@ function gdsGui_saveLoad_overwriteProjectData (id, dataLabel, newValue)
 
 end
 
---[[
-   Author: Julio Manuel Fernandez-Diaz
-   Date:   January 12, 2007
-   (For Lua 5.1)
-   Modified slightly by RiciLake to avoid the unnecessary table traversal in tablecount()
-   Formats tables with cycles recursively to any depth.
-   The output is returned as a string.
-   References to other tables are shown as values.
-   Self references are indicated.
-   The string returned is "Lua code", which can be procesed
-   				(in the case in which indent is composed by spaces or "--").
-   Userdata and function keys and values are shown as strings,
-   which logically are exactly not equivalent to the original code.
-   This routine can serve for pretty formating tables with
-   proper indentations, apart from printing them:
-      print(table.show(t, "t"))   -- a typical use
-   Heavily based on "Saving tables with cycles", PIL2, p. 113.
-   Arguments:
-      t is the table.
-      name is the name of the table (optional)
-      indent is a first indentation (optional).
---]]
-function table.show(t, name, indent)
-    local cart     -- a container
-    local autoref  -- for self references
- 
-    			--counts the number of elements in a table
-	-- local function tablecount(t)
-	--    local n = 0
-	--    for _, _ in pairs(t) do n = n+1 end
-	--    return n
-	-- end
+-- GDS Lua table serializer — original implementation by Gateway Dynamic Software, LLC
+-- Converts a Lua table to valid Lua source that can be reloaded with love.filesystem.load().
+-- Handles nested tables, cycles, all primitive types, and function references.
+function table.show(tbl, varName, baseIndent)
+    varName    = varName    or "__unnamed__"
+    baseIndent = baseIndent or ""
 
-    -- (RiciLake) returns true if the table is empty
-    local function isemptytable(t) return next(t) == nil end
- 
-    local function basicSerialize (o)
-       local so = tostring(o)
-       if type(o) == "function" then
-          local info = debug.getinfo(o, "S")
-          -- info.name is nil because o is not a calling level
-          if info.what == "C" then
-             return string.format("%q", so .. ", C function")
-          else
-             -- the information is defined through lines
-             return string.format("%q", so .. ", defined in (" ..
-                 info.linedefined .. "-" .. info.lastlinedefined ..
-                 ")" .. info.source)
-          end
-       elseif type(o) == "number" or type(o) == "boolean" then
-          return so
-       else
-          return string.format("%q", so)
-       end
+    local function encodeValue(v)
+        local vt = type(v)
+        if vt == "number" or vt == "boolean" then
+            return tostring(v)
+        elseif vt == "function" then
+            local di = debug.getinfo(v, "S")
+            if di.what == "C" then
+                return string.format("%q", tostring(v) .. ", C function")
+            end
+            return string.format("%q", tostring(v) ..
+                ", defined in (" .. di.linedefined ..
+                "-" .. di.lastlinedefined .. ")" .. di.source)
+        else
+            return string.format("%q", tostring(v))
+        end
     end
- 
-    local function addtocart (value, name, indent, saved, field)
-       indent = indent or ""
-       saved = saved or {}
-       field = field or name
- 
-       cart = cart .. indent .. field
- 
-       if type(value) ~= "table" then
-          cart = cart .. " = " .. basicSerialize(value) .. ";\n"
-       else
-          if saved[value] then
-             cart = cart .. " = {}; -- " .. saved[value]
-                         .. " (self reference)\n"
-             autoref = autoref ..  name .. " = " .. saved[value] .. ";\n"
-          else
-             saved[value] = name
-             --if tablecount(value) == 0 then
-             if isemptytable(value) then
-                cart = cart .. " = {};\n"
-             else
-                cart = cart .. " = {\n"
-                for k, v in pairs(value) do
-                   k = basicSerialize(k)
-                   local fname = string.format("%s[%s]", name, k)
-                   field = string.format("[%s]", k)
-                   -- three spaces between levels
-                   addtocart(v, fname, indent .. "   ", saved, field)
-                end
-                cart = cart .. indent .. "};\n"
-             end
-          end
-       end
+
+    if type(tbl) ~= "table" then
+        return varName .. " = " .. encodeValue(tbl)
     end
- 
-    name = name or "__unnamed__"
-    if type(t) ~= "table" then
-       return name .. " = " .. basicSerialize(t)
+
+    local chunks   = {}
+    local deferred = {}
+    local visited  = {}
+
+    local function walk(node, path, pad, labelExpr)
+        table.insert(chunks, pad .. labelExpr)
+
+        if type(node) ~= "table" then
+            chunks[#chunks] = chunks[#chunks] .. " = " .. encodeValue(node) .. ";\n"
+            return
+        end
+
+        if visited[node] then
+            chunks[#chunks] = chunks[#chunks] ..
+                " = {}; -- " .. visited[node] .. " (self reference)\n"
+            table.insert(deferred, path .. " = " .. visited[node] .. ";\n")
+            return
+        end
+
+        visited[node] = path
+
+        if next(node) == nil then
+            chunks[#chunks] = chunks[#chunks] .. " = {};\n"
+        else
+            chunks[#chunks] = chunks[#chunks] .. " = {\n"
+            for k, v in pairs(node) do
+                local ek    = encodeValue(k)
+                local child = string.format("%s[%s]", path, ek)
+                local lbl   = string.format("[%s]", ek)
+                walk(v, child, pad .. "   ", lbl)
+            end
+            table.insert(chunks, pad .. "};\n")
+        end
     end
-    cart, autoref = "", ""
-    addtocart(t, name, indent)
-    return cart .. autoref
- end
+
+    walk(tbl, varName, baseIndent, varName)
+    for _, s in ipairs(deferred) do table.insert(chunks, s) end
+    return table.concat(chunks)
+end
 
 --loads all available project data from file system files see lib
  gdsGui_saveLoad_loadFileContents ("savedProjectData.lua") 
