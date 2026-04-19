@@ -3,7 +3,7 @@
 	it uses open source software show.lua referenced below]]
 
 
-function createNewProjectData ( arrDataLabels, arrData, dataTable, recordIDLocator, numIDRandomDigit)
+function gdsGui_saveLoad_createProjectData ( arrDataLabels, arrData, dataTable, recordIDLocator, numIDRandomDigit)
 
    --[[takes a specially formated data table, checks if data labels and pieces
       count matched, checks if serial number exits, processes the data, organizes 
@@ -14,22 +14,22 @@ function createNewProjectData ( arrDataLabels, arrData, dataTable, recordIDLocat
    local recordIDLength = (string.len(globApp.devCompanyAcronym) + string.len(recordIDLocator) +  numIDRandomDigit + 10 --[[not changeable]])
 
 
-   local isThereNilLabels = areThereNILvalues (arrDataLabels)
-   local isThereNilDataPieces = areThereNILvalues (arrData)
-   local isSameNumOfLabelsAndData = areTwoTablesSameSize (arrDataLabels, arrData)
-   local isTableEmpty = isTableEmpty (dataTable)
+   local isThereNilLabels = gdsGui_saveLoad_hasNilValues (arrDataLabels)
+   local isThereNilDataPieces = gdsGui_saveLoad_hasNilValues (arrData)
+   local isSameNumOfLabelsAndData = gdsGui_saveLoad_areSameSize (arrDataLabels, arrData)
+   local gdsGui_saveLoad_isTableEmpty = gdsGui_saveLoad_isTableEmpty (dataTable)
 
 
-   local doesTableContainInvalidRecords = doesTableHaveInvalidRecordsIDs (dataTable, recordIDLocator, recordIDLength)
+   local doesTableContainInvalidRecords = gdsGui_saveLoad_hasInvalidIDs (dataTable, recordIDLocator, recordIDLength)
 
-   if isTableEmpty == true or  (isSameNumOfLabelsAndData == true and doesTableContainInvalidRecords == false and isThereNilLabels == false and isThereNilDataPieces == false) then
+   if gdsGui_saveLoad_isTableEmpty == true or  (isSameNumOfLabelsAndData == true and doesTableContainInvalidRecords == false and isThereNilLabels == false and isThereNilDataPieces == false) then
       
       local newProjectData = {}
       local timestamp = string.sub(os.time(), 8, 11)
 
    	newProjectData["dateCreated"] = os.date("%Y/%m/%d")
       newProjectData["data"] = {}
-      newProjectData["ID"] = createNewIdNumber_gdsLove2dGUI (dataTable, recordIDLocator, numIDRandomDigit)
+      newProjectData["ID"] = gdsGui_saveLoad_createIdNumber (dataTable, recordIDLocator, numIDRandomDigit)
 
       for i=1, #arrDataLabels, 1 do
          newProjectData[arrDataLabels[i]] = arrData [i]
@@ -44,15 +44,15 @@ function createNewProjectData ( arrDataLabels, arrData, dataTable, recordIDLocat
    end
 end
 
-function findTableIndexByRecordID (searchT, recordIDLocator,recordId, idLength)
+function gdsGui_saveLoad_findIndexByID (searchT, recordIDLocator,recordId, idLength)
    --[[returns numerical index representing a table record index number]]
-   local isTableEmpty = isTableEmpty (searchT)
-   local doesTableContainInvalidRecords = doesTableHaveInvalidRecordsIDs (searchT, recordIDLocator, idLength)
-   local isThereNilIndex = areThereNILvalues (searchT)
+   local gdsGui_saveLoad_isTableEmpty = gdsGui_saveLoad_isTableEmpty (searchT)
+   local doesTableContainInvalidRecords = gdsGui_saveLoad_hasInvalidIDs (searchT, recordIDLocator, idLength)
+   local isThereNilIndex = gdsGui_saveLoad_hasNilValues (searchT)
 
    local indexMatch = false
 
-   if isTableEmpty == false and doesTableContainInvalidRecords == false and isThereNilIndex == false then
+   if gdsGui_saveLoad_isTableEmpty == false and doesTableContainInvalidRecords == false and isThereNilIndex == false then
       local foundRecord = {}
       for i=1, #searchT, 1 do
          if searchT[i]["ID"] == recordId then
@@ -70,7 +70,7 @@ function findTableIndexByRecordID (searchT, recordIDLocator,recordId, idLength)
    end
 end 
 
-function rtrnProjectDataFromIndexNum (t, indexNum, rtrnType)
+function gdsGui_saveLoad_getDataByIndex (t, indexNum, rtrnType)
    -- rtrnType Table or info 
    local tblResult = {}
 
@@ -98,7 +98,7 @@ function rtrnProjectDataFromIndexNum (t, indexNum, rtrnType)
    end
 end
 
-function areThereNILvalues (tableOrVariable)
+function gdsGui_saveLoad_hasNilValues (tableOrVariable)
    --[[ returns true if NIL values are found in table or variable]]
    local result = true 
 
@@ -119,7 +119,7 @@ function areThereNILvalues (tableOrVariable)
    end
 end
 
-function areTwoTablesSameSize (table1, table2)
+function gdsGui_saveLoad_areSameSize (table1, table2)
    --[[ INFO: compares the number of variables in a single dimension array
 
       INPUT:
@@ -139,7 +139,7 @@ function areTwoTablesSameSize (table1, table2)
    return result
 end
 
-function doesTableHaveInvalidRecordsIDs (table, recordIDLocator, idLength)
+function gdsGui_saveLoad_hasInvalidIDs (table, recordIDLocator, idLength)
 
    --[[ INFO: compares the number of variables in a single dimension array
 
@@ -189,7 +189,7 @@ function doesTableHaveInvalidRecordsIDs (table, recordIDLocator, idLength)
    return result
 end
 
-function createNewIdNumber_gdsLove2dGUI (recordsTable, recordIDLocator, numRandomDigits)
+function gdsGui_saveLoad_createIdNumber (recordsTable, recordIDLocator, numRandomDigits)
 
    --[[ INFO: creates a serial number based on GDS code, timestamp last 4, 7 
          random nums from 0 to 9, and character E for end, checks if 
@@ -225,7 +225,7 @@ function createNewIdNumber_gdsLove2dGUI (recordsTable, recordIDLocator, numRando
          ID["END_ID"] = "E"
 
       local newSerialNumber = (ID["SIGNATURE"] .. ID["IDLOCATOR"].. string.sub(os.date("%Y%m%d"), 3, 8) .. ID["TIMESTAMP"] .. ID["RANDOMSTRING"] ..ID["END_ID"])
-      local doesRecordExits = doesSerialNumExistsInTable (recordsTable, newSerialNumber)
+      local doesRecordExits = gdsGui_saveLoad_doesSerialExist (recordsTable, newSerialNumber)
 
       if doesRecordExits == true then
 
@@ -245,7 +245,7 @@ function createNewIdNumber_gdsLove2dGUI (recordsTable, recordIDLocator, numRando
    return result
 end
 
-function isTableEmpty (table)
+function gdsGui_saveLoad_isTableEmpty (table)
 
    local result = false
 
@@ -258,7 +258,7 @@ function isTableEmpty (table)
    return result
 end
 
-function doesSerialNumExistsInTable (table, projectID)
+function gdsGui_saveLoad_doesSerialExist (table, projectID)
 
    --[[ INFO: returns true or false depending if project id exits in
          provided table
@@ -305,7 +305,7 @@ function pairsByKeys (t, f)
   return iter
 end
 
-function sortProjectsTable()
+function gdsGui_saveLoad_sortProjectsTable()
 
   local sortedTable = {}
 
@@ -334,7 +334,7 @@ function sortProjectsTable()
   globApp.projects = sortedTable
 end
 
-function sortDataTable (parTable)
+function gdsGui_saveLoad_sortDataTable (parTable)
    local preSortingData = parTable
    local sortedIndexes = {}
    --creates a table with indexes based on preSortingData table count
@@ -355,7 +355,7 @@ function sortDataTable (parTable)
    return sortedTable
 end
 
-function saveNewProject (fileName, Data, SavingTag)
+function gdsGui_saveLoad_saveProject (fileName, Data, SavingTag)
   --[[called from main.lua create new project button]]
 	--[[fileName --------------string --------------------name of dataSavingFile
 		Data-------------------Multiple-------------------any data type, preferebly table
@@ -364,7 +364,7 @@ function saveNewProject (fileName, Data, SavingTag)
   love.filesystem.write(fileName, table.show(Data, SavingTag))
 end
 
-function loadLuaFileContents (strFileName)
+function gdsGui_saveLoad_loadFileContents (strFileName)
    --[[checks if file exists]]
 	if love.filesystem.getInfo (strFileName) then 
       --[[assigns function that loads data contained in file to variable]]
@@ -374,7 +374,7 @@ function loadLuaFileContents (strFileName)
 	end
 end
 
-function updatedProjectAvailability ()
+function gdsGui_saveLoad_updateProjectAvailability ()
 
   local availability = false
 
@@ -387,7 +387,7 @@ function updatedProjectAvailability ()
 	globApp.projectAvailable = availability
 end
 
-function deletedProject (t, projectID)
+function gdsGui_saveLoad_deleteProject (t, projectID)
    -- convert id to index number
    local deletingIndex = ""
    for i, prjt in ipairs (globApp.projects) do
@@ -404,10 +404,10 @@ function deletedProject (t, projectID)
          globApp.projectsTblChanged = true
       end
    end
-   saveNewProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
+   gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
 end
 
-function overWriteProjectData (id, dataLabel, newValue)
+function gdsGui_saveLoad_overwriteProjectData (id, dataLabel, newValue)
 
    for i, prjt in ipairs (globApp.projects) do
       if id == prjt.ID then 
@@ -416,9 +416,9 @@ function overWriteProjectData (id, dataLabel, newValue)
 
          -- print ("index= " .. i .. " / " .. prjt.ID .. " found /" .. prjt[dataLabel]) 
 
-         sortProjectsTable()
+         gdsGui_saveLoad_sortProjectsTable()
 
-         saveNewProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
+         gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
 
          globApp.projectsTblChanged = true
 
@@ -527,4 +527,4 @@ function table.show(t, name, indent)
  end
 
 --loads all available project data from file system files see lib
- loadLuaFileContents ("savedProjectData.lua") 
+ gdsGui_saveLoad_loadFileContents ("savedProjectData.lua") 

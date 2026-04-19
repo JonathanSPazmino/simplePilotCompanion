@@ -78,7 +78,7 @@ local function _syncTblScrollbars(tbl)
 		local pos = math.max(0, math.min(1, -tbl.scroll.offsetY / spanY))
 		for _, sb in ipairs(globApp.objects.scrollBars) do
 			if sb.id == tbl.verticalScrollBar.name then
-				updateScrollingBarPosition(sb, pos)
+				gdsGui_scrollBar_updatePosition(sb, pos)
 				tbl.dataCurrentVertPosition = pos
 				break
 			end
@@ -89,7 +89,7 @@ local function _syncTblScrollbars(tbl)
 		local pos = math.max(0, math.min(1, -tbl.scroll.offsetX / spanX))
 		for _, sb in ipairs(globApp.objects.scrollBars) do
 			if sb.id == tbl.horizontalScrollBar.name then
-				updateScrollingBarPosition(sb, pos)
+				gdsGui_scrollBar_updatePosition(sb, pos)
 				tbl.dataCurrentHorzPosition = pos
 				break
 			end
@@ -100,7 +100,7 @@ end
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
-function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles, hapticEnabled)
+function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles, hapticEnabled)
 
 	local t = {}
 
@@ -144,10 +144,10 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		local original = tbl.original
 		
 		-- Recalculate frame
-		local newDims = gui_getObjectScaledDimensions(original.width, original.height, original.aspectRatio)
+		local newDims = gdsGui_general_getScaledDimensions(original.width, original.height, original.aspectRatio)
 		tbl.frame.width = newDims.width
 		tbl.frame.height = newDims.height
-		local framePositions = relativePosition(original.anchorPoint, original.x, original.y, tbl.frame.width, tbl.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+		local framePositions = gdsGui_general_relativePosition(original.anchorPoint, original.x, original.y, tbl.frame.width, tbl.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 		tbl.frame.x = framePositions[1]
 		tbl.frame.y = framePositions[2]
 
@@ -231,12 +231,12 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 		
 		-- Header cell height: lines needed for header text + one font-size of padding on each side
 		local headerLineCount = math.max(1, findMaxNumOfLinesNeeded(tbl.fonts.headers.font, tbl.textWrapCellPercentWidth, headerData))
-		local actualHeaderFontHeight = returnFontInfo(tbl.fonts.headers.font, "height")
+		local actualHeaderFontHeight = gdsGui_general_returnFontInfo(tbl.fonts.headers.font, "height")
 		tbl.headersBox.h = (actualHeaderFontHeight * headerLineCount) + (2 * tbl.fonts.headers.size)
 
 		-- Data cell height: sized for the widest data row content only
 		local maxDataLineCount = 1
-		local actualCellFontHeight = returnFontInfo(tbl.fonts.cells.font, "height")
+		local actualCellFontHeight = gdsGui_general_returnFontInfo(tbl.fonts.cells.font, "height")
 		for i = 1, tbl.rowsCount, 1 do
 			local textTable = {}
 			for z=1, #headerData, 1 do textTable[z] = table_lookUp(dataTable, i, headerData[z]) end
@@ -355,14 +355,14 @@ function gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataT
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 
 	-- Create the scrollbar objects
-	gui_scrollBar_create (t.verticalScrollBar.name, t.page, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
-	gui_scrollBar_create (t.horizontalScrollBar.name, t.page, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
+	gdsGui_scrollBar_create (t.verticalScrollBar.name, t.page, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
+	gdsGui_scrollBar_create (t.horizontalScrollBar.name, t.page, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
 end
 
 ------------------------------------------------------------
 			--OBJECT UPDATE
 ------------------------------------------------------------
-function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+function gdsGui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
 	for i, t in ipairs(globApp.objects.tables) do 
 
@@ -374,7 +374,7 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			t.frame.width = (tableWidth * globApp.safeScreenArea.w)
 			t.frame.height = (tableHeight * globApp.safeScreenArea.h)
 			local framePositions = 
-				relativePosition(anchorPoint, 
+				gdsGui_general_relativePosition(anchorPoint, 
 								myX, 
 								myY, 
 								t.frame.width, 
@@ -486,12 +486,12 @@ function gui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataT
 			
 			-- Header cell height: lines needed for header text + one font-size of padding on each side
 			local headerLineCount = math.max(1, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
-			local actualHeaderFontHeight = returnFontInfo(t.fonts.headers.font, "height")
+			local actualHeaderFontHeight = gdsGui_general_returnFontInfo(t.fonts.headers.font, "height")
 			t.headersBox.h = (actualHeaderFontHeight * headerLineCount) + (2 * t.fonts.headers.size)
 
 			-- Data cell height: sized for the widest data row content only
 			local maxDataLineCount = 1
-			local actualCellFontHeight = returnFontInfo(t.fonts.cells.font, "height")
+			local actualCellFontHeight = gdsGui_general_returnFontInfo(t.fonts.cells.font, "height")
 			for i = 1, t.rowsCount, 1 do
 				local textTable = {}
 				for z=1, #headerData, 1 do
@@ -680,7 +680,7 @@ function uniqueHeaderFilter (array, headerCount)
 	return headers
 end
 
-function gui_table_draw (pageName)
+function gdsGui_table_draw (pageName)
 
 	-- local activePageName = 0
 
@@ -697,14 +697,14 @@ function gui_table_draw (pageName)
 
 		-- if spreadSheetExists == false then --[[runs once]]
 
-		-- 	gui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
+		-- 	gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
 		-- elseif spreadSheetExists == true and (globApp.resizeDetected == true or globApp.projectsTblChanged == true) then --[[updates only if window is resized]]
 
 		-- if globApp.projectAvailable == false then
 		-- -- 	spreadSheet_update(spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 		-- -- else  
-		-- 	page_switch ("LoadingMainMenu", 3, 2, false)
+		-- 	gdsGui_page_switch ("LoadingMainMenu", 3, 2, false)
 		-- end
 		-- 	globApp.projectsTblChanged = false
 
@@ -1018,14 +1018,14 @@ function table_lookUp (array, rcrdIndex, header)
 	return cellContent
 end
 
--- Called from gdsGUI_touchmoved and gdsGUI_mousemoved.
+-- Called from gdsGui_general_touchmoved and gdsGui_general_mousemoved.
 -- Applies rubber-band drag and accumulates velocity for momentum physics.
-function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
+function gdsGui_table_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 	-- Accept both touch-slide and mouse-button-held drags.
 	local isGestureActive = (globApp.userInput == "slide") or love.mouse.isDown(1)
 	if not isGestureActive then return end
 
-	local activePage = returnCurrentPageName()
+	local activePage = gdsGui_page_currentName()
 	for _, tbl in ipairs(globApp.objects.tables) do
 		if not tbl.scroll then goto continue end
 		if tbl.page ~= activePage then goto continue end
@@ -1089,7 +1089,7 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 			if tbl.hapticEnabled then
 				local nowOutY = tbl.scroll.offsetY < minY or tbl.scroll.offsetY > maxY
 				if prevInBoundsY and nowOutY then
-					gui_haptic_vibrate()
+					gdsGui_haptics_vibrate()
 				end
 			end
 
@@ -1101,7 +1101,7 @@ function touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
 	end
 end
 
--- Called from gdsGUI_touchreleased and gdsGUI_mousereleased.
+-- Called from gdsGui_general_touchreleased and gdsGui_general_mousereleased.
 -- Seeds the correct physics phase from accumulated drag velocity.
 function gui_touchReleasedTableScroll (x, y)
 	for _, tbl in ipairs(globApp.objects.tables) do
@@ -1141,11 +1141,11 @@ function gui_touchReleasedTableScroll (x, y)
 	end
 end
 
--- Called every frame from jpGUI_update(dt). Runs coasting and spring-back physics.
-function gui_table_physics_update (dt)
+-- Called every frame from gdsGui_update(dt). Runs coasting and spring-back physics.
+function gdsGui_table_physicsUpdate (dt)
 	if not dt or dt <= 0 then return end
 
-	local activePage = returnCurrentPageName()
+	local activePage = gdsGui_page_currentName()
 	for _, tbl in ipairs(globApp.objects.tables) do
 		if not tbl.scroll then goto continue end
 		if tbl.page ~= activePage then goto continue end
@@ -1255,7 +1255,7 @@ function touchedCell (x, y, button, istouch, mySpreadSheet)
 	return cell
 end
 
-function tableRow_Select (x,y,button,istouch)
+function gdsGui_table_rowSelect (x,y,button,istouch)
 
 	--isolate table
 	local myTable = globApp.objects.tables
@@ -1284,7 +1284,7 @@ function tableRow_Select (x,y,button,istouch)
 
 			for i, tbl in ipairs (myTable) do
 
-				if returnCurrentPageName() == tbl.page then
+				if gdsGui_page_currentName() == tbl.page then
 					for j, cl in ipairs (tbl.cells) do
 
 						if cl.row ~= 1 then
@@ -1433,13 +1433,13 @@ function tablefuncCallbackToString (strgFuncCallBackName, parameters)
 	return (fullStringPath)
 end
 
-function tableButtonsPressed (x,y,button,istouch)
+function gdsGui_table_buttonsPressed (x,y,button,istouch)
 
 	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch pressed" then
 		for i, tbl in ipairs (myTable) do
-			if returnCurrentPageName() == tbl.page then
+			if gdsGui_page_currentName() == tbl.page then
 				for j, bt in pairs (tbl.buttons) do
 					if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
 						if bt.isFocused == false then
@@ -1452,13 +1452,13 @@ function tableButtonsPressed (x,y,button,istouch)
 	end
 end
 
-function tableButtonsReleased (x,y,button,istouch)
+function gdsGui_table_buttonsReleased (x,y,button,istouch)
 
 	local myTable = globApp.objects.tables
 
 	if button == 1 or globApp.userInput == "touch released" then
 		for i, tbl in ipairs (myTable) do
-			if returnCurrentPageName() == tbl.page then
+			if gdsGui_page_currentName() == tbl.page then
 				for j, bt in pairs (tbl.buttons) do
 					if x >= bt.x and x <= (bt.x + bt.width) and y >= bt.y and y <= (bt.y + bt.height) then
 						if bt.isFocused == true then
@@ -1653,11 +1653,11 @@ function tableDeleteButton_released (x,y,button,istouch)
 
 			end
 
-			local selectProjIndex = findTableIndexByRecordID (globApp.projects, "NTI",myResult[2], 23)
+			local selectProjIndex = gdsGui_saveLoad_findIndexByID (globApp.projects, "NTI",myResult[2], 23)
 
 			--pass parameters to table callback function
-			deletedProject (globApp.projects, selectProjIndex)
-			saveNewProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
+			gdsGui_saveLoad_deleteProject (globApp.projects, selectProjIndex)
+			gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
 			recordErased = true
 			print (recordErased)
 

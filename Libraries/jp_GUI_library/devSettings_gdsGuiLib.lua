@@ -10,12 +10,12 @@ local guiVersion = MAIN_GDSGUI_VERSION
 
 local devSettings = {}
 		devSettings.amIdeveloping = true
-		devSettings.developerPrint = 1
+		devSettings.gdsGui_dev_print = 1
 		devSettings.displayFPS = 1
 
 
-function developerPrint (printingValue, OnOffSwitch)
-	if devSettings.amIdeveloping == true and (OnOffSwitch == "on" or OnOffSwitch == "ON" or OnOffSwitch == "On") and devSettings.developerPrint == 1 then
+function gdsGui_dev_print (printingValue, OnOffSwitch)
+	if devSettings.amIdeveloping == true and (OnOffSwitch == "on" or OnOffSwitch == "ON" or OnOffSwitch == "On") and devSettings.gdsGui_dev_print == 1 then
 		print (printingValue)
 	end
 end
@@ -28,7 +28,7 @@ local devDataDisplay = {}
 		devDataDisplay.font = {}
 			devDataDisplay.font.transparency = .40
 			devDataDisplay.font.color = {1, 1, 1}
-			devDataDisplay.font.size = math.floor(smartFontScaling (0.02, 0.037))
+			devDataDisplay.font.size = math.floor(gdsGui_general_smartFontScaling (0.02, 0.037))
 			devDataDisplay.font.font = love.graphics.newFont(devDataDisplay.font.size)
 		--TOP ROW
 		devDataDisplay.topRow = {}
@@ -56,7 +56,7 @@ local devDataDisplay = {}
 			devDataDisplay.bottomRow.y = (globApp.safeScreenArea.y + globApp.safeScreenArea.h ) - (devDataDisplay.font.size * 2)
 			--BOTTOM ROW PAGE ID
 			devDataDisplay.bottomRow.pageID = {}
-				devDataDisplay.bottomRow.pageID.text = returnCurrentPageName ()
+				devDataDisplay.bottomRow.pageID.text = gdsGui_page_currentName ()
 				devDataDisplay.bottomRow.pageID.x = globApp.safeScreenArea.x + devDataDisplay.font.size 
 			--BOTTOM ROW OBJECT COUNT DISPLAY
 			devDataDisplay.bottomRow.dsplydOjCount = {}
@@ -67,11 +67,11 @@ local devDataDisplay = {}
 				devDataDisplay.bottomRow.GUIversion.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * 0.90) - 45
 				devDataDisplay.bottomRow.GUIversion.text = guiVersion
 
-function updateDevDisplaysParameters (dt)
+function gdsGui_dev_updateDisplays (dt)
 	--WILL RUN ONLY WHEN RESIZE FUNCTION RETURNS TRUE
 	if globApp.resizeDetected == true then
 		--FONT
-			devDataDisplay.font.size = math.floor(smartFontScaling (0.02, 0.037))
+			devDataDisplay.font.size = math.floor(gdsGui_general_smartFontScaling (0.02, 0.037))
 			devDataDisplay.font.font = love.graphics.newFont(devDataDisplay.font.size)
 
 		--TOP_ROW 
@@ -104,11 +104,11 @@ function updateDevDisplaysParameters (dt)
 		devDataDisplay.topRow.fpsData.timer = devDataDisplay.topRow.fpsData.period
 		devDataDisplay.topRow.fpsData.display = "FPS: ".. devDataDisplay.topRow.fpsData.fps
 	end
-	devDataDisplay.bottomRow.pageID.text = returnCurrentPageName ()
+	devDataDisplay.bottomRow.pageID.text = gdsGui_page_currentName ()
 	devDataDisplay.bottomRow.dsplydOjCount.text = globApp.numObjectsDisplayed
 end
 
-function drawTopRowDevDisplays ()
+function gdsGui_dev_drawTopRow ()
 	--RUNS ONLY IF DEV DISPLAYS ARE SELECTED VISIBLE FROM VAR DECLARATION
 	if devSettings.amIdeveloping == true and devDataDisplay.topRow.isVisible == true then
 		--GENERAL
@@ -131,7 +131,7 @@ function drawTopRowDevDisplays ()
 	end
 end
 
-function drawBottomRowDevDisplays ()
+function gdsGui_dev_drawBottomRow ()
 
 	if devSettings.amIdeveloping == true and devDataDisplay.bottomRow.isVisible == true then
 
@@ -148,7 +148,7 @@ function drawBottomRowDevDisplays ()
 	end
 end
 
-function drawAllDevDisplays ()
+function gdsGui_dev_drawAll ()
 
 	--DEVELOPER PAGES
 	-- developerMenuPage()
@@ -166,11 +166,11 @@ function drawAllDevDisplays ()
 	-- devAboutPage ()
 
 	--DEVELOPER DISPLAYS:
-	drawTopRowDevDisplays ()
+	gdsGui_dev_drawTopRow ()
 
-	drawBottomRowDevDisplays ()
+	gdsGui_dev_drawBottomRow ()
 
-	testTimeTrigger ()
+	gdsGui_timeControl_testTrigger ()
 
 	love.graphics.reset ()
 end
@@ -196,7 +196,7 @@ local function returnDesktopDimensions (strgMode)
 	end
 end
 
-function DrawScanCode (mykey) --I check status of this function posible trash it.
+function gdsGui_dev_drawScanCode (mykey) --I check status of this function posible trash it.
 	local printingString = "nothing pressed yet"
 	local testkey = mykey
 
@@ -221,7 +221,7 @@ end
 --------------------------------------------------------------------------------
 devTests = {}
 
-function devTest_create (myLable, myTestingUnit, myInput, myExpectedOutPut)
+function gdsGui_dev_testCreate (myLable, myTestingUnit, myInput, myExpectedOutPut)
 
 	--[[GUIDE:
 		NOTES: unlimited input and output table paramters
@@ -342,7 +342,7 @@ function devTest_create (myLable, myTestingUnit, myInput, myExpectedOutPut)
 
 	NewTest.elapsedTime = tonumber(string.format("%.5f", endTime * 1000))
 
-	local serializedUnitTestData = createNewProjectData ({"name","result","path","test","failingParameter","elapsedTime","output"}, {NewTest.name, NewTest.result, NewTest.path, NewTest.test, NewTest.failingParameter, NewTest.elapsedTime, NewTest.output}, devTests, "UTL", 7)
+	local serializedUnitTestData = gdsGui_saveLoad_createProjectData ({"name","result","path","test","failingParameter","elapsedTime","output"}, {NewTest.name, NewTest.result, NewTest.path, NewTest.test, NewTest.failingParameter, NewTest.elapsedTime, NewTest.output}, devTests, "UTL", 7)
 	
 	table.insert(devTests, serializedUnitTestData)
 
@@ -350,7 +350,7 @@ function devTest_create (myLable, myTestingUnit, myInput, myExpectedOutPut)
 
 end
 
-function devTest_execute (testSpecs)
+function gdsGui_dev_testExecute (testSpecs)
 
 	--[[ 
 		PARAMETERS:
@@ -384,14 +384,14 @@ function devTest_execute (testSpecs)
 		end
 
 		if testCount == 0 or testExists == false then
-			devTest_create (testId, functionID, parameters, results)
+			gdsGui_dev_testCreate (testId, functionID, parameters, results)
 		end
 	end
 end
 
 
 
-function write_unit_test_results (alertMode, alertType)
+function gdsGui_dev_writeTestResults (alertMode, alertType)
 
 	if alertMode == "console" then
 
@@ -401,24 +401,24 @@ function write_unit_test_results (alertMode, alertType)
 
 				local stringResult = (test.result.. " __ in ".. test.elapsedTime .. " secs." .. " __ " .. test.name .. " failures: " .. test.failingParameter)
 				-- print (stringResult)
-				generateConsoleMessage ("error", stringResult)
+				gdsGui_generateConsoleMessage ("error", stringResult)
 
 			elseif test.result == "passed" and alertType == "passed" then
 
 				local stringResult = (test.result.. " __ in ".. test.elapsedTime .. " secs." .. " __ " .. test.name )
-				generateConsoleMessage ("info", stringResult)
+				gdsGui_generateConsoleMessage ("info", stringResult)
 
 			elseif alertType == "all" then
 
 				if test.result ~= "passed" then
 
 					local stringResult = (test.result.. " __ in ".. test.elapsedTime .. " secs." .. " __ " .. test.name .. " failures: " .. test.failingParameter)
-					generateConsoleMessage ("error", stringResult)
+					gdsGui_generateConsoleMessage ("error", stringResult)
 
 				elseif test.result == "passed" then
 
 					local stringResult = (test.result.. " __ in ".. test.elapsedTime .. " secs." .. " __ " .. test.name )
-					generateConsoleMessage ("info", stringResult)
+					gdsGui_generateConsoleMessage ("info", stringResult)
 
 				end
 
@@ -431,7 +431,7 @@ function write_unit_test_results (alertMode, alertType)
 end
 
 
-function open_DevPgByEightTapping (x,y,button,istouch)
+function gdsGui_dev_openByEightTap (x,y,button,istouch)
 
 	if globApp.developerMode == true then
 
@@ -439,14 +439,14 @@ function open_DevPgByEightTapping (x,y,button,istouch)
 			
 			globApp.devTapCounter = globApp.devTapCounter + 1
 
-			generateConsoleMessage ("info", "devTap #"..globApp.devTapCounter)
+			gdsGui_generateConsoleMessage ("info", "devTap #"..globApp.devTapCounter)
 
 			if globApp.devTapCounter == 8 then
 
 				globApp.fourDevTap = true 
 
 				globApp.devTapCounter = 0
-				generateConsoleMessage ("info", "Developer access granted")
+				gdsGui_generateConsoleMessage ("info", "Developer access granted")
 			end
 			
 		end
@@ -466,59 +466,59 @@ end
 							--SWITCH PAGES FUNCTIONS
 ----------------------------------------------------------------------------------
 
-function openDevMainMenu ()
+function gdsGui_dev_openMainMenu ()
 
-	page_switch ("LodingDeveloperMenu", 20050, 2, false)
+	gdsGui_page_switch ("LodingDeveloperMenu", 20050, 2, false)
 
 end
 
 local safeLoadTimer = 0.1
 
-function leaveDeveloperGUI ()
+function gdsGui_dev_leave ()
 
 	globApp.fourDevTap = false
 
 	globApp.devTapCounter = 0
 
-	page_switch ("leavingDevPage", 3, safeLoadTimer, false)
+	gdsGui_page_switch ("leavingDevPage", 3, safeLoadTimer, false)
 
 end
 
 
-function openUnitTestPage ()
-	gdsGUI_executeAllUnitTests ("DeveloperMenu")
+function gdsGui_dev_openUnitTestPage ()
+	gdsGui_unitTests_executeAll ("DeveloperMenu")
 
 	if globApp.currentPageIndex == 20054 then
 		focusedUnitTest = "none"
 	end
-	page_switch ("LoadingUnitTestsPage", 20051, 2, false)
+	gdsGui_page_switch ("LoadingUnitTestsPage", 20051, 2, false)
 
 end
 
 
-function openScreenTestsMenuPage ()
+function gdsGui_dev_openScreenTestsPage ()
 
-	page_switch ("LoadingScreenTestsMenuPage", 20052, 2, false)
-
-end
-
-function openDevEraseDataConfirmationPage ()
-
-	page_switch ("LoadingScreenTestsMenuPage", 20055, .3, false)
+	gdsGui_page_switch ("LoadingScreenTestsMenuPage", 20052, 2, false)
 
 end
 
+function gdsGui_dev_openEraseDataPage ()
 
-function openSwitchScreenSizePage ()
-
-	ScreenSimulatorsInit ()
-
-	page_switch ("LoadingSwitchScreenSizePage", 20053, 2, false)
+	gdsGui_page_switch ("LoadingScreenTestsMenuPage", 20055, .3, false)
 
 end
 
-function openDevAboutPage ()
-	page_switch ("LoadingDevAboutPage", 20056, 2, false)
+
+function gdsGui_dev_openSwitchScreenPage ()
+
+	gdsGui_dev_screenSimulatorsInit ()
+
+	gdsGui_page_switch ("LoadingSwitchScreenSizePage", 20053, 2, false)
+
+end
+
+function gdsGui_dev_openAboutPage ()
+	gdsGui_page_switch ("LoadingDevAboutPage", 20056, 2, false)
 
 end
 
@@ -539,11 +539,11 @@ end
 
 
 
-function createDevMenuObjects()
+function gdsGui_dev_createMenuObjects()
 
 	local thisPageName = "DeveloperMenu"
 
-	gui_button_create("unitTest"--[[ButtonLable]], 
+	gdsGui_button_create("unitTest"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devUnitTest_pushed.png")--[[sprite: pushed]],
@@ -552,12 +552,12 @@ function createDevMenuObjects()
 		.5--[[x coordinate]],
 		.20--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"openUnitTestPage"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openUnitTestPage"--[[callback function]], 
 		1--[[button initial status]])
 
-	gui_button_create("screenDevTests"--[[ButtonLable]], 
+	gdsGui_button_create("screenDevTests"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_screenTestMenuButton_pushed.png")--[[sprite: pushed]],
@@ -566,12 +566,12 @@ function createDevMenuObjects()
 		.5--[[x coordinate]],
 		.35--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"openScreenTestsMenuPage"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openScreenTestsPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	gui_button_create("resetData"--[[ButtonLable]], 
+	gdsGui_button_create("resetData"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devEraseDataButton_pushed.png")--[[sprite: pushed]],
@@ -580,12 +580,12 @@ function createDevMenuObjects()
 		.5--[[x coordinate]],
 		.50--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"openDevEraseDataConfirmationPage"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openEraseDataPage"--[[callback function]], 
 		screenTestButtonInitialState --[[button initial status]])
 
-	gui_button_create("aboutAppPage"--[[ButtonLable]], 
+	gdsGui_button_create("aboutAppPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_devaAboutButton_pressed.png")--[[sprite: pushed]],
@@ -594,13 +594,13 @@ function createDevMenuObjects()
 		.5--[[x coordinate]],
 		.65--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"openDevAboutPage"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openAboutPage"--[[callback function]], 
 		1--[[button initial status]])
 
 
-	gui_button_create("exitDevMenu"--[[ButtonLable]], 
+	gdsGui_button_create("exitDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_exitDevMenuButton_pushed.png")--[[sprite: pushed]],
@@ -609,19 +609,19 @@ function createDevMenuObjects()
 		.5--[[x coordinate]],
 		.80--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"leaveDeveloperGUI"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_leave"--[[callback function]], 
 		1--[[button initial status]])
 end 
 
-createDevMenuObjects()
+gdsGui_dev_createMenuObjects()
 
-function createScreenTestMenuObjects ()
+function gdsGui_dev_createScreenTestObjects ()
 
 	local thisPageName = "screenTestsMenu"
 
-	gui_button_create("returnDevMenu"--[[ButtonLable]], 
+	gdsGui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -630,12 +630,12 @@ function createScreenTestMenuObjects ()
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openDevMainMenu"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	gui_button_create("switchScreenSize"--[[ButtonLable]],
+	gdsGui_button_create("switchScreenSize"--[[ButtonLable]],
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_switchScreenSizeButton_pushed.png")--[[sprite: pushed]],
@@ -644,20 +644,20 @@ function createScreenTestMenuObjects ()
 		.5--[[x coordinate]],
 		.25--[[y coordinate]],
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"openSwitchScreenSizePage"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openSwitchScreenPage"--[[callback function]],
 		1--[[button initial status]])
 end
 
-createScreenTestMenuObjects ()
+gdsGui_dev_createScreenTestObjects ()
 
 
-function createDevEraseDataConfirmationMenuObjects ()
+function gdsGui_dev_createEraseDataObjects ()
 
 	local thisPageName = "devEraseDataConfirmationPage"
 
-	gui_button_create("returnDevMenu"--[[ButtonLable]], 
+	gdsGui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -666,12 +666,12 @@ function createDevEraseDataConfirmationMenuObjects ()
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openDevMainMenu"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	gui_button_create("yesConfirmation"--[[ButtonLable]], 
+	gdsGui_button_create("yesConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -680,12 +680,12 @@ function createDevEraseDataConfirmationMenuObjects ()
 		.15--[[x coordinate]],
 		.70--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
-		"deleteAllProjectData"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
+		"gdsGui_dev_deleteAllProjectData"--[[callback function]],
 		1--[[button initial status]])
 
-	gui_button_create("noConfirmation"--[[ButtonLable]], 
+	gdsGui_button_create("noConfirmation"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_noConfirmButton_pushed.png")--[[sprite: pushed]],
@@ -694,44 +694,44 @@ function createDevEraseDataConfirmationMenuObjects ()
 		.60--[[x coordinate]],
 		.70--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
-		smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
-		"openDevMainMenu"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
+		"gdsGui_dev_openMainMenu"--[[callback function]],
 		1--[[button initial status]])
 end
 
-createDevEraseDataConfirmationMenuObjects ()
+gdsGui_dev_createEraseDataObjects ()
 
-function deleteAllProjectData ()
+function gdsGui_dev_deleteAllProjectData ()
 	--delete data from love2d memory
 	for i = #globApp.projects,1,-1 do
         table.remove(globApp.projects,i)
    end
    --ovewrite data file with empty table:
-   saveNewProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
+   gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
 
    --returns to devMainMenu after deleting all project data:
-   openDevMainMenu ()
+   gdsGui_dev_openMainMenu ()
 end
 
-function createDevUnitTestMenuObjects ()
+function gdsGui_dev_createUnitTestObjects ()
 
 	local thisPageName = "UnitTesting"
-	gdsGUI_executeAllUnitTests ("DeveloperMenu")
+	gdsGui_unitTests_executeAll ("DeveloperMenu")
 
-	gui_table_create (
+	gdsGui_table_create (
 		"devUnitTest", --[spreadsheet name]
 		thisPageName, --[[page]]
 		"static", --[[type]]
 		devTests,--[[dataTable]]
 		.5, --[[x position]]
-		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+		gdsGui_general_smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
 		.8, --[[table width]]
 		.6,--[[table height]]
 		"CT", --[[anchor point]]
 		nil, --[[bg sprite]]
-		{ 	[1]={["INFO"]="openSelectedUTInfoCallback"},},--[[callback function]]
-		smartFontScaling (0.025, 0.032),--[[font size]]
+		{ 	[1]={["INFO"]="gdsGui_dev_openUTInfoCallback"},},--[[callback function]]
+		gdsGui_general_smartFontScaling (0.025, 0.032),--[[font size]]
 		{	[1] = "name", 
 			[2]= "result", 
 			[3] = "failingParameter"},
@@ -739,7 +739,7 @@ function createDevUnitTestMenuObjects ()
 
 
 
-	gui_button_create("returnDevMenu"--[[ButtonLable]], 
+	gdsGui_button_create("returnDevMenu"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -748,28 +748,28 @@ function createDevUnitTestMenuObjects ()
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openDevMainMenu"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openMainMenu"--[[callback function]], 
 		1--[[button initial status]])
 end
 
-createDevUnitTestMenuObjects ()
+gdsGui_dev_createUnitTestObjects ()
 
 local focusedUnitTest = "none"
-function openSelectedUTInfoCallback (utID)
+function gdsGui_dev_openUTInfoCallback (utID)
 
 	focusedUnitTest = utID
 
-	openUnitTestInfoPage ()
+	gdsGui_dev_openUTInfoPage ()
 end
 
-function openUnitTestInfoPage ()
+function gdsGui_dev_openUTInfoPage ()
 
-	page_switch ("LodingUnitTestInfoPage", 20054, .5, false)
+	gdsGui_page_switch ("LodingUnitTestInfoPage", 20054, .5, false)
 end
 
-function createUnitTestInfoMenuObjects ()
+function gdsGui_dev_createUTInfoObjects ()
 
 	local thisPageName = "unitTestInfo"
 	
@@ -790,7 +790,7 @@ function createUnitTestInfoMenuObjects ()
 		end
 	end
 
-	gui_button_create("returnToUnitTestPage"--[[ButtonLable]], 
+	gdsGui_button_create("returnToUnitTestPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -799,9 +799,9 @@ function createUnitTestInfoMenuObjects ()
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openUnitTestPage"--[[callback function]], 
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openUnitTestPage"--[[callback function]], 
 		1--[[button initial status]])
 
 	-- outputTxtBox_draw ("UnitTestInfo",--[[Label name]]
@@ -810,11 +810,11 @@ function createUnitTestInfoMenuObjects ()
 	-- 	.5, --[[x percentage of screen]]
 	-- 	.2, --[[y percentage of screen]]
 	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-	-- 	smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"width"),--[[width]]
-	-- 	smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"height"), --[[height]]
+	-- 	gdsGui_general_smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"width"),--[[width]]
+	-- 	gdsGui_general_smartScaling ("inverse", 0.80, 0.65, .144, 0.117, 0.18,"height"), --[[height]]
 	-- 	{0,1,0,1},--[[rgba]]
 	-- 	selectedUnitTest, --[[string of label display 1]]
-	-- 	math.floor(smartFontScaling (0.03, 0.04))--[[font size]])
+	-- 	math.floor(gdsGui_general_smartFontScaling (0.03, 0.04))--[[font size]])
 
 
 	-- outputTxtBox_draw ("testInfo",--[[Label name]]
@@ -823,16 +823,16 @@ function createUnitTestInfoMenuObjects ()
 	-- 	.5, --[[x percentage of screen]]
 	-- 	.6, --[[y percentage of screen]]
 	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
-	-- 	smartScaling ("inverse", .9, .8, .63, .56, 0.7,"width"),--[[width]]
-	-- 	smartScaling ("inverse", .9, .8, .63, .56, 0.7,"height"), --[[height]]
+	-- 	gdsGui_general_smartScaling ("inverse", .9, .8, .63, .56, 0.7,"width"),--[[width]]
+	-- 	gdsGui_general_smartScaling ("inverse", .9, .8, .63, .56, 0.7,"height"), --[[height]]
 	-- 	{1,1,1,1},--[[rgba]]
 	-- 	resultString, --[[string of label display 1]]
-	-- 	math.floor(smartFontScaling (0.02, 0.05))--[[font size]])
+	-- 	math.floor(gdsGui_general_smartFontScaling (0.02, 0.05))--[[font size]])
 
 
 end
 
-createUnitTestInfoMenuObjects ()
+gdsGui_dev_createUTInfoObjects ()
 
 --------------------------------------------------------------------------------
 					--CHANGE SCREEN SIZE FUNCTION
@@ -840,8 +840,8 @@ createUnitTestInfoMenuObjects ()
 
 local screenSimulators = {}
 
-function createScreenSimulator (screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity)
-	screenSimultorData = createNewProjectData ({"name","dpiWidht","dpiHeight", "tblUnsafeScreen", "simulatedDensity"}, {screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity or 1}, screenSimulators, "SML", 7)
+function gdsGui_dev_createScreenSimulator (screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity)
+	screenSimultorData = gdsGui_saveLoad_createProjectData ({"name","dpiWidht","dpiHeight", "tblUnsafeScreen", "simulatedDensity"}, {screenName, dpiWidht, dpiHeight, tblUnsafeScreen, simulatedDensity or 1}, screenSimulators, "SML", 7)
 
 	table.insert(screenSimulators, screenSimultorData)
 end
@@ -850,43 +850,43 @@ end
 						--SCREEN OBJECTS CREATION
 --------------------------------------------------------------------------------
 
-function ScreenSimulatorsInit ()
+function gdsGui_dev_screenSimulatorsInit ()
 	--VERTICAL
-	createScreenSimulator ("iphone16pro_vertical", 320, 617, {0,0.07,1,0.86}, 3) --xywh
-	createScreenSimulator ("smsngS7Edge_vertical", 336, 640, {0,0,1,1})
-	createScreenSimulator ("ipadAir2_vertical", 768, 1004, {0,0,1,1})
+	gdsGui_dev_createScreenSimulator ("iphone16pro_vertical", 320, 617, {0,0.07,1,0.86}, 3) --xywh
+	gdsGui_dev_createScreenSimulator ("smsngS7Edge_vertical", 336, 640, {0,0,1,1})
+	gdsGui_dev_createScreenSimulator ("ipadAir2_vertical", 768, 1004, {0,0,1,1})
 
 	--HORIZONTAL
-	createScreenSimulator ("iphone16pro_horizontal", 617, 320, {0.07, 0.0, .86,.90}, 3)
-	createScreenSimulator ("smsngS7Edge_horizontal", 640, 336, {0,0,1,1})
-	createScreenSimulator ("ipadAir2_horizontal", 1024, 748, {0,0,1,1})
+	gdsGui_dev_createScreenSimulator ("iphone16pro_horizontal", 617, 320, {0.07, 0.0, .86,.90}, 3)
+	gdsGui_dev_createScreenSimulator ("smsngS7Edge_horizontal", 640, 336, {0,0,1,1})
+	gdsGui_dev_createScreenSimulator ("ipadAir2_horizontal", 1024, 748, {0,0,1,1})
 end
 
-function createSwitchScreenSizeMenuObjects ()
+function gdsGui_dev_createSwitchScreenObjects ()
 
 	local thisPageName = "switchScreenSize"
 print ("running")
-	ScreenSimulatorsInit ()
-	gui_table_create (
+	gdsGui_dev_screenSimulatorsInit ()
+	gdsGui_table_create (
 		"screenSizesTable", --[spreadsheet name]
 		thisPageName, --[[page]]
 		"static", --[[type]]
 		screenSimulators,--[[dataTable]]
 		.5, --[[x position]]
-		smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
+		gdsGui_general_smartRelocation (.30,0,.27,.25,.24,.5,.21,1,"y"), --[[y position]]
 		.8, --[[table width]]
 		.6,--[[table height]]
 		"CT", --[[anchor point]]
 		nil, --[[bg sprite]]
-		{ 	[1]={["SELECT"]="changeScreenSize"},},--[[callback function]]
-		smartFontScaling (0.025, 0.032),--[[font size]]
+		{ 	[1]={["SELECT"]="gdsGui_dev_changeScreenSize"},},--[[callback function]]
+		gdsGui_general_smartFontScaling (0.025, 0.032),--[[font size]]
 		{	[1]= "name", 
 			[2]= "dpiWidht", 
 			[3]= "dpiHeight"},
 		true)
 
 
-	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
+	gdsGui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -895,17 +895,17 @@ print ("running")
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openScreenTestsMenuPage"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openScreenTestsPage"--[[callback function]],
 		1--[[button initial status]])
 
 end
 
-createSwitchScreenSizeMenuObjects ()
+gdsGui_dev_createSwitchScreenObjects ()
 
 
-function changeScreenSize (par1, par2, par3)
+function gdsGui_dev_changeScreenSize (par1, par2, par3)
 	local allowScreenResizeTimer = 0.4 --secs
 
 	for i, screenSim in ipairs (screenSimulators) do
@@ -916,20 +916,20 @@ function changeScreenSize (par1, par2, par3)
 			globApp.appScale = screenSim.simulatedDensity
 
 			if screenSim.tblUnsafeScreen ~= nil then
-				globApp.safeScreenArea = jpGUI_simulateWinUnsafeArea (screenSim.tblUnsafeScreen[1], screenSim.tblUnsafeScreen[2], screenSim.tblUnsafeScreen[3], screenSim.tblUnsafeScreen[4])
+				globApp.safeScreenArea = gdsGui_general_simulateUnsafeArea (screenSim.tblUnsafeScreen[1], screenSim.tblUnsafeScreen[2], screenSim.tblUnsafeScreen[3], screenSim.tblUnsafeScreen[4])
 				globApp.isScreenSimulated = true
 			end
 		end
 	end
 
-	create_newTimeTrigger ("waitToLeaveChangeScreenSizePage", {safeLoadTimer + allowScreenResizeTimer}, {"leaveDeveloperGUI"})
+	gdsGui_timeControl_createTrigger ("waitToLeaveChangeScreenSizePage", {safeLoadTimer + allowScreenResizeTimer}, {"gdsGui_dev_leave"})
 end
 
 
-function createDevAboutMenuObjects ()
+function gdsGui_dev_createAboutObjects ()
 	local thisPageName = "devAboutPage"
 
-	gui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
+	gdsGui_button_create("returnScreenTestsMenu"--[[ButtonLable]], 
 		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
@@ -938,12 +938,12 @@ function createDevAboutMenuObjects ()
 		.035--[[x coordinate]],
 		.043--[[y coordinate]],
 		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"openDevMainMenu"--[[callback function]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_dev_openMainMenu"--[[callback function]],
 		1--[[button initial status]])
 
-	gui_outputTextBox_create("libraryInfoContents",
+	gdsGui_outputTxtBox_create("libraryInfoContents",
 		thisPageName,
 		"Sprites/invisibleBox.png",
 		.5,
@@ -953,7 +953,7 @@ function createDevAboutMenuObjects ()
 		globApp.safeScreenArea.h * 0.8,
 		{1, 1, 1, 1},
 		globApp.libraryInfoContent or "Library info not loaded.",
-		math.floor(smartFontScaling(0.04, 0.055)))
+		math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)))
 
 end 
-createDevAboutMenuObjects ()
+gdsGui_dev_createAboutObjects ()

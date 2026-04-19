@@ -5,7 +5,7 @@ local librarySpritesPath = "Libraries/jp_GUI_library/librarySprites/"
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
 
-function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback, assets, hapticEnabled)
+function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback, assets, hapticEnabled)
 
 	local t = {}
 		t.assets = assets or {}
@@ -59,7 +59,7 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		end
 
 			t.frame.positions =
-					relativePosition (anchorPoint,
+					gdsGui_general_relativePosition (anchorPoint,
 										x,
 										y,
 										t.frame.width,
@@ -176,7 +176,7 @@ function gui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, v
 		end
 
 		self.frame.positions =
-				relativePosition (original.anchorPoint,
+				gdsGui_general_relativePosition (original.anchorPoint,
 									original.x,
 									original.y,
 									self.frame.width,
@@ -271,14 +271,14 @@ end
 -- end
 
 
-function gui_scrollBar_draw (pageName)
+function gdsGui_scrollBar_draw (pageName)
 	for i,x in pairs(globApp.objects.scrollBars) do --[[runs continuously]]
 			if x.page == pageName then
 				if x.bar.position ~= dataRelativePosition and dataRelativePosition ~= nil then
 					if x.type == "independent" then
-						updateScrollingBarPosition (x, x.bar.position)
+						gdsGui_scrollBar_updatePosition (x, x.bar.position)
 					elseif x.type == "table-linked" then
-						updateScrollingBarPosition (x, dataRelativePosition)
+						gdsGui_scrollBar_updatePosition (x, dataRelativePosition)
 					end
 				end
 				
@@ -373,7 +373,7 @@ function gui_scrollBar_draw (pageName)
 	end
 
 
-function determine_scrollingBarSize (numOfVisibleValues, numOfScrollableValues) 
+function gdsGui_scrollBar_determineSize (numOfVisibleValues, numOfScrollableValues) 
 	--returns size of scrolling size based on number of values to be scrolled
 	--result is expressed on decimal value, percentage of scroll bar total size
 
@@ -409,7 +409,7 @@ function determine_scrollingBarSize (numOfVisibleValues, numOfScrollableValues)
 end
 
 
-function updateScrollingBarPosition (sb, dataPercPosition)
+function gdsGui_scrollBar_updatePosition (sb, dataPercPosition)
 	if sb.state == 1 then
 		if sb.orientation == "vertical" then
 			sb.bar.y = sb.frame.y + (dataPercPosition * (sb.frame.height - sb.bar.height))
@@ -420,7 +420,7 @@ function updateScrollingBarPosition (sb, dataPercPosition)
 end
 
 
-function focus_scrollingBar (id, x,y,button,istouch)
+function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 
 	if button == 1 or globApp.userInput == "touch pressed" then
 
@@ -431,7 +431,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 				if not sb.isFocused then
 					sb.isFocused = true
 					sb.focusTouchId = id
-					if sb.hapticEnabled then gui_haptic_vibrate() end
+					if sb.hapticEnabled then gdsGui_haptics_vibrate() end
 				end
 			end
 
@@ -447,7 +447,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 							sb.upButton.isActive = true
 							-- Discrete step for up arrow
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
-							updateScrollingBarPosition(sb, sb.bar.position)
+							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -461,7 +461,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 							sb.downButton.isActive = true
 							-- Discrete step for down arrow
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
-							updateScrollingBarPosition(sb, sb.bar.position)
+							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -476,7 +476,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 							sb.leftButton.isActive = true
 							-- Discrete step for left arrow
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
-							updateScrollingBarPosition(sb, sb.bar.position)
+							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -490,7 +490,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 							sb.rightButton.isActive = true
 							-- Discrete step for right arrow
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
-							updateScrollingBarPosition(sb, sb.bar.position)
+							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
 							if sb.callbackString ~= nil then
 								_G[sb.callbackString](sb.bar.position)
 							end
@@ -506,7 +506,7 @@ function focus_scrollingBar (id, x,y,button,istouch)
 end
 
 
-function unfocus_scrollingBar (id, x,y,button,istouch)
+function gdsGui_scrollBar_unfocus (id, x,y,button,istouch)
 	if button == 1 or globApp.userInput == "touch released" then --isolate to mouse use
 		for i, sb in ipairs (globApp.objects.scrollBars) do
 			-- Arrow buttons are desktop-only; always reset their active state on any release
@@ -529,7 +529,7 @@ function unfocus_scrollingBar (id, x,y,button,istouch)
 end
 
 
-function holdAndDragScrollBar (id, x,y,button,istouch, devMode)
+function gdsGui_scrollBar_holdAndDrag (id, x,y,button,istouch, devMode)
 	--moves scrolling bar up or down when the bar is focused and dragged
 	--runs using the love.mouseMoved callback function
 
@@ -562,7 +562,7 @@ function holdAndDragScrollBar (id, x,y,button,istouch, devMode)
 					else
 						sb.bar.position = (sb.bar.y - sb.frame.y) / totalPositionSpan
 					end
-					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
+					gdsGui_scrollBar_updatePosition(sb, sb.bar.position) -- Update physical position after snapping
 				elseif sb.orientation == "horizontal" then
 					if x - (sb.bar.width / 2) >= sb.frame.x and ((x - (sb.bar.width / 2)) + sb.bar.width) <= (sb.frame.x + sb.frame.width) then
 						sb.bar.x = x - (sb.bar.width / 2)
@@ -578,7 +578,7 @@ function holdAndDragScrollBar (id, x,y,button,istouch, devMode)
 						sb.bar.position = snapIdx / (sb.numTotalValues - 1)
 						sb._prevSnapIndex = snapIdx
 					end
-					updateScrollingBarPosition(sb, sb.bar.position) -- Update physical position after snapping
+					gdsGui_scrollBar_updatePosition(sb, sb.bar.position) -- Update physical position after snapping
 				end
 
 				if sb.callbackString ~= nil then
@@ -600,13 +600,13 @@ function holdAndDragScrollBar (id, x,y,button,istouch, devMode)
 end
 
 
-function scrollBarButtonsPressed (dt)
-	-- Continuous scrolling for scrollbar buttons is now handled by discrete steps in focus_scrollingBar.
+function gdsGui_scrollBar_buttonsPressed (dt)
+	-- Continuous scrolling for scrollbar buttons is now handled by discrete steps in gdsGui_scrollBar_focus.
 	-- This function will no longer actively move scrollbars based on button presses.
 end
 
 
-function convert_scrollBarPosToDPI (SBposition, lBound, uBound)
+function gdsGui_scrollBar_posToDPI (SBposition, lBound, uBound)
 	--[[converts relative bar position to pixels based on lbound and u bound pixel values
 		INPUT:
 		SBposition--------------FLOAT-------------------0-1 sb position

@@ -5,7 +5,7 @@ This code is called by main.lua
 
 pages = {}
 
-function page_create (myIndex, myName, myLockStatus, myDisplayStatus, myBgColor, myFontSize, myInitPosition, my_width_height_x_y_anchorPoint, myInitMode, testMode)
+function gdsGui_page_create (myIndex, myName, myLockStatus, myDisplayStatus, myBgColor, myFontSize, myInitPosition, my_width_height_x_y_anchorPoint, myInitMode, testMode)
 
 	local winWidth = globApp.safeScreenArea.w
 	local winHeight = globApp.safeScreenArea.h
@@ -21,7 +21,7 @@ function page_create (myIndex, myName, myLockStatus, myDisplayStatus, myBgColor,
 		NewPage.mode = myInitMode
 	----------------------------------------------
 
-	local myPagePositions = relativePosition (my_width_height_x_y_anchorPoint[5], my_width_height_x_y_anchorPoint[3], my_width_height_x_y_anchorPoint[4], my_width_height_x_y_anchorPoint[1], my_width_height_x_y_anchorPoint[2], globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+	local myPagePositions = gdsGui_general_relativePosition (my_width_height_x_y_anchorPoint[5], my_width_height_x_y_anchorPoint[3], my_width_height_x_y_anchorPoint[4], my_width_height_x_y_anchorPoint[1], my_width_height_x_y_anchorPoint[2], globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 
 	if myInitMode == "min" then
 	
@@ -47,7 +47,7 @@ end
 
 local loadingObjects = {}
 
-function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
+function gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, testMode)
 
 	if testMode == true then
 		pgWidht = 1000
@@ -62,8 +62,8 @@ function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
 	NewLoadingObject.progress = 0
 	NewLoadingObject.minEndingProgress = myMinTime_secs
 	NewLoadingObject.minTime = myMinTime
-	NewLoadingObject.coreFontSize = love.graphics.newFont(math.floor(smartFontScaling (0.025, 0.044)))
-	NewLoadingObject.devMsgFontSize = love.graphics.newFont(math.floor(smartFontScaling (0.022, 0.041)))
+	NewLoadingObject.coreFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.025, 0.044)))
+	NewLoadingObject.devMsgFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.022, 0.041)))
 
 	for i, pg in ipairs (pages) do
 		if pg.index == NewLoadingObject.fromPg then
@@ -76,12 +76,12 @@ function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
 	----------------------------
 	--TITLE TEXT
 	NewLoadingObject.title = ("Loading " .. NewLoadingObject.toPg .. "...")
-	NewLoadingObject.titleWidth = smartScaling ("inverse", .3, .8, .0375, 0.1, 0.125,"width" )
-	NewLoadingObject.titleHeight = smartScaling ("inverse", .3, .8, .0375, 0.1, 0.125,"height" )
+	NewLoadingObject.titleWidth = gdsGui_general_smartScaling ("inverse", .3, .8, .0375, 0.1, 0.125,"width" )
+	NewLoadingObject.titleHeight = gdsGui_general_smartScaling ("inverse", .3, .8, .0375, 0.1, 0.125,"height" )
 	local titleAnchorPoint = "CC"
 	local titleToScreenRelation_X = 0.5 --change as needed
-	local titleToScreenRelation_Y = smartRelocation (.45,.0,.50,1,nil,nil,nil,nil,"y") --change as needed
-	local myTitlePositions = relativePosition (titleAnchorPoint, titleToScreenRelation_X, titleToScreenRelation_Y,  NewLoadingObject.titleWidth, NewLoadingObject.titleHeight,  globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+	local titleToScreenRelation_Y = gdsGui_general_smartRelocation (.45,.0,.50,1,nil,nil,nil,nil,"y") --change as needed
+	local myTitlePositions = gdsGui_general_relativePosition (titleAnchorPoint, titleToScreenRelation_X, titleToScreenRelation_Y,  NewLoadingObject.titleWidth, NewLoadingObject.titleHeight,  globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 	NewLoadingObject.titleX = myTitlePositions[1]
 	NewLoadingObject.titleY = myTitlePositions[2]
@@ -90,13 +90,13 @@ function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
 	---------------------------------------------------------------------------
 	--DEV MESSAGE
 	NewLoadingObject.msgTxt = ("Follow us on facebook and tweeter for more information on how you can help inprove this app!")
-	NewLoadingObject.msgTxtWidth = smartScaling ("inverse", 0.9,.95, .063, 0.0665, 0.07,"width" )
-	NewLoadingObject.msgTxtHeight = smartScaling ("inverse", 0.9,.95, .063, 0.0665, 0.07,"height")
+	NewLoadingObject.msgTxtWidth = gdsGui_general_smartScaling ("inverse", 0.9,.95, .063, 0.0665, 0.07,"width" )
+	NewLoadingObject.msgTxtHeight = gdsGui_general_smartScaling ("inverse", 0.9,.95, .063, 0.0665, 0.07,"height")
 	local devMsgAnchorPoint = "CC"
 	local devMsgToScreenRelation_X = 0.5 --change as needed
-	local devMsgToScreenRelation_Y = smartRelocation (.65,.0,.70,1,nil,nil,nil,nil,"y") --change as needed
+	local devMsgToScreenRelation_Y = gdsGui_general_smartRelocation (.65,.0,.70,1,nil,nil,nil,nil,"y") --change as needed
 
-	local myDevMsgPositions = relativePosition (devMsgAnchorPoint, devMsgToScreenRelation_X, devMsgToScreenRelation_Y, NewLoadingObject.msgTxtWidth, NewLoadingObject.msgTxtHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+	local myDevMsgPositions = gdsGui_general_relativePosition (devMsgAnchorPoint, devMsgToScreenRelation_X, devMsgToScreenRelation_Y, NewLoadingObject.msgTxtWidth, NewLoadingObject.msgTxtHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 	NewLoadingObject.msgTxtX = myDevMsgPositions[1]
 	NewLoadingObject.msgTxtY = myDevMsgPositions[2]
@@ -104,13 +104,13 @@ function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
 
 	-----------------------------------------
 	--PROGRESS BAR FRAME
-	NewLoadingObject.progressBarFrameWidth = smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"width" )
-	NewLoadingObject.progressBarFrameHeight = smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"height")
+	NewLoadingObject.progressBarFrameWidth = gdsGui_general_smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"width" )
+	NewLoadingObject.progressBarFrameHeight = gdsGui_general_smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"height")
 	local progressBarFrameAnchorPoint = "CC"
 	local progressBarFrameToScreenRelation_X = 0.5 --change as needed
-	local progressBarFrameToScreenRelation_Y = smartRelocation (.85,.0,.90,1,nil,nil,nil,nil,"y") --change as needed
+	local progressBarFrameToScreenRelation_Y = gdsGui_general_smartRelocation (.85,.0,.90,1,nil,nil,nil,nil,"y") --change as needed
 
-	local myProgressBarFramePositions = relativePosition (progressBarFrameAnchorPoint, progressBarFrameToScreenRelation_X, progressBarFrameToScreenRelation_Y, NewLoadingObject.progressBarFrameWidth, NewLoadingObject.progressBarFrameHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+	local myProgressBarFramePositions = gdsGui_general_relativePosition (progressBarFrameAnchorPoint, progressBarFrameToScreenRelation_X, progressBarFrameToScreenRelation_Y, NewLoadingObject.progressBarFrameWidth, NewLoadingObject.progressBarFrameHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 	NewLoadingObject.progressBarFrameX = myProgressBarFramePositions [1]
 	NewLoadingObject.progressBarFrameY = myProgressBarFramePositions [2]
@@ -120,12 +120,12 @@ function loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
 	--PROGRESS BAR
 
 	NewLoadingObject.progressBarWidth = 400
-	NewLoadingObject.progressBarHeight = smartScaling ("inverse", 0.9,.95, .036, .038, 0.04,"height")
+	NewLoadingObject.progressBarHeight = gdsGui_general_smartScaling ("inverse", 0.9,.95, .036, .038, 0.04,"height")
 	local progressBarAnchorPoint = "LT" --change as needed
 	local progressBarToFrameRelation_X = 0 --change as needed
 	local progressBarToFrameRelation_Y = 0 --change as needed
 
-	local myProgressBarPositions = relativePosition (progressBarAnchorPoint, progressBarToFrameRelation_X, progressBarToFrameRelation_Y, NewLoadingObject.progressBarWidth, NewLoadingObject.progressBarHeight, NewLoadingObject.progressBarFrameX, NewLoadingObject.progressBarFrameY, NewLoadingObject.progressBarFrameWidth, NewLoadingObject.progressBarFrameHeight)
+	local myProgressBarPositions = gdsGui_general_relativePosition (progressBarAnchorPoint, progressBarToFrameRelation_X, progressBarToFrameRelation_Y, NewLoadingObject.progressBarWidth, NewLoadingObject.progressBarHeight, NewLoadingObject.progressBarFrameX, NewLoadingObject.progressBarFrameY, NewLoadingObject.progressBarFrameWidth, NewLoadingObject.progressBarFrameHeight)
 
 	NewLoadingObject.progressBarX = myProgressBarPositions [1]
 	NewLoadingObject.progressBarY = myProgressBarPositions [2]
@@ -152,7 +152,7 @@ end
 
 
 
-function update_loadingPage (dt)
+function gdsGui_page_loadingUpdate (dt)
 
 	local activeLoadingPg = false
 	local onlyOneLoadingPage = false
@@ -185,17 +185,17 @@ function update_loadingPage (dt)
 
 			if globApp.resizeDetected == true then
 
-				lp.coreFontSize = love.graphics.newFont(math.floor(smartFontScaling (0.025, 0.044)))
-				lp.devMsgFontSize = love.graphics.newFont(math.floor(smartFontScaling (0.022, 0.041)))
+				lp.coreFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.025, 0.044)))
+				lp.devMsgFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.022, 0.041)))
 
 				----------------------------
 				--TITLE TEXT
-				lp.titleWidth = smartScaling ("inverse", .3, .8, .036, 0.096, 0.12,"width" )
-				lp.titleHeight = smartScaling ("inverse", .3, .8, .036, 0.096, 0.12,"height" )
+				lp.titleWidth = gdsGui_general_smartScaling ("inverse", .3, .8, .036, 0.096, 0.12,"width" )
+				lp.titleHeight = gdsGui_general_smartScaling ("inverse", .3, .8, .036, 0.096, 0.12,"height" )
 				local titleAnchorPoint = "CC"
 				local titleToScreenRelation_X = 0.5 --change as needed
-				local titleToScreenRelation_Y = smartRelocation (.45,.0,.50,1,nil,nil,nil,nil,"y") --change as needed
-				local myTitlePositions = relativePosition (titleAnchorPoint, titleToScreenRelation_X, titleToScreenRelation_Y,  lp.titleWidth, lp.titleHeight,  globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+				local titleToScreenRelation_Y = gdsGui_general_smartRelocation (.45,.0,.50,1,nil,nil,nil,nil,"y") --change as needed
+				local myTitlePositions = gdsGui_general_relativePosition (titleAnchorPoint, titleToScreenRelation_X, titleToScreenRelation_Y,  lp.titleWidth, lp.titleHeight,  globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 				lp.titleX = myTitlePositions[1]
 				lp.titleY = myTitlePositions[2]
@@ -206,22 +206,22 @@ function update_loadingPage (dt)
 				lp.msgTxtHeight = .2 * globApp.safeScreenArea.h
 				local devMsgAnchorPoint = "CC"
 				local devMsgToScreenRelation_X = 0.5 --change as needed
-				local devMsgToScreenRelation_Y = smartRelocation (.65,.0,.70,1,nil,nil,nil,nil,"y") --change as needed
+				local devMsgToScreenRelation_Y = gdsGui_general_smartRelocation (.65,.0,.70,1,nil,nil,nil,nil,"y") --change as needed
 
-				local myDevMsgPositions = relativePosition (devMsgAnchorPoint, devMsgToScreenRelation_X, devMsgToScreenRelation_Y, lp.msgTxtWidth, lp.msgTxtHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+				local myDevMsgPositions = gdsGui_general_relativePosition (devMsgAnchorPoint, devMsgToScreenRelation_X, devMsgToScreenRelation_Y, lp.msgTxtWidth, lp.msgTxtHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 				lp.msgTxtX = myDevMsgPositions[1]
 				lp.msgTxtY = myDevMsgPositions[2]
 
 				-----------------------------------------
 				--PROGRESS BAR FRAME
-				lp.progressBarFrameWidth = smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"width" )
-				lp.progressBarFrameHeight = smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"height")
+				lp.progressBarFrameWidth = gdsGui_general_smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"width" )
+				lp.progressBarFrameHeight = gdsGui_general_smartScaling ("inverse", 0.85,.90, .034, .036, 0.04,"height")
 				local progressBarFrameAnchorPoint = "CC"
 				local progressBarFrameToScreenRelation_X = 0.5 --change as needed
-				local progressBarFrameToScreenRelation_Y = smartRelocation (.85,.0,.90,1,nil,nil,nil,nil,"y") --change as needed
+				local progressBarFrameToScreenRelation_Y = gdsGui_general_smartRelocation (.85,.0,.90,1,nil,nil,nil,nil,"y") --change as needed
 
-				local myProgressBarFramePositions = relativePosition (progressBarFrameAnchorPoint, progressBarFrameToScreenRelation_X, progressBarFrameToScreenRelation_Y, lp.progressBarFrameWidth, lp.progressBarFrameHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+				local myProgressBarFramePositions = gdsGui_general_relativePosition (progressBarFrameAnchorPoint, progressBarFrameToScreenRelation_X, progressBarFrameToScreenRelation_Y, lp.progressBarFrameWidth, lp.progressBarFrameHeight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 				lp.progressBarFrameX = myProgressBarFramePositions [1]
 				lp.progressBarFrameY = myProgressBarFramePositions [2]
@@ -229,12 +229,12 @@ function update_loadingPage (dt)
 				----------------------------------------
 				--PROGRESS BAR
 				lp.progressBarWidth = (lp.progress / lp.minEndingProgress) * lp.progressBarFrameWidth
-				lp.progressBarHeight = smartScaling ("inverse", 0.9,.95, .036, .038, 0.04,"height")
+				lp.progressBarHeight = gdsGui_general_smartScaling ("inverse", 0.9,.95, .036, .038, 0.04,"height")
 				local progressBarAnchorPoint = "LT" --change as needed
 				local progressBarToFrameRelation_X = 0 --change as needed
 				local progressBarToFrameRelation_Y = 0 --change as needed
 
-				local myProgressBarPositions = relativePosition (progressBarAnchorPoint, progressBarToFrameRelation_X, progressBarToFrameRelation_Y, lp.progressBarWidth, lp.progressBarHeight, lp.progressBarFrameX, lp.progressBarFrameY, lp.progressBarFrameWidth, lp.progressBarFrameHeight)
+				local myProgressBarPositions = gdsGui_general_relativePosition (progressBarAnchorPoint, progressBarToFrameRelation_X, progressBarToFrameRelation_Y, lp.progressBarWidth, lp.progressBarHeight, lp.progressBarFrameX, lp.progressBarFrameY, lp.progressBarFrameWidth, lp.progressBarFrameHeight)
 
 				lp.progressBarX = myProgressBarPositions [1]
 				lp.progressBarY = myProgressBarPositions [2]
@@ -252,7 +252,7 @@ function update_loadingPage (dt)
 end
 
 
-function delete_loadingPage ()
+function gdsGui_page_loadingDelete ()
 
 	for i = #loadingObjects,1,-1 do
 
@@ -263,7 +263,7 @@ function delete_loadingPage ()
 end
 
 
-function draw_loadingPage ()
+function gdsGui_page_loadingDraw ()
 
 	local activeLoadingPg = false
 
@@ -319,9 +319,9 @@ function draw_loadingPage ()
 end
 
 
-function page_switch (myName, myToPg, myMinTime_secs, testMode)
+function gdsGui_page_switch (myName, myToPg, myMinTime_secs, testMode)
 
-	local toPageExists = doesPageExist (myToPg)
+	local toPageExists = gdsGui_page_doesExist (myToPg)
 
 	if toPageExists == true then
 
@@ -331,9 +331,9 @@ function page_switch (myName, myToPg, myMinTime_secs, testMode)
 
 		globApp.currentPageIndex = 2 --opens loading page index
 
-		loadingPage_create (myName, myToPg, myMinTime_secs, testMode)
+		gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, testMode)
 
-		create_newTimeTrigger (timerName,  { myMinTime_secs, myMinTime_secs+.001}, {"delete_loadingPage","changePgto"})
+		gdsGui_timeControl_createTrigger (timerName,  { myMinTime_secs, myMinTime_secs+.001}, {"gdsGui_page_loadingDelete","changePgto"})
 
 		function changePgto ()
 			if globApp.fourDevTap == false then
@@ -362,7 +362,7 @@ function page_switch (myName, myToPg, myMinTime_secs, testMode)
 end
 
 
-function doesPageExist (pageIndex)
+function gdsGui_page_doesExist (pageIndex)
 
 	local result = false
 	local pagesVarExist = false 
@@ -394,7 +394,7 @@ function doesPageExist (pageIndex)
 end
 
 
-function returnCurrentPageName ()
+function gdsGui_page_currentName ()
 
 	--[[takes page index number and converts it to page name]]
 
@@ -413,7 +413,7 @@ function returnCurrentPageName ()
 end
 
 
-function isPgActive (pageIndex)
+function gdsGui_page_isActive (pageIndex)
 
 	--[[Takes page index and returns true if page index matches current page index]]
 
@@ -431,7 +431,7 @@ end
 
 
 
-function pageBackground_draw ()
+function gdsGui_page_drawBackground ()
 
 	for i, pg in ipairs (pages) do
 
@@ -455,12 +455,12 @@ end
 ------------------------------------------------------------------------------
 --this pages can not be created by GUI users as they are preDefined
 
-page_create (1, "Blank", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (2, "Loading", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20050, "DeveloperMenu", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20051, "UnitTesting", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20052, "screenTestsMenu", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20053, "switchScreenSize", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20054, "unitTestInfo", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20055, "devEraseDataConfirmationPage", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
-page_create (20056, "devAboutPage", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (1, "Blank", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (2, "Loading", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20050, "DeveloperMenu", false, false, globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20051, "UnitTesting", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20052, "screenTestsMenu", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20053, "switchScreenSize", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20054, "unitTestInfo", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20055, "devEraseDataConfirmationPage", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")
+gdsGui_page_create (20056, "devAboutPage", false , false , globApp.appColor, 12, 0, {.5,1,.6,.6,"LT"}, "max")

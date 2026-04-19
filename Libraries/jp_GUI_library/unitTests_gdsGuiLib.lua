@@ -1,76 +1,76 @@
-generateConsoleMessage ("info", "Unit testing initialized")
-function gdsGUI_executeAllUnitTests (strPageName)
+gdsGui_generateConsoleMessage ("info", "Unit testing initialized")
+function gdsGui_unitTests_executeAll (strPageName)
 
 	--------------------------------------------------------------------------
 								--LIB_GENERAL.LUA
 	--------------------------------------------------------------------------
-		devTest_execute {["id"]="determineSafeWindowArea(android,landscape)_test",
-						["funcName"]={"determineSafeWindowArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_determineSafeArea(android,landscape)_test",
+						["funcName"]={"gdsGui_general_determineSafeArea"},
 						["funcParameters"]={"landscape", "iOS", 1000, 500 ,true},
 						["funcExpctOutput"]={60, 0, 880, 470}}
 
-		devTest_execute {["id"]="determineSafeWindowArea(ios,portrait)_test",
-						["funcName"]={"determineSafeWindowArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_determineSafeArea(ios,portrait)_test",
+						["funcName"]={"gdsGui_general_determineSafeArea"},
 						["funcParameters"]={"portrait", "Android", 1000, 500 ,true},
 						["funcExpctOutput"]={0, 30, 1000, 440}}
 
-		devTest_execute {["id"]="determineSafeWindowArea(windows,landscape)_test",
-						["funcName"]={"determineSafeWindowArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_determineSafeArea(windows,landscape)_test",
+						["funcName"]={"gdsGui_general_determineSafeArea"},
 						["funcParameters"]={"landscape", "Windows", 1000, 500 ,true},
 						["funcExpctOutput"]={0, 0, 1000, 500}}
 
-		devTest_execute {["id"]="isTouchInSafeArea(wrongYtouch)_test",
-						["funcName"]={"isTouchInSafeArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_isTouchInSafeArea(wrongYtouch)_test",
+						["funcName"]={"gdsGui_general_isTouchInSafeArea"},
 						["funcParameters"]={1,-1},
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="isTouchInSafeArea(correct)_test",
-						["funcName"]={"isTouchInSafeArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_isTouchInSafeArea(correct)_test",
+						["funcName"]={"gdsGui_general_isTouchInSafeArea"},
 						["funcParameters"]={globApp.safeScreenArea.x+ 1 ,globApp.safeScreenArea.y + 1},
 						["funcExpctOutput"]={true}}
 
-		devTest_execute {["id"]="relativePosition_test",
-						["funcName"]={"relativePosition"},
+		gdsGui_dev_testExecute {["id"]="relativePosition_test",
+						["funcName"]={"gdsGui_general_relativePosition"},
 						["funcParameters"]={"CC", .5, .85, 100, 100, 0, 0, 200, 200},
 						["funcExpctOutput"]={50,120}}
 
-		devTest_execute {["id"]="convert_scrollBarPosToDPI_test",
-						["funcName"]={"convert_scrollBarPosToDPI"},
+		gdsGui_dev_testExecute {["id"]="convert_scrollBarPosToDPI_test",
+						["funcName"]={"gdsGui_scrollBar_posToDPI"},
 						["funcParameters"]={.5, -100, 100},
 						["funcExpctOutput"]={0}}
 
-		devTest_execute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_pass500",
-						["funcName"]={"jpGUI_convertSafeAreaPercentToDPI"},
+		gdsGui_dev_testExecute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_pass500",
+						["funcName"]={"gdsGui_general_convertSafeAreaToDPI"},
 						["funcParameters"]={.5,"width",true},
 						["funcExpctOutput"]={500}}
 
-		devTest_execute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_pass400",
-						["funcName"]={"jpGUI_convertSafeAreaPercentToDPI"},
+		gdsGui_dev_testExecute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_pass400",
+						["funcName"]={"gdsGui_general_convertSafeAreaToDPI"},
 						["funcParameters"]={.4,"height",true},
 						["funcExpctOutput"]={400}}
 
-		devTest_execute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_passError",
-						["funcName"]={"jpGUI_convertSafeAreaPercentToDPI"},
+		gdsGui_dev_testExecute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_passError",
+						["funcName"]={"gdsGui_general_convertSafeAreaToDPI"},
 						["funcParameters"]={.4,"height6",nil},
 						["funcExpctOutput"]={"error"}}
 
-		devTest_execute {["id"]="jpGUI_findTriangAngle_testPassWrightTriangle",
-						["funcName"]={"jpGUI_findTriangAngle"},
+		gdsGui_dev_testExecute {["id"]="jpGUI_findTriangAngle_testPassWrightTriangle",
+						["funcName"]={"gdsGui_general_findTriangAngle"},
 						["funcParameters"]={1, 1, "degrees"},
 						["funcExpctOutput"]={45}}
 
-		devTest_execute {["id"]="isTextRemoveCommanded_false",
-						["funcName"]={"isTextRemoveCommanded"},
+		gdsGui_dev_testExecute {["id"]="isTextRemoveCommanded_false",
+						["funcName"]={"gdsGui_general_isTextRemoveCommanded"},
 						["funcParameters"]={"c"},
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="isTextRemoveCommanded_trueBackspace",
-						["funcName"]={"isTextRemoveCommanded"},
+		gdsGui_dev_testExecute {["id"]="isTextRemoveCommanded_trueBackspace",
+						["funcName"]={"gdsGui_general_isTextRemoveCommanded"},
 						["funcParameters"]={"backspace"},
 						["funcExpctOutput"]={true}}
 
-		devTest_execute {["id"]="isTextRemoveCommanded_trueDelete",
-						["funcName"]={"isTextRemoveCommanded"},
+		gdsGui_dev_testExecute {["id"]="isTextRemoveCommanded_trueDelete",
+						["funcName"]={"gdsGui_general_isTextRemoveCommanded"},
 						["funcParameters"]={"delete"},
 						["funcExpctOutput"]={true}}
 
@@ -81,19 +81,19 @@ function gdsGUI_executeAllUnitTests (strPageName)
 
 		devTable[1] = {x= {name="1,2", row = 2, collumn=2}, y={name="2,3", row = 3, collumn=3},z={name="2,2", row = 2, collumn=2}}
 
-		devTest_execute {["id"]="tableCellAddress_find(row)_test",
+		gdsGui_dev_testExecute {["id"]="tableCellAddress_find(row)_test",
 						["funcName"]={"tableCellAddress_find"},
 						["funcParameters"]={"2,3", devTable , "row", true},
 						["funcExpctOutput"]={2, 3, true}}		
 
-		devTest_execute {["id"]="tableCellAddress_find(collumn)_test",
+		gdsGui_dev_testExecute {["id"]="tableCellAddress_find(collumn)_test",
 						["funcName"]={"tableCellAddress_find"},
 						["funcParameters"]={"2,3", devTable , "collumn", true},
 						["funcExpctOutput"]={3, 2, true}}
 
 
-		devTest_execute {["id"]="findScreenOrientation_test",
-						["funcName"]={"findScreenOrientation"},
+		gdsGui_dev_testExecute {["id"]="findScreenOrientation_test",
+						["funcName"]={"gdsGui_general_findScreenOrientation"},
 						["funcParameters"]={800, 1000, true},
 						["funcExpctOutput"]={"portrait"}}
 
@@ -102,13 +102,13 @@ function gdsGUI_executeAllUnitTests (strPageName)
 								--PAGES
 	----------------------------------------------------------------------------
 
-		devTest_execute {["id"]="isPgActive_(xp:false)test",
-						["funcName"]={"isPgActive"},
+		gdsGui_dev_testExecute {["id"]="isPgActive_(xp:false)test",
+						["funcName"]={"gdsGui_page_isActive"},
 						["funcParameters"]={999},
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="isPgActive_(xp:true)test",
-						["funcName"]={"isPgActive"},
+		gdsGui_dev_testExecute {["id"]="isPgActive_(xp:true)test",
+						["funcName"]={"gdsGui_page_isActive"},
 						["funcParameters"]={globApp.currentPageIndex},
 						["funcExpctOutput"]={true}}
 
@@ -116,20 +116,20 @@ function gdsGUI_executeAllUnitTests (strPageName)
 		local originalPageIndex = globApp.currentPageIndex
 		-- Temporarily set current page index to DeveloperMenu for testing
 		globApp.currentPageIndex = 20050
-		devTest_execute {["id"]="returnCurrentPageName_test",
-						["funcName"]={"returnCurrentPageName"},
+		gdsGui_dev_testExecute {["id"]="returnCurrentPageName_test",
+						["funcName"]={"gdsGui_page_currentName"},
 						["funcParameters"]={globApp.currentPageIndex},
 						["funcExpctOutput"]={"DeveloperMenu"}}
 		-- Restore original current page index
 		globApp.currentPageIndex = originalPageIndex
 
-		devTest_execute {["id"]="doesPageExist_test_true",
-						["funcName"]={"doesPageExist"},
+		gdsGui_dev_testExecute {["id"]="doesPageExist_test_true",
+						["funcName"]={"gdsGui_page_doesExist"},
 						["funcParameters"]={1},
 						["funcExpctOutput"]={true}}
 
-		devTest_execute {["id"]="doesPageExist_test_false",
-						["funcName"]={"doesPageExist"},
+		gdsGui_dev_testExecute {["id"]="doesPageExist_test_false",
+						["funcName"]={"gdsGui_page_doesExist"},
 						["funcParameters"]={1000987},
 						["funcExpctOutput"]={false}}
 
@@ -139,45 +139,45 @@ function gdsGUI_executeAllUnitTests (strPageName)
 		local testSavedProjectTable = {[1]= {["ID"] = "P21121E74743E"}}
 		local testRecIDlocator = "TST"
 		for i=2, 1000, 1 do
-			testSavedProjectTable [i]= {["ID"] = createNewIdNumber_gdsLove2dGUI (testSavedProjectTable, testRecIDlocator,7)}
+			testSavedProjectTable [i]= {["ID"] = gdsGui_saveLoad_createIdNumber (testSavedProjectTable, testRecIDlocator,7)}
 		end
 
-		devTest_execute {["id"]="createNewProjectData_noMatchCount",
-						["funcName"]={"createNewProjectData"},
+		gdsGui_dev_testExecute {["id"]="createNewProjectData_noMatchCount",
+						["funcName"]={"gdsGui_saveLoad_createProjectData"},
 						["funcParameters"]={{15,true,"hello"},{"asldkf", 5},testSavedProjectTable, "TST", 7},
 						["funcExpctOutput"]={"The data labels and data pieces count do NOT match, ref createNew ProjectData funciton and callbacks"}}
 
-		devTest_execute {["id"]="doesSerialNumExistsInTable_true",
-						["funcName"]={"doesSerialNumExistsInTable"} ,
+		gdsGui_dev_testExecute {["id"]="doesSerialNumExistsInTable_true",
+						["funcName"]={"gdsGui_saveLoad_doesSerialExist"} ,
 						["funcParameters"]={testSavedProjectTable,"P21121E74743E"},
 						["funcExpctOutput"]={true}}
 
-		devTest_execute {["id"]="doesSerialNumExistsInTable_false",
-						["funcName"]={"doesSerialNumExistsInTable"},
+		gdsGui_dev_testExecute {["id"]="doesSerialNumExistsInTable_false",
+						["funcName"]={"gdsGui_saveLoad_doesSerialExist"},
 						["funcParameters"]={testSavedProjectTable,"P21121E74743F"},
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="doesTableHaveInvalidRecordsIDs_trueRecIDNotFound",
-						["funcName"]={"doesTableHaveInvalidRecordsIDs"},
+		gdsGui_dev_testExecute {["id"]="doesTableHaveInvalidRecordsIDs_trueRecIDNotFound",
+						["funcName"]={"gdsGui_saveLoad_hasInvalidIDs"},
 						["funcParameters"]={testSavedProjectTable,"NIL", 23},
 						["funcExpctOutput"]={true}}
 
 
-		devTest_execute {["id"]="doesTableHaveInvalidRecordsIDs_trueDueToOneInvalRecID",
-						["funcName"]={"doesTableHaveInvalidRecordsIDs"},
+		gdsGui_dev_testExecute {["id"]="doesTableHaveInvalidRecordsIDs_trueDueToOneInvalRecID",
+						["funcName"]={"gdsGui_saveLoad_hasInvalidIDs"},
 						["funcParameters"]={testSavedProjectTable,testRecIDlocator,23},
 						["funcExpctOutput"]={true}}
 
 		table.remove(testSavedProjectTable, 1)
 
-		devTest_execute {["id"]="doesTableHaveInvalidRecordsIDs_false",
-						["funcName"]={"doesTableHaveInvalidRecordsIDs"},
+		gdsGui_dev_testExecute {["id"]="doesTableHaveInvalidRecordsIDs_false",
+						["funcName"]={"gdsGui_saveLoad_hasInvalidIDs"},
 						["funcParameters"]={testSavedProjectTable,testRecIDlocator, 23},
 						["funcExpctOutput"]={false}}
 
 
-		devTest_execute {["id"]="isTableEmpty_false",
-						["funcName"]={"isTableEmpty"},
+		gdsGui_dev_testExecute {["id"]="isTableEmpty_false",
+						["funcName"]={"gdsGui_saveLoad_isTableEmpty"},
 						["funcParameters"]={testSavedProjectTable},
 						["funcExpctOutput"]={false}}
 
@@ -187,32 +187,32 @@ function gdsGUI_executeAllUnitTests (strPageName)
 			testTable[3] = {"yes", 1, true, 0.56}
 			testTable[4] = {"no", 1, true, 0.56}
 
-		devTest_execute {["id"]="areTwoTablesSameSize_false",
-						["funcName"]={"areTwoTablesSameSize"},
+		gdsGui_dev_testExecute {["id"]="areTwoTablesSameSize_false",
+						["funcName"]={"gdsGui_saveLoad_areSameSize"},
 						["funcParameters"]={testTable[2],testTable[3]},
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="areTwoTablesSameSize_true",
-						["funcName"]={"areTwoTablesSameSize"},
+		gdsGui_dev_testExecute {["id"]="areTwoTablesSameSize_true",
+						["funcName"]={"gdsGui_saveLoad_areSameSize"},
 						["funcParameters"]={testTable[3],testTable[4]},
 						["funcExpctOutput"]={true}}
 
 		testTable = nil
 		testSavedProjectTable [50]= nil
-		devTest_execute {["id"]="areThereNILvalues_trueOneValueNil",
-						["funcName"]={"areThereNILvalues"},
+		gdsGui_dev_testExecute {["id"]="areThereNILvalues_trueOneValueNil",
+						["funcName"]={"gdsGui_saveLoad_hasNilValues"},
 						["funcParameters"]={testSavedProjectTable},
 						["funcExpctOutput"]={true}}
 		
 		testSavedProjectTable [50]= "new"
-		devTest_execute {["id"]="areThereNILvalues_false", 
-						["funcName"]={"areThereNILvalues"}, 
+		gdsGui_dev_testExecute {["id"]="areThereNILvalues_false", 
+						["funcName"]={"gdsGui_saveLoad_hasNilValues"}, 
 						["funcParameters"]={testSavedProjectTable}, 
 						["funcExpctOutput"]={false}}
 
 		testSavedProjectTable = {}
-		devTest_execute {["id"]="isTableEmpty_true", 
-						["funcName"]={"isTableEmpty"}, 
+		gdsGui_dev_testExecute {["id"]="isTableEmpty_true", 
+						["funcName"]={"gdsGui_saveLoad_isTableEmpty"}, 
 						["funcParameters"]={testSavedProjectTable}, 
 						["funcExpctOutput"]={true}}
 		testSavedProjectTable = nil
@@ -226,22 +226,22 @@ function gdsGUI_executeAllUnitTests (strPageName)
 		local testRecIDlocator2 = "DEV"
 
 		for i=2, 10, 1 do
-			testSavedProjectTable2 [i]= {["ID"] = createNewIdNumber_gdsLove2dGUI (testSavedProjectTable2, testRecIDlocator2,7)}
+			testSavedProjectTable2 [i]= {["ID"] = gdsGui_saveLoad_createIdNumber (testSavedProjectTable2, testRecIDlocator2,7)}
 		end
 
-		devTest_execute {["id"]="findTableIndexByRecordID_rtrn1", 
-						["funcName"]={"findTableIndexByRecordID"}, 
+		gdsGui_dev_testExecute {["id"]="findTableIndexByRecordID_rtrn1", 
+						["funcName"]={"gdsGui_saveLoad_findIndexByID"}, 
 						["funcParameters"]={testSavedProjectTable2, testRecIDlocator2, "GDSDEV2201167367319300E", 23},
 						["funcExpctOutput"]={1}}
 
-		devTest_execute {["id"]="findTableIndexByRecordID_IDNot found", 
-						["funcName"]={"findTableIndexByRecordID"}, 
+		gdsGui_dev_testExecute {["id"]="findTableIndexByRecordID_IDNot found", 
+						["funcName"]={"gdsGui_saveLoad_findIndexByID"}, 
 						["funcParameters"]={testSavedProjectTable2, testRecIDlocator2, "GDSDEV0101167367319300E", 23},
 						["funcExpctOutput"]={"Could Not Find the provided record ID"}}
 
 		testSavedProjectTable2 [11]= {["ID"] = "GDSNIL2201167367319300E"}
-		devTest_execute {["id"]="findTableIndexByRecordID_tableIssue", 
-						["funcName"]={"findTableIndexByRecordID"}, 
+		gdsGui_dev_testExecute {["id"]="findTableIndexByRecordID_tableIssue", 
+						["funcName"]={"gdsGui_saveLoad_findIndexByID"}, 
 						["funcParameters"]={testSavedProjectTable2, testRecIDlocator2, "GDSDEV0101167367319300E", 23},
 						["funcExpctOutput"]={"there is an issue with the provided table"}}
 
@@ -253,13 +253,13 @@ function gdsGUI_executeAllUnitTests (strPageName)
 				testTextTable[2] = "1234567810123456782012345678301234567840123456785012345678601234567870"
 				testTextTable[3] = "some textsome text, more text"
 
-		devTest_execute {["id"]="findMaxNumOfLinesNeeded_rtr5", 
+		gdsGui_dev_testExecute {["id"]="findMaxNumOfLinesNeeded_rtr5", 
 						["funcName"]={"findMaxNumOfLinesNeeded"}, 
 						["funcParameters"]={testFont, 10, testTextTable},
 						["funcExpctOutput"]={7}}
 		
-		devTest_execute {["id"]="returnFontInfo",
-						["funcName"]={"returnFontInfo"}, 
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_returnFontInfo",
+						["funcName"]={"gdsGui_general_returnFontInfo"}, 
 						["funcParameters"]={testFont, "lineHeight"}, 
 						["funcExpctOutput"]={1}}
 
@@ -271,25 +271,25 @@ function gdsGUI_executeAllUnitTests (strPageName)
 		
 		tempTestFile001:open("w")
 		
-		devTest_execute {["id"]="doesAboutPageFileExistFalse", 
-						["funcName"]={"doesAboutPageFileExist"}, 
+		gdsGui_dev_testExecute {["id"]="doesAboutPageFileExistFalse", 
+						["funcName"]={"gdsGui_general_doesAboutPageExist"}, 
 						["funcParameters"]={"tempTestFile002.txt", true}, 
 						["funcExpctOutput"]={false}}
 
-		devTest_execute {["id"]="doesAboutPageFileExistTrue", 
-						["funcName"]={"doesAboutPageFileExist"}, 
+		gdsGui_dev_testExecute {["id"]="doesAboutPageFileExistTrue", 
+						["funcName"]={"gdsGui_general_doesAboutPageExist"}, 
 						["funcParameters"]={"tempTestFile001.txt", true}, 
 						["funcExpctOutput"]={true}}
 
-		devTest_execute {["id"]="isAboutTextFileEmptyTrue", 
-						["funcName"]={"isAboutTextFileEmpty"}, 
+		gdsGui_dev_testExecute {["id"]="isAboutTextFileEmptyTrue", 
+						["funcName"]={"gdsGui_general_isAboutFileEmpty"}, 
 						["funcParameters"]={"tempTestFile001.txt", true}, 
 						["funcExpctOutput"]={true}}
 
 		tempTestFile001:write(tempTestFile001_content)
 		
-		devTest_execute {["id"]="isAboutTextFileEmptyFalse",
-						["funcName"]={"isAboutTextFileEmpty"}, 
+		gdsGui_dev_testExecute {["id"]="isAboutTextFileEmptyFalse",
+						["funcName"]={"gdsGui_general_isAboutFileEmpty"}, 
 						["funcParameters"]={"tempTestFile001.txt", true}, 
 						["funcExpctOutput"]={false}}
 
@@ -302,25 +302,25 @@ function gdsGUI_executeAllUnitTests (strPageName)
 										--INPUT TEXT BOX FUNCTION
 		-----------------------------------------------------------------------------------
 
-		devTest_execute {["id"]="inputTextBox_isNewCharInvalid_true",
-						["funcName"]={"inputTextBox_isNewCharInvalid"},
+		gdsGui_dev_testExecute {["id"]="inputTextBox_isNewCharInvalid_true",
+						["funcName"]={"gdsGui_inputTxtBox_isCharInvalid"},
 						["funcParameters"]={1, {["pattern"]="%l", ["maxCharCount"]=1,["invalCharacters"]={"/"}}, 0, ""},
 						["funcExpctOutput"]={true}}
 -- newCharacter, tblTextSpecs, currentChrCount, currentText
 
 
-		devTest_execute {["id"]="isTouchInSafeArea(correct)_test",
-						["funcName"]={"isTouchInSafeArea"},
+		gdsGui_dev_testExecute {["id"]="gdsGui_general_isTouchInSafeArea(correct)_test",
+						["funcName"]={"gdsGui_general_isTouchInSafeArea"},
 						["funcParameters"]={globApp.safeScreenArea.x + 1 ,globApp.safeScreenArea.y + 1},
 						["funcExpctOutput"]={true}}
 
-		-- devTest_execute {["id"]="createInputTextPattern_4x4alphaNumChars",
-		-- 				["funcName"]={"createInputTextPattern"},
+		-- gdsGui_dev_testExecute {["id"]="createInputTextPattern_4x4alphaNumChars",
+		-- 				["funcName"]={"gdsGui_inputTxtBox_createPattern"},
 		-- 				["funcParameters"]={4, "%w*%w*%w*%w*"},
 		-- 				["funcExpctOutput"]={"%w*%w*%w*%w*"}}
 
 
 	--------------------------------------------------------------------------
 	--writes test results to console, second argument filters result type
-	write_unit_test_results ("console", "fail") 
+	gdsGui_dev_writeTestResults ("console", "fail") 
 end

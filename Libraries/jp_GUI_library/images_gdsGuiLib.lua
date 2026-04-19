@@ -6,7 +6,7 @@
 ------------------------------------------------------------
 images = {}
 
-function image_create (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
+function gdsGui_image_create (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
 
 	local newImage = {}
 
@@ -34,7 +34,7 @@ function image_create (id, page, drawPosition, x, y, width, height, anchorPoint,
 	newImage.scaleFactorWidth = width/newImage.sprite:getWidth()
 	newImage.scaleFactorHeight = height/newImage.sprite:getHeight()
 
-	local myPositions = relativePosition (anchorPoint, x, y, width, height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+	local myPositions = gdsGui_general_relativePosition (anchorPoint, x, y, width, height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 
 	newImage.x = myPositions[1]
 	newImage.y = myPositions[2]
@@ -54,7 +54,7 @@ end
 			--OBJECT DELETE
 ------------------------------------------------------------
 
-function image_delete (id, page)
+function gdsGui_image_delete (id, page)
 
 	for i = #images, 1, -1 do
 
@@ -76,7 +76,7 @@ end
 			--OBJECT UPDATE
 ------------------------------------------------------------
 
-function image_update (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
+function gdsGui_image_update (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
 
 	for i, img in ipairs (images) do
 
@@ -100,7 +100,7 @@ function image_update (id, page, drawPosition, x, y, width, height, anchorPoint,
 			img.scaleFactorWidth = width/img.sprite:getWidth()
 			img.scaleFactorHeight = height/img.sprite:getHeight()
 
-			local myPositions = relativePosition (anchorPoint, x, y, width, height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+			local myPositions = gdsGui_general_relativePosition (anchorPoint, x, y, width, height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 
 			img.x = myPositions[1]
 			img.y = myPositions[2]
@@ -119,7 +119,7 @@ end
 			--OBJECT DRAW
 ------------------------------------------------------------
 
-function image_draw (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
+function gdsGui_image_draw (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
 
 	---------------------OBJ ISOLATION-------------------------------
 
@@ -153,11 +153,11 @@ function image_draw (id, page, drawPosition, x, y, width, height, anchorPoint, o
 
 		if imageExists == false then
 
-			image_create (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
+			gdsGui_image_create (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
 
 		elseif imageExists == true and globApp.resizeDetected == true then
 
-			image_update (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
+			gdsGui_image_update (id, page, drawPosition, x, y, width, height, anchorPoint, opacity, rotation, ox, oy, sprite)
 
 		end
 
@@ -180,7 +180,7 @@ function image_draw (id, page, drawPosition, x, y, width, height, anchorPoint, o
 
 		if imageExists == true then
 
-			image_delete (id, page)
+			gdsGui_image_delete (id, page)
 
 		end
 
@@ -194,21 +194,21 @@ end
 ------------------------------------------------------------
 
 
-function image_rotate (id, page)
+function gdsGui_image_rotate (id, page)
 
 
 
 end
 
 
-function image_move ()
+function gdsGui_image_move ()
 
 
 end
 
 
 
-function image_hide ()
+function gdsGui_image_hide ()
 
 
 
@@ -216,7 +216,7 @@ end
 
 
 
-function image_show ()
+function gdsGui_image_show ()
 
 
 

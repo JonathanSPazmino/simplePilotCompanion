@@ -54,7 +54,7 @@ end
 --[[
     Creates a new button and adds it to the global button list.
 ]]
-function gui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState, hapticEnabled)
+function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState, hapticEnabled)
     local newButton = {}
 
     newButton.name = label
@@ -85,7 +85,7 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
     newButton.mywidth = width
     newButton.myheight = height
     newButton.anchorPoint = anchorPoint
-    local myPositions = relativePosition(newButton.anchorPoint, x, y, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+    local myPositions = gdsGui_general_relativePosition(newButton.anchorPoint, x, y, newButton.mywidth, newButton.myheight, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
     newButton.myx = myPositions[1]
     newButton.myy = myPositions[2]
 
@@ -106,12 +106,12 @@ function gui_button_create(label, page, buttonType, imgPressed, imgReleased, img
         local original = self.original
 
         -- Recalculate absolute size based on the new safe area and original ratio
-        local newDims = gui_getObjectScaledDimensions(original.widthRatio, original.heightRatio, original.aspectRatio)
+        local newDims = gdsGui_general_getScaledDimensions(original.widthRatio, original.heightRatio, original.aspectRatio)
         self.mywidth = newDims.width
         self.myheight = newDims.height
 
         -- Recalculate absolute position using the consistent relative values
-        local myPositions = relativePosition(
+        local myPositions = gdsGui_general_relativePosition(
             self.anchorPoint, original.x, original.y,
             self.mywidth, self.myheight,
             globApp.safeScreenArea.x, globApp.safeScreenArea.y,
@@ -136,7 +136,7 @@ end
 --[[
     Draws all buttons that belong to the specified page.
 ]]
-function gui_buttons_draw(pageName)
+function gdsGui_button_draw(pageName)
     for _, button in ipairs(globApp.objects.buttons) do
         if button.page == pageName then
             local imageToDraw = button.images[button.state]
@@ -155,7 +155,7 @@ end
 --[[
     Handles the logic for when a mouse button or touch event is pressed down.
 ]]
-function gui_button_pressed(x, y, button, istouch)
+function gdsGui_button_pressed(x, y, button, istouch)
     -- We only care about left-click or a touch event.
     if button ~= 1 then return end
 
@@ -166,17 +166,17 @@ function gui_button_pressed(x, y, button, istouch)
             if p.type == "toggle" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED
-                    if p.hapticEnabled then gui_haptic_vibrate() end
+                    if p.hapticEnabled then gdsGui_haptics_vibrate() end
                     _executeCallback(p)
                 elseif p.state == globApp.BUTTON_STATES.PRESSED then
                     p.state = globApp.BUTTON_STATES.RELEASED
-                    if p.hapticEnabled then gui_haptic_vibrate() end
+                    if p.hapticEnabled then gdsGui_haptics_vibrate() end
                     _executeCallback(p)
                 end
             elseif p.type == "pushonoff" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED
-                    if p.hapticEnabled then gui_haptic_vibrate() end
+                    if p.hapticEnabled then gdsGui_haptics_vibrate() end
                     -- For pushonoff, callback is usually on release.
                 end
             end
@@ -187,7 +187,7 @@ end
 --[[
     Handles the logic for when a mouse button or touch event is released.
 ]]
-function gui_button_released(x, y, button, istouch)
+function gdsGui_button_released(x, y, button, istouch)
     if button ~= 1 then return end
 
     local activePageName = _getActivePageName()
@@ -205,7 +205,7 @@ end
     Sets the state of a specific button by its name.
     States: "deactivated", "released", "pushed"
 ]]
-function gui_button_setState(buttonName, state)
+function gdsGui_button_setState(buttonName, state)
     local targetState
     if state == "deactivated" then
         targetState = globApp.BUTTON_STATES.DEACTIVATED

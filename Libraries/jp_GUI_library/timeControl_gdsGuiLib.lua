@@ -2,7 +2,7 @@
 
 timeTriggerObjetcs = {}
 
-function create_newTimeTrigger (myName, myIntervals, myCalledFunctions)
+function gdsGui_timeControl_createTrigger (myName, myIntervals, myCalledFunctions)
 	--[[
 		NOTES: calls functions at interval times
 
@@ -50,7 +50,7 @@ function create_newTimeTrigger (myName, myIntervals, myCalledFunctions)
 end
 
 
-function updateTimeTrigger (dt)
+function gdsGui_timeControl_updateTrigger (dt)
 
 	local runningTimeTriggers = 0
 
@@ -62,7 +62,7 @@ function updateTimeTrigger (dt)
 		elseif t.running ==true and t.currentTime > t.endTime then
 			t.currentTime = 0
 			t.running = false
-			deleteTimeTrigger (t.name)
+			gdsGui_timeControl_deleteTrigger (t.name)
 		end
 
 		local intFuncDiff = #t.intervals - #t.intervalFunctionCalls
@@ -147,7 +147,7 @@ function updateTimeTrigger (dt)
 end
 
 
-function deleteTimeTrigger (myName)
+function gdsGui_timeControl_deleteTrigger (myName)
 
 	for i = #timeTriggerObjetcs,1,-1 do
 
@@ -164,16 +164,7 @@ function deleteTimeTrigger (myName)
 end
 
 
-function createTimeTrigger (myName, myIntervals, myCalledFunctions)
-
-	local startTime = 0
-
-	create_newTimeTrigger (myName,  myIntervals, myCalledFunctions)
-
-end
-
-
-function testTimeTrigger ()
+function gdsGui_timeControl_testTrigger ()
 
 	for i, t in ipairs (timeTriggerObjetcs) do
 

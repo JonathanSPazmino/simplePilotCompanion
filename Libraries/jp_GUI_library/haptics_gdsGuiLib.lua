@@ -5,7 +5,7 @@
     not supported — no error is raised regardless of platform.
 ]]
 
-function gui_haptic_vibrate()
+function gdsGui_haptics_vibrate()
     if love.system and love.system.vibrate then
         pcall(love.system.vibrate, 0.5)
     end

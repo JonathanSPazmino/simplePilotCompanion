@@ -73,14 +73,14 @@ end
 -- (Re)compute all screen-space geometry from the knob's stored original values.
 -- Called once at creation and again whenever the window is resized.
 local function _calculateGeometry(knob)
-    local dims = gui_getObjectScaledDimensions(
+    local dims = gdsGui_general_getScaledDimensions(
         knob.original.widthRatio,
         knob.original.heightRatio,
         knob.original.aspectRatio
     )
     knob.size = dims.width  -- knobs are square; width == height
 
-    local pos = relativePosition(
+    local pos = gdsGui_general_relativePosition(
         knob.original.anchorPoint,
         knob.original.x, knob.original.y,
         knob.size, knob.size,
@@ -150,7 +150,7 @@ end
     callbackFunc    string   — global function name; receives position (0-1) on detent change
     hapticEnabled   boolean  — haptic fires once on the initial tap
 ]]
-function gui_rotaryKnob_create(id, page, x, y, anchorPoint, size, numDetents,
+function gdsGui_rotaryKnob_create(id, page, x, y, anchorPoint, size, numDetents,
         initialPosition, spriteReleased, spriteFocused, callbackFunc, hapticEnabled)
 
     local knob = {}
@@ -198,7 +198,7 @@ end
     part, new presses on the same knob are ignored until it is released.
 
     PARAMETERS (common)
-    id, page, x, y, anchorPoint, size — same as gui_rotaryKnob_create
+    id, page, x, y, anchorPoint, size — same as gdsGui_rotaryKnob_create
 
     OUTER KNOB
     outerNumDetents     number  — outer detent count
@@ -213,7 +213,7 @@ end
 
     hapticEnabled   boolean  — haptic fires once on whichever part is first tapped
 ]]
-function gui_dualRotaryKnob_create(id, page, x, y, anchorPoint, size,
+function gdsGui_rotaryKnob_createDual(id, page, x, y, anchorPoint, size,
         outerNumDetents, outerInitialPos, outerSpriteReleased, outerSpriteFocused, outerCallbackFunc,
         innerNumDetents, innerInitialPos, innerSpriteReleased, innerSpriteFocused, innerCallbackFunc,
         hapticEnabled)
@@ -262,7 +262,7 @@ end
     For dual knobs, the outer sprite is drawn first and the inner on top of it.
     Each part switches between its released and focused sprites based on focus state.
 ]]
-function gui_rotaryKnob_draw(pageName)
+function gdsGui_rotaryKnob_draw(pageName)
     for _, knob in ipairs(globApp.objects.rotaryKnobs) do
         if knob.page ~= pageName then goto continue end
 
@@ -307,7 +307,7 @@ end
 
     touchId — "mouse" for mouse input, or the LÖVE touch id for touch input.
 ]]
-function gui_rotaryKnob_pressed(touchId, x, y)
+function gdsGui_rotaryKnob_pressed(touchId, x, y)
     local activePageName = _getActivePageName()
     for _, knob in ipairs(globApp.objects.rotaryKnobs) do
         if knob.page ~= activePageName then goto continue end
@@ -328,7 +328,7 @@ function gui_rotaryKnob_pressed(touchId, x, y)
                 knob.focusedPart      = "outer"
                 knob._prevDetentIndex = knob.detentIndex
                 knob._grabAngleOffset = fingerAngle - knob.angle
-                if knob.hapticEnabled then gui_haptic_vibrate() end
+                if knob.hapticEnabled then gdsGui_haptics_vibrate() end
             end
         else
             local innerRadius = knob.inner.size * 0.5
@@ -339,7 +339,7 @@ function gui_rotaryKnob_pressed(touchId, x, y)
                 knob.focusedPart            = "inner"
                 knob.inner._prevDetentIndex = knob.inner.detentIndex
                 knob.inner._grabAngleOffset = fingerAngle - knob.inner.angle
-                if knob.hapticEnabled then gui_haptic_vibrate() end
+                if knob.hapticEnabled then gdsGui_haptics_vibrate() end
             elseif dist <= outerRadius then
                 -- Annular gap between inner and outer edges → focus outer knob.
                 knob.isFocused        = true
@@ -347,7 +347,7 @@ function gui_rotaryKnob_pressed(touchId, x, y)
                 knob.focusedPart      = "outer"
                 knob._prevDetentIndex = knob.detentIndex
                 knob._grabAngleOffset = fingerAngle - knob.angle
-                if knob.hapticEnabled then gui_haptic_vibrate() end
+                if knob.hapticEnabled then gdsGui_haptics_vibrate() end
             end
         end
 
@@ -362,10 +362,10 @@ end
     Once a knob part is focused the pointer is tracked anywhere on screen —
     not just within the knob circle — giving finer precision at greater distance.
 
-    touchId — must match the id used in gui_rotaryKnob_pressed to be processed.
+    touchId — must match the id used in gdsGui_rotaryKnob_pressed to be processed.
     dx, dy  — unused; kept for a consistent call signature with the LÖVE callbacks.
 ]]
-function gui_rotaryKnob_moved(touchId, x, y, dx, dy)
+function gdsGui_rotaryKnob_moved(touchId, x, y, dx, dy)
     for _, knob in ipairs(globApp.objects.rotaryKnobs) do
         if knob.focusTouchId ~= touchId then goto continue end
 
@@ -400,7 +400,7 @@ end
     Releases whichever knob part is owned by the given touchId.
     Both inner and outer isFocused flags are cleared and focusedPart is reset.
 ]]
-function gui_rotaryKnob_released(touchId)
+function gdsGui_rotaryKnob_released(touchId)
     for _, knob in ipairs(globApp.objects.rotaryKnobs) do
         if knob.focusTouchId == touchId then
             knob.isFocused    = false

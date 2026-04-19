@@ -8,7 +8,7 @@
 	math.randomseed(os.time()) --increased randomness of program
 
 
-function jpGUI_simulateWinUnsafeArea (perX,perY,perW,perH)
+function gdsGui_general_simulateUnsafeArea (perX,perY,perW,perH)
 
 	--parameters use percentage of screen ie. 0.5 of total screen widht
 
@@ -27,7 +27,7 @@ function jpGUI_simulateWinUnsafeArea (perX,perY,perW,perH)
 
 end
 
-function jpGUI_convertSafeAreaPercentToDPI (percArea, reqResult, isDevMode)
+function gdsGui_general_convertSafeAreaToDPI (percArea, reqResult, isDevMode)
 
 	--[[
 	return a single value that represents the DPI equivalent of the desired percentage of width or height safe area
@@ -76,7 +76,7 @@ function jpGUI_convertSafeAreaPercentToDPI (percArea, reqResult, isDevMode)
 
 end
 
-function jpGUI_findTriangAngle (side_oposite, side_adjacent, resultType)
+function gdsGui_general_findTriangAngle (side_oposite, side_adjacent, resultType)
 
 	local hipot = math.sqrt((side_oposite * side_oposite) + (side_adjacent * side_adjacent))
 
@@ -95,7 +95,7 @@ function jpGUI_findTriangAngle (side_oposite, side_adjacent, resultType)
 end
 
 
-function gui_getObjectScaledDimensions(originalWidthRatio, originalHeightRatio, aspectRatio)
+function gdsGui_general_getScaledDimensions(originalWidthRatio, originalHeightRatio, aspectRatio)
     local newDimensions = {}
 
     local boxWidth = originalWidthRatio * globApp.safeScreenArea.w
@@ -115,7 +115,7 @@ function gui_getObjectScaledDimensions(originalWidthRatio, originalHeightRatio, 
 end
 
 
-function gui_handle_resize()
+function gdsGui_general_handleResize()
     -- This function will call the resize method for all active objects
     -- For now, we iterate through each type separately.
     for _, obj in ipairs(globApp.objects.buttons) do
@@ -134,10 +134,10 @@ function gui_handle_resize()
 end
 
 
-function jpGUI_update (dt)
+function gdsGui_update (dt)
 
 	--RESIZE TRIGGER CODE MUST GO BEFORE EVERYTHING THAT USES SAFESCREEN AREA TABLE
-	globApp.resizeDetected = resizeDetect ()
+	globApp.resizeDetected = gdsGui_general_resizeDetect ()
 	if globApp.resizeDetected == true then
 
 		-- Add these lines to copy the safe area table
@@ -149,50 +149,50 @@ function jpGUI_update (dt)
 		
 		globApp.totalWindowWidth = love.graphics.getWidth()
 		globApp.totalWindowHeight = love.graphics.getHeight()
-		globApp.displayOrientation = findScreenOrientation ()
+		globApp.displayOrientation = gdsGui_general_findScreenOrientation ()
 		
 		if globApp.isScreenSimulated == false then
-			globApp.safeScreenArea = getScreenSafeArea ()
+			globApp.safeScreenArea = gdsGui_general_getScreenSafeArea ()
 		end
 
-		gui_handle_resize()
+		gdsGui_general_handleResize()
 
 	end
 
-	gui_outputTextBoxes_update(dt)
-	gui_table_physics_update(dt)
+	gdsGui_outputTxtBox_update(dt)
+	gdsGui_table_physicsUpdate(dt)
 
-	globApp.txtBoxChangeDetected = txtInput_changeTrigger ()
+	globApp.txtBoxChangeDetected = gdsGui_inputTxtBox_changeTrigger ()
 	if globApp.txtBoxChangeDetected == true then
-		globApp.doesAnyTextBoxHaveEndingBlankSpace = doesAnyInputTextBoxHaveEndingBlankSpace ()
+		globApp.doesAnyTextBoxHaveEndingBlankSpace = gdsGui_inputTxtBox_hasEndingBlank ()
 					-- print (globApp.doesAnyTextBoxHaveEndingBlankSpace)
-		globApp.areCurrentPageRequiredInputTextBoxesEmpty = areRequiredTextBoxesEmpty ()
+		globApp.areCurrentPageRequiredInputTextBoxesEmpty = gdsGui_inputTxtBox_areRequiredEmpty ()
 	end
 
 	--UPDATES DEVELOPER DATA SHOWN ON EDGES OF 
-	updateDevDisplaysParameters (dt)
+	gdsGui_dev_updateDisplays (dt)
 
-	updatedProjectAvailability ()
+	gdsGui_saveLoad_updateProjectAvailability ()
 
-	updateTimeTrigger (dt)
+	gdsGui_timeControl_updateTrigger (dt)
 
-	update_loadingPage (dt)
+	gdsGui_page_loadingUpdate (dt)
 
-	scrollBarButtonsPressed (dt)
+	gdsGui_scrollBar_buttonsPressed (dt)
 
 end
 
 
-function jpGUI_draw ()
+function gdsGui_draw ()
 
-	draw_loadingPage ()
-	drawAllDevDisplays()
-	draw_gui ()
+	gdsGui_page_loadingDraw ()
+	gdsGui_dev_drawAll()
+	gdsGui_general_draw ()
 	
 
 end
 
-function draw_gui ()
+function gdsGui_general_draw ()
 	
 	local activePageName = 0
 	for i, pgs in ipairs (pages) do
@@ -201,16 +201,16 @@ function draw_gui ()
 		end
 	end
 
-	gui_outputTxtBox_draw (activePageName)
-	gui_table_draw (activePageName)
-	gui_scrollBar_draw (activePageName)
-	gui_rotaryKnob_draw (activePageName)
-	gui_buttons_draw (activePageName)
+	gdsGui_outputTxtBox_draw (activePageName)
+	gdsGui_table_draw (activePageName)
+	gdsGui_scrollBar_draw (activePageName)
+	gdsGui_rotaryKnob_draw (activePageName)
+	gdsGui_button_draw (activePageName)
 
 end
 
 
-function relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseWidth, baseHeight)
+function gdsGui_general_relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseWidth, baseHeight)
 
 	--positions sprites and other objects based on indicated anchor Point of the object and fractional position compared to base object
 	
@@ -287,7 +287,7 @@ function relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseW
 end
 
 
-function smartScaling (scalingMode, minPercentWidth, maxPercentWidth, minPercentHeight, maxPercentHeight, heightToWidthRatio,strgReturValue ) 
+function gdsGui_general_smartScaling (scalingMode, minPercentWidth, maxPercentWidth, minPercentHeight, maxPercentHeight, heightToWidthRatio,strgReturValue ) 
 	--[[use percentage of total window size]]
 	--[[PARAMETERS:
 		scalingMode:------------string ------- inverse or normal
@@ -412,7 +412,7 @@ function smartScaling (scalingMode, minPercentWidth, maxPercentWidth, minPercent
 end
 
 
-function resizeDetect ()
+function gdsGui_general_resizeDetect ()
 	--[[returns boolean true when it detects a change on window dimensions]]
 
 	local resizeDetected = false
@@ -437,7 +437,7 @@ end
 
 
 
-function smartFontScaling (minFontPercentSize, maxFontPercentSize)
+function gdsGui_general_smartFontScaling (minFontPercentSize, maxFontPercentSize)
 
 	--[[window dimensions]]
 
@@ -487,7 +487,7 @@ function smartFontScaling (minFontPercentSize, maxFontPercentSize)
 end 
 
 
-function smartRelocation (position_1, perOfScreen_1, position_2, perOfScreen_2, position_3, perOfScreen_3, position_4, perOfScreen_4, returnValue)
+function gdsGui_general_smartRelocation (position_1, perOfScreen_1, position_2, perOfScreen_2, position_3, perOfScreen_3, position_4, perOfScreen_4, returnValue)
 	--[[relocates objects to specified locations based on diferent screens sizes and aspect ratios, use height to width ratio ONLY]]
 
 	--[[PARAMETERS:
@@ -680,7 +680,7 @@ function smartRelocation (position_1, perOfScreen_1, position_2, perOfScreen_2, 
 end
 
 
-function findScreenOrientation (myWidht, myHeight, devMode)
+function gdsGui_general_findScreenOrientation (myWidht, myHeight, devMode)
 
 	local currentWidht = globApp.safeScreenArea.w
 	local currentHeight = globApp.safeScreenArea.h
@@ -707,7 +707,7 @@ function findScreenOrientation (myWidht, myHeight, devMode)
 end
 
 
-function determineSafeWindowArea (strgOrientation, strgOS, myWidht, myHeight, isDevMode)
+function gdsGui_general_determineSafeArea (strgOrientation, strgOS, myWidht, myHeight, isDevMode)
 
 	local safeScreenArea = {}
 
@@ -769,7 +769,7 @@ function determineSafeWindowArea (strgOrientation, strgOS, myWidht, myHeight, is
 end
 
 
-function getScreenSafeArea ()
+function gdsGui_general_getScreenSafeArea ()
 
 	local safeScreenArea = {}
 	local x, y, w, h = love.window.getSafeArea( )
@@ -793,48 +793,48 @@ end
 
 function love.touchpressed( id, x, y, dx, dy, pressure )
 
-	gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
+	gdsGui_general_touchpressed (id, x, y, dx, dy, pressure)
 
 end
 
 
 function love.touchmoved( id, x, y, dx, dy, pressure )
 
-	gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
+	gdsGui_general_touchmoved (id, x, y, dx, dy, pressure)
 
 end
 
 
 function love.touchreleased( id, x, y, dx, dy, pressure )
 
-	gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
+	gdsGui_general_touchreleased (id, x, y, dx, dy, pressure)
 
 end
 
 
 function love.mousepressed (x,y,button,istouch)
 
-	gdsGUI_mousepressed (x, y, button, istouch, presses)
+	gdsGui_general_mousepressed (x, y, button, istouch, presses)
 
 end
 
 function love.mousemoved ( x, y, button, istouch, presses )
 
-	gdsGUI_mousemoved (x, y, button, istouch, presses)
+	gdsGui_general_mousemoved (x, y, button, istouch, presses)
 
 end
 
 
 function love.mousereleased ( x, y, button, istouch, presses )
 
-	gdsGUI_mousereleased (x, y, button, istouch, presses)
+	gdsGui_general_mousereleased (x, y, button, istouch, presses)
 
 end
 
 
 
 
-function isTouchInSafeArea (touchX, touchY)
+function gdsGui_general_isTouchInSafeArea (touchX, touchY)
 
 	local result = false
 	
@@ -848,9 +848,9 @@ function isTouchInSafeArea (touchX, touchY)
 	
 end
 
-function isolateTouchableArea ()
+function gdsGui_general_isolateTouchableArea ()
 
-	relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseWidth, baseHeight)
+	gdsGui_general_relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseWidth, baseHeight)
 
 	local result = false
 
@@ -858,7 +858,7 @@ end
 
 
 
-function gdsGUI_convertButtonNumToString (buttonNum)
+function gdsGui_general_convertButtonNumToString (buttonNum)
 
 	local buttonName = ""
 
@@ -875,27 +875,27 @@ end
 
 ---------------MOUSE-----------------------
 
-function gdsGUI_mousepressed (x, y, button, istouch, presses)
+function gdsGui_general_mousepressed (x, y, button, istouch, presses)
 
 	if istouch == false then
 
-		local buttonName = gdsGUI_convertButtonNumToString (button)
+		local buttonName = gdsGui_general_convertButtonNumToString (button)
 
 		local calledFunction = (buttonName .. " click pressed")
 		globApp.userInput = calledFunction
 
-gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
+gdsGui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 		
-		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
+		gdsGui_inputTxtBox_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
 
-		tableButtonsPressed (x,y,button,istouch)
+		gdsGui_table_buttonsPressed (x,y,button,istouch)
 
-		focus_scrollingBar ("mouse", x,y,button,istouch)
+		gdsGui_scrollBar_focus ("mouse", x,y,button,istouch)
 
-		gui_rotaryKnob_pressed ("mouse", x, y)
+		gdsGui_rotaryKnob_pressed ("mouse", x, y)
 
 		-- Mark tables where mouse press started inside the scrollable area.
-		local activePage = returnCurrentPageName()
+		local activePage = gdsGui_page_currentName()
 		for _, tbl in ipairs(globApp.objects.tables) do
 			if tbl.scroll and tbl.page == activePage then
 				if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
@@ -907,7 +907,7 @@ gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
 
-			open_DevPgByEightTapping (x,y,button,istouch) -- opens and closes devPage
+			gdsGui_dev_openByEightTap (x,y,button,istouch) -- opens and closes devPage
 
 		end
 
@@ -916,28 +916,28 @@ gui_button_pressed (x,y,button,istouch) --runs when clicked on created buttons
 end
 
 
-function gdsGUI_mousereleased (x, y, button, istouch, presses)
+function gdsGui_general_mousereleased (x, y, button, istouch, presses)
 	
 	if istouch == false then
 
-		local buttonName = gdsGUI_convertButtonNumToString (button)
+		local buttonName = gdsGui_general_convertButtonNumToString (button)
 
 		if globApp.userInput == (buttonName .. " click pressed") then
 
 			local calledFunction = (buttonName .. " click")
 			globApp.userInput = calledFunction
 
-			gui_button_released (x, y, 1, istouch, presses)
+			gdsGui_button_released (x, y, 1, istouch, presses)
 		
-			tableRow_Select (x,y,button,istouch)
+			gdsGui_table_rowSelect (x,y,button,istouch)
 
-			tableButtonsReleased (x,y,button,istouch)
+			gdsGui_table_buttonsReleased (x,y,button,istouch)
 
-			unfocus_scrollingBar ("mouse", x,y,button,istouch)
+			gdsGui_scrollBar_unfocus ("mouse", x,y,button,istouch)
 
-			gui_rotaryKnob_released ("mouse")
+			gdsGui_rotaryKnob_released ("mouse")
 
-			gui_touchReleasedOutputTxtBox (x, y)
+			gdsGui_outputTxtBox_touchReleased (x, y)
 			gui_touchReleasedTableScroll (x, y)
 
 			globApp.userInput = "none"
@@ -949,20 +949,20 @@ function gdsGUI_mousereleased (x, y, button, istouch, presses)
 end
 
 
-function gdsGUI_mousemoved (x, y, button, istouch, presses)
+function gdsGui_general_mousemoved (x, y, button, istouch, presses)
 	-- NOTE: in LÖVE's love.mousemoved signature, the 3rd/4th params are dx/dy.
 	-- The existing code names them 'button' and 'istouch' — preserved as-is.
 	-- So here: button = dx, istouch = dy.
 
-	holdAndDragScrollBar ("mouse", x, y, button, istouch)
+	gdsGui_scrollBar_holdAndDrag ("mouse", x, y, button, istouch)
 
 	-- button = dx, istouch = dy for this callback (see note above).
-	gui_rotaryKnob_moved ("mouse", x, y, button, istouch)
+	gdsGui_rotaryKnob_moved ("mouse", x, y, button, istouch)
 
 	-- Pass mouse drag deltas into the output textbox and table scroll systems.
 	-- button = dx, istouch = dy (see note above).
-	gui_touchScrollOutputTxtBox(nil, x, y, button, istouch, nil, nil, nil)
-	touchScrollSpreadShett(nil, x, y, button, istouch, nil, nil, nil)
+	gdsGui_outputTxtBox_touchScroll(nil, x, y, button, istouch, nil, nil, nil)
+	gdsGui_table_touchScroll(nil, x, y, button, istouch, nil, nil, nil)
 
 end
 
@@ -973,22 +973,22 @@ end
 
 function love.textinput(t)
 
-	txtInput_text_update ("add",t, nil)
+	gdsGui_inputTxtBox_textUpdate ("add",t, nil)
 
 end
 
 
 function love.keypressed(key, unicode)
 
-	if isTextRemoveCommanded (key) == true then
-		txtInput_text_update ("remove",nil, key)
+	if gdsGui_general_isTextRemoveCommanded (key) == true then
+		gdsGui_inputTxtBox_textUpdate ("remove",nil, key)
 	end
 	
-	txtInput_tabToSwitch (key)
+	gdsGui_inputTxtBox_tabToSwitch (key)
 
 end 
 
-function isTextRemoveCommanded (key)
+function gdsGui_general_isTextRemoveCommanded (key)
 
 	local removeKeys = {}
 		removeKeys[1] = "backspace"
@@ -1015,24 +1015,24 @@ end
 				--TOUCHSCREEN INTERACTION
 --------------------------------------------------
 
-function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
+function gdsGui_general_touchpressed (id, x, y, dx, dy, pressure)
 
 	local calledFunction = "touch pressed"
 
 	globApp.userInput = calledFunction -- insert code below this line to user glob var
 
-	gui_button_pressed (x,y,1,true) --runs when clicked on created buttons
+	gdsGui_button_pressed (x,y,1,true) --runs when clicked on created buttons
 
-	tableButtonsPressed (x,y,1,true)
+	gdsGui_table_buttonsPressed (x,y,1,true)
 
-	focus_scrollingBar (id, x,y,1,true)
+	gdsGui_scrollBar_focus (id, x,y,1,true)
 
-	gui_rotaryKnob_pressed (id, x, y)
+	gdsGui_rotaryKnob_pressed (id, x, y)
 
-	tableRow_Select (x,y,1,true)
+	gdsGui_table_rowSelect (x,y,1,true)
 
 	-- Mark tables where touch started inside the scrollable area.
-	local activePage = returnCurrentPageName()
+	local activePage = gdsGui_page_currentName()
 	for _, tbl in ipairs(globApp.objects.tables) do
 		if tbl.scroll and tbl.page == activePage then
 			if x >= tbl.scrollBox.x and x <= (tbl.scrollBox.x + tbl.scrollBox.width) and
@@ -1044,7 +1044,7 @@ function gdsGUI_touchpressed (id, x, y, dx, dy, pressure)
 
 end
 
-function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
+function gdsGui_general_touchmoved (id, x, y, dx, dy, pressure)
 
 	touches = love.touch.getTouches()
 
@@ -1054,8 +1054,8 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 	local slideSensitivityPixelsNegative = -(slideSensitivity)
 
 	-- Handle scrollbar and knob drag for this specific touch independently.
-	holdAndDragScrollBar (id, x, y, 1, true)
-	gui_rotaryKnob_moved (id, x, y, dx, dy)
+	gdsGui_scrollBar_holdAndDrag (id, x, y, 1, true)
+	gdsGui_rotaryKnob_moved (id, x, y, dx, dy)
 
 	for i, tchs in ipairs (touches) do --isolate to first touch only
 
@@ -1067,11 +1067,11 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 
 			end
 
-			gui_button_released (x, y, 1, istouch, presses)
+			gdsGui_button_released (x, y, 1, istouch, presses)
 
-			touchScrollSpreadShett (id, x, y, dx, dy, pressure, button, istouch)
+			gdsGui_table_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 
-			gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
+			gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 
 		end
 
@@ -1080,7 +1080,7 @@ function gdsGUI_touchmoved (id, x, y, dx, dy, pressure)
 end
 
 
-function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
+function gdsGui_general_touchreleased (id, x, y, dx, dy, pressure)
 
 	local calledFunction = "touch released"
 
@@ -1095,24 +1095,24 @@ function gdsGUI_touchreleased (id, x, y, dx, dy, pressure)
 
 		-- buttons_pressed (x,y,button,istouch) --runs when clicked on created buttons
 
-		gui_button_released (x, y, 1, istouch, presses)		txtInput_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
-		tableRow_Select (x,y,button,true)
+		gdsGui_button_released (x, y, 1, istouch, presses)		gdsGui_inputTxtBox_pressed (x,y,button,istouch) --runs when clicked or touched on textboxes
+		gdsGui_table_rowSelect (x,y,button,true)
 
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
-			open_DevPgByEightTapping (x,y,button,istouch) -- opens and closes devPage 
+			gdsGui_dev_openByEightTap (x,y,button,istouch) -- opens and closes devPage 
 		end
 
 	end
 
 	globApp.userInput = calledFunction
 
-	tableButtonsReleased (x,y,button,istouch)
+	gdsGui_table_buttonsReleased (x,y,button,istouch)
 
-	unfocus_scrollingBar (id, x,y,1,true)
+	gdsGui_scrollBar_unfocus (id, x,y,1,true)
 
-	gui_rotaryKnob_released (id)
+	gdsGui_rotaryKnob_released (id)
 
-	gui_touchReleasedOutputTxtBox (x, y)
+	gdsGui_outputTxtBox_touchReleased (x, y)
 	gui_touchReleasedTableScroll (x, y)
 
 	globApp.userInput = "none"
@@ -1123,7 +1123,7 @@ end
 --------------------------------------------------------------------------------
 							--FONT
 --------------------------------------------------------------------------------
-function returnFontInfo (thisFont, reqInfo)
+function gdsGui_general_returnFontInfo (thisFont, reqInfo)
 
 	local result = {}
 
@@ -1158,36 +1158,36 @@ end
 							--READ ABOUT PAGE
 -------------------------------------------------------------------------------------
 
-function doesAboutPageFileExist (path, isUnitTest)
+function gdsGui_general_doesAboutPageExist (path, isUnitTest)
 	local exists = false
    	local info = love.filesystem.getInfo(path)
    	if info ~= nil then
    		exists = true
    	else
    		if isUnitTest ~= true then
-   			generateConsoleMessage ("error", "no about.txt file was found, add one")
+   			gdsGui_generateConsoleMessage ("error", "no about.txt file was found, add one")
    		end
    	end
    	return exists
 end
 
-function isAboutTextFileEmpty (path, isUnitTest)
+function gdsGui_general_isAboutFileEmpty (path, isUnitTest)
 	local isEmpty = true
 	contents, size = love.filesystem.read( path )
 	if size > 0 then
 		isEmpty = false
 	else
 		if isUnitTest ~= true or isUnitTest == nil then
-			generateConsoleMessage ("error", "your " .. path .. " file is empty")
+			gdsGui_generateConsoleMessage ("error", "your " .. path .. " file is empty")
 		end
 	end
 	return isEmpty
 end
 
-function readAboutPageFile ()
-	local aboutFileExits = doesAboutPageFileExist ("about.txt")
+function gdsGui_general_readAboutPage ()
+	local aboutFileExits = gdsGui_general_doesAboutPageExist ("about.txt")
 	if aboutFileExits == true then
-		local isAboutFileEmpty = isAboutTextFileEmpty ("about.txt")
+		local isAboutFileEmpty = gdsGui_general_isAboutFileEmpty ("about.txt")
 		local contents = "NO ABOUT.TXT FILE FOUND"
 		if aboutFileExits == true and isAboutFileEmpty == false then
 			contents = love.filesystem.read( "about.txt" )
@@ -1196,7 +1196,7 @@ function readAboutPageFile ()
 	end
 end
 
-function readLibraryInfoFile ()
+function gdsGui_general_readLibraryInfo ()
 	local path = "Libraries/jp_GUI_library/jp_gui_library_info.txt"
 	local info = love.filesystem.getInfo(path)
 	if info ~= nil then
@@ -1213,12 +1213,12 @@ end
 							--PROJECT SELECTION 
 --------------------------------------------------------------------------------------
 
-function projectSelect (id)
+function gdsGui_general_projectSelect (id)
 	globApp.selectedProject = id
 	print ("globApp.selectedProject is " .. globApp.selectedProject )
 end
 
-function projectDeselect (id)
+function gdsGui_general_projectDeselect (id)
 	globApp.selectedProject = "none"
 	print ("globApp.selectedProject is " .. globApp.selectedProject )
 end
@@ -1248,10 +1248,10 @@ end
 		globApp.numObjectsDisplayed = 0 --[[displayed on lower status bar]]
 		globApp.totalWindowWidth = love.graphics.getWidth() --[[can be called instd love func]]
 		globApp.totalWindowHeight = love.graphics.getHeight() --[[can be called instd love func]]
-		globApp.safeScreenArea = getScreenSafeArea () --jpGUI_simulateWinUnsafeArea (0,.1,1,.8) --
+		globApp.safeScreenArea = gdsGui_general_getScreenSafeArea () --gdsGui_general_simulateUnsafeArea (0,.1,1,.8) --
 		globApp.lastSafeScreenArea = globApp.safeScreenArea -- Add this line
 		globApp.isScreenSimulated = false
-		globApp.displayOrientation = findScreenOrientation ()
+		globApp.displayOrientation = gdsGui_general_findScreenOrientation ()
 		globApp.appScale = love.graphics.getDPIScale ()
 		globApp.currentPageIndex = 1 --[[activates the first page to load when app starts]]
 		globApp.pageChanged = false
@@ -1270,7 +1270,7 @@ end
 		globApp.touchSensitivity = 2
 		globApp.scrollbarThickness = 15
 		globApp.devCompanyAcronym = "GDS"
-		globApp.aboutPageContent = readAboutPageFile ()
-		globApp.libraryInfoContent = readLibraryInfoFile ()
+		globApp.aboutPageContent = gdsGui_general_readAboutPage ()
+		globApp.libraryInfoContent = gdsGui_general_readLibraryInfo ()
 
 	devSpritesPath = "Libraries/jp_GUI_library/librarySprites/"

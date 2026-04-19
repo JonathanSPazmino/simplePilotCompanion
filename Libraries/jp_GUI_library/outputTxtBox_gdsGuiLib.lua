@@ -43,7 +43,7 @@ end
 local function _apply_scroll_offset(tb)
 	for _, line in ipairs(tb.text.lines) do
 		line.y = line.naturalY + tb.scroll.offsetY
-		line.isVisible = isTextInsideTheFrame(tb.frame, line)
+		line.isVisible = gdsGui_outputTxtBox_isTextInFrame(tb.frame, line)
 	end
 end
 
@@ -52,7 +52,7 @@ end
 --  CREATION
 -- ---------------------------------------------------------------------------
 
-function gui_outputTextBox_create (id, page, bgSprite, x, y, anchorPoint, width, height, txtColor, text, fontSize)
+function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, width, height, txtColor, text, fontSize)
 
 	local tb = {}
 
@@ -66,7 +66,7 @@ function gui_outputTextBox_create (id, page, bgSprite, x, y, anchorPoint, width,
 		tb.anchorPoint = anchorPoint
 		tb.rltvWidth   = width
 		tb.rltvHeight  = height
-			local myPositions = relativePosition(anchorPoint, x, y, tb.rltvWidth, tb.rltvHeight,
+			local myPositions = gdsGui_general_relativePosition(anchorPoint, x, y, tb.rltvWidth, tb.rltvHeight,
 			                                     globApp.safeScreenArea.x, globApp.safeScreenArea.y,
 			                                     globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 		tb.state = 1
@@ -100,7 +100,7 @@ function gui_outputTextBox_create (id, page, bgSprite, x, y, anchorPoint, width,
 
 			tb.text.width            = tb.frame.width * 0.8
 			tb.text.maxTextLineCount = findMaxNumOfLinesNeeded(tb.text.font, tb.text.width, tb.text.text)
-			tb.text.height           = returnFontInfo(tb.text.font, "height")
+			tb.text.height           = gdsGui_general_returnFontInfo(tb.text.font, "height")
 			tb.text.combinedTxtHeight= tb.text.height * tb.text.maxTextLineCount
 			tb.text.x                = tb.frame.x + ((tb.frame.width - tb.text.width) / 2)
 			tb.text.baseY            = tb.frame.y
@@ -118,7 +118,7 @@ function gui_outputTextBox_create (id, page, bgSprite, x, y, anchorPoint, width,
 				newLine.height    = tb.text.height
 				newLine.color     = tb.text.color
 				newLine.alignement= "center"
-				newLine.isVisible = isTextInsideTheFrame(tb.frame, newLine)
+				newLine.isVisible = gdsGui_outputTxtBox_isTextInFrame(tb.frame, newLine)
 				table.insert(tb.text.lines, newLine)
 			end
 
@@ -146,7 +146,7 @@ local function _recalculate_textBox(updtLbl)
 
 		updtLbl.rltvWidth  = updtLbl.frame.width
 		updtLbl.rltvHeight = updtLbl.frame.height
-		local myPositions = relativePosition(updtLbl.anchorPoint, updtLbl.x, updtLbl.y,
+		local myPositions = gdsGui_general_relativePosition(updtLbl.anchorPoint, updtLbl.x, updtLbl.y,
 		                                     updtLbl.rltvWidth, updtLbl.rltvHeight,
 		                                     globApp.safeScreenArea.x, globApp.safeScreenArea.y,
 		                                     globApp.safeScreenArea.w, globApp.safeScreenArea.h)
@@ -163,7 +163,7 @@ local function _recalculate_textBox(updtLbl)
 
 		updtLbl.text.width             = updtLbl.frame.width * 0.8
 		updtLbl.text.maxTextLineCount  = findMaxNumOfLinesNeeded(updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
-		updtLbl.text.height            = returnFontInfo(updtLbl.text.font, "height")
+		updtLbl.text.height            = gdsGui_general_returnFontInfo(updtLbl.text.font, "height")
 		updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
 		updtLbl.text.x                 = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width) / 2)
 		updtLbl.text.baseY             = updtLbl.frame.y
@@ -180,7 +180,7 @@ local function _recalculate_textBox(updtLbl)
 			newLine.height    = updtLbl.text.height
 			newLine.color     = updtLbl.text.color
 			newLine.alignement= "center"
-			newLine.isVisible = isTextInsideTheFrame(updtLbl.frame, newLine)
+			newLine.isVisible = gdsGui_outputTxtBox_isTextInFrame(updtLbl.frame, newLine)
 			table.insert(updtLbl.text.lines, newLine)
 		end
 
@@ -196,10 +196,10 @@ end
 
 
 -- ---------------------------------------------------------------------------
---  UPDATE (called every frame with dt from jpGUI_update)
+--  UPDATE (called every frame with dt from gdsGui_update)
 -- ---------------------------------------------------------------------------
 
-function gui_outputTextBoxes_update(dt)
+function gdsGui_outputTxtBox_update(dt)
 
 	for i, updtLbl in ipairs(globApp.objects.outputTextBox) do
 
@@ -263,7 +263,7 @@ end
 --  DELETE
 -- ---------------------------------------------------------------------------
 
-function gui_outputTextBox_delete (id, page)
+function gdsGui_outputTxtBox_delete (id, page)
 
 	for i = #globApp.objects.outputTextBox, 1, -1 do
 
@@ -283,7 +283,7 @@ end
 --  DRAW
 -- ---------------------------------------------------------------------------
 
-function gui_outputTxtBox_draw (pg)
+function gdsGui_outputTxtBox_draw (pg)
 	for i, t in ipairs(globApp.objects.outputTextBox) do
 		if t.page == pg then
 
@@ -329,7 +329,7 @@ end
 --  VISIBILITY HELPER
 -- ---------------------------------------------------------------------------
 
-function isTextInsideTheFrame (txtBoxTable, lineTable)
+function gdsGui_outputTxtBox_isTextInFrame (txtBoxTable, lineTable)
 	local result = false
 	if lineTable.y >= txtBoxTable.y and (lineTable.y + lineTable.height) <= (txtBoxTable.y + txtBoxTable.height) then
 		result = true
@@ -342,9 +342,9 @@ end
 --  TOUCH / MOUSE DRAG SCROLL
 -- ---------------------------------------------------------------------------
 
--- Called from gdsGUI_touchmoved and gdsGUI_mousemoved.
+-- Called from gdsGui_general_touchmoved and gdsGui_general_mousemoved.
 -- dx, dy are pixel deltas for this frame.
-function gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouch)
+function gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 
 	-- Accept both touch-slide and mouse-button-held drags
 	local isGestureActive = (globApp.userInput == "slide") or love.mouse.isDown(1)
@@ -380,9 +380,9 @@ function gui_touchScrollOutputTxtBox (id, x, y, dx, dy, pressure, button, istouc
 end
 
 
--- Called from gdsGUI_touchreleased and gdsGUI_mousereleased.
+-- Called from gdsGui_general_touchreleased and gdsGui_general_mousereleased.
 -- Seeds the correct physics phase from the accumulated drag velocity.
-function gui_touchReleasedOutputTxtBox (x, y)
+function gdsGui_outputTxtBox_touchReleased (x, y)
 
 	for i, tb in ipairs(globApp.objects.outputTextBox) do
 
@@ -410,7 +410,7 @@ end
 --  TEXT UPDATE
 -- ---------------------------------------------------------------------------
 
-function gui_updateOutputTextBoxText(name, text)
+function gdsGui_outputTxtBox_setText(name, text)
 	for _, box in ipairs(globApp.objects.outputTextBox) do
 		if box.name == name then
 			box.text.text = text

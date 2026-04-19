@@ -4,7 +4,7 @@ textBoxes = {}
 
 CurrentPageTxtBoxValues = {}
 
-function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
+function gdsGui_inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
 
 	--[[INPUT:
 		txtBxId -------------------string-------name of button
@@ -57,7 +57,7 @@ function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOT
 	nitb.frame = {}
 		nitb.frame.width = myWidth
 		nitb.frame.height = myHeight
-		local myPositions = relativePosition (anchorPoint, myx, myy, nitb.frame.width, nitb.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+		local myPositions = gdsGui_general_relativePosition (anchorPoint, myx, myy, nitb.frame.width, nitb.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 		nitb.frame.x = myPositions[1]
 		nitb.frame.y = myPositions[2]	
 
@@ -75,7 +75,7 @@ function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOT
 			nitb.lable.text.height = nitb.lable.frame.height - (nitb.lable.frame.height * 0.1)
 			nitb.lable.text.text = nitb.defaultText
 			nitb.lable.text.maxLineCount = findMaxNumOfLinesNeeded (nitb.textFont, nitb.lable.text.width, nitb.defaultText)
-			nitb.lable.text.perLineTextHeight = returnFontInfo (nitb.textFont, "height")
+			nitb.lable.text.perLineTextHeight = gdsGui_general_returnFontInfo (nitb.textFont, "height")
 
 			--adds all lines height
 			nitb.lable.text.totalTextHeight = (nitb.lable.text.maxLineCount * nitb.lable.text.perLineTextHeight)
@@ -99,7 +99,7 @@ function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOT
 			nitb.userInput.text.width = nitb.userInput.frame.width - (nitb.userInput.frame.width * 0.1)
 			nitb.userInput.text.height = nitb.userInput.frame.height - (nitb.userInput.frame.height * 0.1)
 			nitb.userInput.text.maxLineCount = findMaxNumOfLinesNeeded (nitb.textFont, nitb.userInput.text.width, nitb.defaultText)
-			nitb.userInput.text.perLineTextHeight = returnFontInfo (nitb.textFont, "height")
+			nitb.userInput.text.perLineTextHeight = gdsGui_general_returnFontInfo (nitb.textFont, "height")
 
 			--adds all lines height
 			nitb.userInput.text.totalTextHeight = (nitb.userInput.text.maxLineCount * nitb.userInput.text.perLineTextHeight)
@@ -164,7 +164,7 @@ function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOT
 		nitb.userGuideBox.textMarginSpaces = 0.25
 
 		maxDefaultTextLineCount = findMaxNumOfLinesNeeded (nitb.textFont, nitb.frame.width, nitb.defaultText)
-		actualDefaultTextFontHeight = returnFontInfo (nitb.textFont, "height")
+		actualDefaultTextFontHeight = gdsGui_general_returnFontInfo (nitb.textFont, "height")
 
 		--adds all lines height
 		totalTextHeight = (actualDefaultTextFontHeight * maxDefaultTextLineCount)
@@ -193,7 +193,7 @@ function inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOT
 
 end
 
-function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fontSize)
+function gdsGui_inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fontSize)
 	
 	for i, updTxtBx in ipairs(textBoxes) do 
 
@@ -203,7 +203,7 @@ function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fon
 
 			updTxtBx.frame.width = myWidth
 			updTxtBx.frame.height = myHeight
-			local myPositions = relativePosition (anchorPoint, myx, myy, updTxtBx.frame.width, updTxtBx.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
+			local myPositions = gdsGui_general_relativePosition (anchorPoint, myx, myy, updTxtBx.frame.width, updTxtBx.frame.height, globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h) --do not move this line to other part.
 			updTxtBx.frame.x = myPositions[1]
 			updTxtBx.frame.y = myPositions[2]	
 
@@ -217,7 +217,7 @@ function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fon
 			updTxtBx.lable.text.width = updTxtBx.lable.frame.width - (updTxtBx.lable.frame.width * 0.1)
 			updTxtBx.lable.text.height = updTxtBx.lable.frame.height - (updTxtBx.lable.frame.height * 0.1)
 			updTxtBx.lable.text.maxLineCount = findMaxNumOfLinesNeeded (updTxtBx.textFont, updTxtBx.lable.text.width, updTxtBx.defaultText)
-			updTxtBx.lable.text.perLineTextHeight = returnFontInfo (updTxtBx.textFont, "height")
+			updTxtBx.lable.text.perLineTextHeight = gdsGui_general_returnFontInfo (updTxtBx.textFont, "height")
 
 			--adds all lines height
 			updTxtBx.lable.text.totalTextHeight = (updTxtBx.lable.text.maxLineCount * updTxtBx.lable.text.perLineTextHeight)
@@ -236,7 +236,7 @@ function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fon
 			updTxtBx.userInput.text.width = updTxtBx.userInput.frame.width - (updTxtBx.userInput.frame.width * 0.1)
 			updTxtBx.userInput.text.height = updTxtBx.userInput.frame.height - (updTxtBx.userInput.frame.height * 0.1)
 			updTxtBx.userInput.text.maxLineCount = findMaxNumOfLinesNeeded (updTxtBx.textFont, updTxtBx.userInput.text.width, updTxtBx.defaultText)
-			updTxtBx.userInput.text.perLineTextHeight = returnFontInfo (updTxtBx.textFont, "height")
+			updTxtBx.userInput.text.perLineTextHeight = gdsGui_general_returnFontInfo (updTxtBx.textFont, "height")
 
 			--adds all lines height
 			updTxtBx.userInput.text.totalTextHeight = (updTxtBx.userInput.text.maxLineCount * updTxtBx.userInput.text.perLineTextHeight)
@@ -255,7 +255,7 @@ function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fon
 			updTxtBx.myMaxy = updTxtBx.frame.y + updTxtBx.frame.height--[[for button click detection]]
 
 			maxDefaultTextLineCount = findMaxNumOfLinesNeeded (updTxtBx.textFont, updTxtBx.frame.width, updTxtBx.defaultText)
-			actualDefaultTextFontHeight = returnFontInfo (updTxtBx.textFont, "height")
+			actualDefaultTextFontHeight = gdsGui_general_returnFontInfo (updTxtBx.textFont, "height")
 
 			--adds all lines height
 			totalTextHeight = (actualDefaultTextFontHeight * maxDefaultTextLineCount)
@@ -315,7 +315,7 @@ function inputTxtBox_update(txtBxId,anchorPoint, myx, myy, myWidth, myHeight,fon
 
 end
 
-function txtInput_delete (txtBxId,page)
+function gdsGui_inputTxtBox_delete (txtBxId,page)
 
 	for i = #textBoxes,1,-1 do
 
@@ -333,7 +333,7 @@ function txtInput_delete (txtBxId,page)
 
 end
 
-function inputTxtBox_draw (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
+function gdsGui_inputTxtBox_draw (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
 
 	local activePageName = 0
 
@@ -362,13 +362,13 @@ function inputTxtBox_draw (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfo
 
 		if txtBxExists == false then
 
-			inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
+			gdsGui_inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
 
-			deactivateTxtBx ()
+			gdsGui_inputTxtBox_deactivate ()
 
 		elseif txtBxExists == true  and globApp.resizeDetected == true then --[[updates only if window is resized]]
 
-			inputTxtBox_update(txtBxId, anchorPoint, myx, myy, myWidth, myHeight,fontSize)
+			gdsGui_inputTxtBox_update(txtBxId, anchorPoint, myx, myy, myWidth, myHeight,fontSize)
 
 		end
 
@@ -502,7 +502,7 @@ function inputTxtBox_draw (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfo
  
 	 	if txtBxExists == true then
 			
-			txtInput_delete (txtBxId, page)
+			gdsGui_inputTxtBox_delete (txtBxId, page)
 
 		end
 	
@@ -511,17 +511,17 @@ function inputTxtBox_draw (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfo
 end
 
 
-function deactivateTxtBx ()
+function gdsGui_inputTxtBox_deactivate ()
 	
 	--[[future code]]
 
 end
 
 
-function txtInput_pressed (x,y,button,istouch)
+function gdsGui_inputTxtBox_pressed (x,y,button,istouch)
 	--[[Focuses a textbox when it is pressed and unfocuses the txbx when click elsewhere]]
 
-	local activePageName = returnCurrentPageName ()
+	local activePageName = gdsGui_page_currentName ()
 	local currentTxtBxTable = textBoxes
 
 	--focus txtBox CODE
@@ -562,10 +562,10 @@ function txtInput_pressed (x,y,button,istouch)
 
 								getfenv()[p.callbackFunc](t)
 							else
-								generateConsoleMessage ("error", "no callback has been assigned to this txtBox")
+								gdsGui_generateConsoleMessage ("error", "no callback has been assigned to this txtBox")
 							end
 
-							toogleDigitalKeyboard(false, p.frame.x, p.frame.y, p.myMaxx - p.frame.x , p.myMaxy - p.frame.y) -- desables keyboard
+							gdsGui_inputTxtBox_toggleKeyboard(false, p.frame.x, p.frame.y, p.myMaxx - p.frame.x , p.myMaxy - p.frame.y) -- desables keyboard
 
 							love.keyboard.setKeyRepeat(false)--quick erasing no longer needed
 						end
@@ -584,7 +584,7 @@ function txtInput_pressed (x,y,button,istouch)
 							
 							love.keyboard.setKeyRepeat(true)--needed for quick erasing
 
-							toogleDigitalKeyboard(true, p.frame.x, p.frame.y, p.myMaxx - p.frame.x , p.myMaxy - p.frame.y) --enables keyboard
+							gdsGui_inputTxtBox_toggleKeyboard(true, p.frame.x, p.frame.y, p.myMaxx - p.frame.x , p.myMaxy - p.frame.y) --enables keyboard
 							if p.customText == p.initialInstructionText or p.customText == "" then -- erases input field
 								p.customText = ""
 								p.unCoursedCustomText = "" --resets custom text to 
@@ -625,7 +625,7 @@ function txtInput_pressed (x,y,button,istouch)
 end
 
 
-function toogleDigitalKeyboard(boolEnable, myX, myY, myWidth, myHeight)
+function gdsGui_inputTxtBox_toggleKeyboard(boolEnable, myX, myY, myWidth, myHeight)
 	--This displays the native or dissables textInput events
 	--on touchscreen devices: IOS and Android it also displays the on screen keyboard
 	love.keyboard.setTextInput(boolEnable,myX, myY, myWidth, myHeight)
@@ -633,7 +633,7 @@ function toogleDigitalKeyboard(boolEnable, myX, myY, myWidth, myHeight)
 end
 
 
-function txtInput_text_update (mode,t, key)
+function gdsGui_inputTxtBox_textUpdate (mode,t, key)
 
 		for i, w in ipairs (textBoxes) do
 			print (w.id)
@@ -650,7 +650,7 @@ function txtInput_text_update (mode,t, key)
 
 				if mode == "add" then
 					if isFirstCharEmpty == false then
-						if inputTextBox_isNewCharInvalid (t, w.textSpecs, string.len(w.customText), w.collectedData) == false and string.len(w.customText) <= (w.maxChrNum - 1)  then
+						if gdsGui_inputTxtBox_isCharInvalid (t, w.textSpecs, string.len(w.customText), w.collectedData) == false and string.len(w.customText) <= (w.maxChrNum - 1)  then
 							w.customText = w.customText .. t 
 							w.collectedData = w.customText
 							w.unCoursedCustomText = w.collectedData
@@ -660,7 +660,7 @@ function txtInput_text_update (mode,t, key)
 
 							erroMessage = ("( " .. t .. " ) is not allowed!")
 
-							generateConsoleMessage ("error", erroMessage)
+							gdsGui_generateConsoleMessage ("error", erroMessage)
 							w.customText = w.customText
 							w.collectedData = w.customText
 							w.unCoursedCustomText = w.collectedData
@@ -735,13 +735,13 @@ function txtInput_text_update (mode,t, key)
 end
 
 
-function txtInput_tabToSwitch (key)
+function gdsGui_inputTxtBox_tabToSwitch (key)
 	--[[cycles through tab numbers activating the next textbox when tab button is pressed.
 	MUST: receive key parameters from key.pressed function from main.lua]]
 
 	local totalTabsOnPage = 0
 
-	local activePageName = returnCurrentPageName ()
+	local activePageName = gdsGui_page_currentName ()
 
 	for i,x in ipairs(textBoxes) do --[[checks number of txtBxs on current page]]
 
@@ -795,7 +795,7 @@ function txtInput_tabToSwitch (key)
 
 				n.state = 1 --[[defocuses the current focused textbox]]
 
-				toogleDigitalKeyboard(false, n.frame.x, n.frame.y, n.myMaxx -n.frame.x , n.myMaxy - n.frame.y)
+				gdsGui_inputTxtBox_toggleKeyboard(false, n.frame.x, n.frame.y, n.myMaxx -n.frame.x , n.myMaxy - n.frame.y)
 
 				if n.customText == "" then --[[checks if text was inputed prior to deactivation]]
 
@@ -831,12 +831,12 @@ function txtInput_tabToSwitch (key)
 
 end
 
-function areRequiredTextBoxesEmpty ()
+function gdsGui_inputTxtBox_areRequiredEmpty ()
 
 	local result = true
 	local count_reqTxtBox = 0
 	local data = {}
-	local currentPageName = returnCurrentPageName ()
+	local currentPageName = gdsGui_page_currentName ()
 
 	--CHECK IF THERE ARE INPUT TEXTBOXES IN THE CURRENT PAGE:
 	for i, txBoxes in ipairs (textBoxes) do 
@@ -873,11 +873,11 @@ function areRequiredTextBoxesEmpty ()
 end
 
 
-function doesAnyInputTextBoxHaveEndingBlankSpace ()
+function gdsGui_inputTxtBox_hasEndingBlank ()
 
 	local result = true
 	local data = {}
-	local currentPageName = returnCurrentPageName ()
+	local currentPageName = gdsGui_page_currentName ()
 
 	--CHECK IF THERE ARE INPUT TEXTBOXES IN THE CURRENT PAGE:
 	for i, txBoxes in ipairs (textBoxes) do 
@@ -923,10 +923,10 @@ function doesAnyInputTextBoxHaveEndingBlankSpace ()
 end
 
 
-function extractInputTextBoxesData (boxId)
+function gdsGui_inputTxtBox_extractData (boxId)
 	
 	local pgHasTxtBoxes = false
-	local currentPageName = returnCurrentPageName ()
+	local currentPageName = gdsGui_page_currentName ()
 
 	--CHECK IF THERE ARE INPUT TEXTBOXES IN THE CURRENT PAGE:
 	for i, txBoxes in ipairs (textBoxes) do 
@@ -946,11 +946,11 @@ function extractInputTextBoxesData (boxId)
 end
 
 
-function txtInput_changeTrigger ()
+function gdsGui_inputTxtBox_changeTrigger ()
 
 	local pgHasTxtBoxes = false
 	local textBoxChanged = false
-	local currentPageName = returnCurrentPageName ()
+	local currentPageName = gdsGui_page_currentName ()
 
 	--CHECK IF THERE ARE INPUT TEXTBOXES IN THE CURRENT PAGE:
 	for i, txBoxes in ipairs (textBoxes) do 
@@ -999,7 +999,7 @@ function txtInput_changeTrigger ()
 end
 
 
-function createInputTextPattern (maxCharCount, pattern)
+function gdsGui_inputTxtBox_createPattern (maxCharCount, pattern)
 
 	local result = ""
 
@@ -1028,7 +1028,7 @@ function createInputTextPattern (maxCharCount, pattern)
 end
 
 
-function inputTextBox_isNewCharInvalid (newCharacter, tblTextSpecs, currentChrCount, currentText)
+function gdsGui_inputTxtBox_isCharInvalid (newCharacter, tblTextSpecs, currentChrCount, currentText)
 
 	local pattern = tblTextSpecs["pattern"]
 	local cpyOrigPattern = pattern

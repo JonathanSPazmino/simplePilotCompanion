@@ -2,7 +2,7 @@
 
 local appFrames = {}
 
-function appframe_create (id, spriteName, opacity)
+function gdsGui_appFrame_create (id, spriteName, opacity)
 	--creates object than needs to be deleted to save memory
 
 	local newFrm = {}
@@ -22,7 +22,7 @@ function appframe_create (id, spriteName, opacity)
 end
 
 
-function appframe_update (id, opacity)
+function gdsGui_appFrame_update (id, opacity)
 
 	for i, updFrm in ipairs (appFrames) do
 
@@ -41,7 +41,7 @@ function appframe_update (id, opacity)
 end
 
 
-function appframe_remove (id)
+function gdsGui_appFrame_remove (id)
 
 	for i = #appFrames,1,-1 do
 
@@ -59,7 +59,7 @@ end
 
 
 
-function appframe_draw (id, spriteName, opacity)
+function gdsGui_appFrame_draw (id, spriteName, opacity)
 
 	--check if one and only one appFrame exists:
 	local isOnlyOneFrame = false
@@ -83,11 +83,11 @@ function appframe_draw (id, spriteName, opacity)
 
 	if isOnlyOneFrame == false then
 
-		appframe_create (id, spriteName, opacity)
+		gdsGui_appFrame_create (id, spriteName, opacity)
 
 	elseif isOnlyOneFrame == true and globApp.resizeDetected == true then
 
-		appframe_update (id, opacity)
+		gdsGui_appFrame_update (id, opacity)
 
 	end
 
