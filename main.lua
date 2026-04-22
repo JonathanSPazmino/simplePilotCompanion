@@ -319,28 +319,29 @@ function love.update(dt)
         _prevTimerT, _prevTimerMode = timer.t, timer.mode
     end
 
-    if selectedAltitude ~= _prevAltitude then
+    local altChanged    = selectedAltitude ~= _prevAltitude
+    local timeChanged   = selectedTime     ~= _prevTime
+    local degreeChanged = selectedDegree   ~= _prevDegree
+
+    if altChanged then
         gdsGui_outputTxtBox_setText("selectedAltitudeBox", "Alt:\n" .. selectedAltitude .. " FT")
-        _prevAltitude = selectedAltitude
     end
 
-    if selectedTime ~= _prevTime then
+    if timeChanged then
         gdsGui_outputTxtBox_setText("selectedTimeBox", "time:\n" .. selectedTime .. " min")
-        _prevTime = selectedTime
     end
 
-    if selectedDegree ~= _prevDegree then
+    if degreeChanged then
         gdsGui_outputTxtBox_setText("selectedDegreeBox", "deg:\n" .. string.format("%.2f", selectedDegree) .. "°")
-        _prevDegree = selectedDegree
     end
 
-    if selectedAltitude ~= _prevAltitude or selectedTime ~= _prevTime then
+    if altChanged or timeChanged then
         local requiredFPM = 0
         if selectedTime > 0 then requiredFPM = math.ceil(selectedAltitude / selectedTime) end
         gdsGui_outputTxtBox_setText("requiredFPM", "req:\n" .. requiredFPM .. " fpm")
     end
 
-    if selectedAltitude ~= _prevAltitude or selectedDegree ~= _prevDegree then
+    if altChanged or degreeChanged then
         local requiredDistance = 0
         if selectedDegree > 0 and selectedAltitude > 0 then
             requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
@@ -348,7 +349,6 @@ function love.update(dt)
         gdsGui_outputTxtBox_setText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
     end
 
-    -- Update sentinels for the combined checks above.
     _prevAltitude, _prevTime, _prevDegree = selectedAltitude, selectedTime, selectedDegree
 
     if selectedWindDirection ~= _prevWindDir or selectedWindSpeed ~= _prevWindSpeed or
