@@ -1,0 +1,21 @@
+TERMS AND CONDITIONS
+simplePilotCompanion v1.0.0
+
+IMPORTANT: READ BEFORE USE
+
+1. FOR REFERENCE ONLY
+This application is a supplemental reference tool. It is NOT certified aviation equipment and must NOT be used as a primary source for flight planning or navigation decisions.
+
+2. PILOT RESPONSIBILITY
+The pilot-in-command is solely responsible for all flight decisions. Always cross-check calculations against certified instruments, official charts, and current ATC instructions.
+
+3. NO WARRANTY
+This software is provided "as is" without warranty of any kind. Gateway Dynamic Software, LLC makes no representations regarding accuracy, reliability, or fitness for any particular purpose.
+
+4. LIMITATION OF LIABILITY
+Gateway Dynamic Software, LLC shall not be liable for any damages, losses, or injuries arising from the use or misuse of this application.
+
+5. REGULATORY COMPLIANCE
+Users are responsible for ensuring their use of this application complies with all applicable aviation regulations and authority requirements.
+
+By selecting "I Agree" you confirm that you have read, understood, and accept these terms and conditions.

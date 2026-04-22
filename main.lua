@@ -10,9 +10,12 @@ io.stdout:setvbuf("no")
 -------------------------------------------------------------------------------
 require("Libraries.jp_GUI_library.loader_gdsGuiLib")
 
--- Create base page
+APP_VERSION = "1.0.0"
+
+-- Create base pages
 globApp.appColor = {.2, .2, .2, 1} --initializes bg color
-gdsGui_page_create(3, "MainMenu", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
+gdsGui_page_create(3, "MainMenu",           false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
+gdsGui_page_create(4, "TermsAndConditions", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
 
 -------------------------------------------------------------------------------
 -- GLOBAL STATE
@@ -52,6 +55,9 @@ local blink = {active = false, timer = 0, state = false}
 
 -- Load beep sound
 local beepSound
+
+-- App settings (persisted across sessions): loaded from appSettings.lua if it exists
+appSettings = {}
 
 -------------------------------------------------------------------------------
 -- HELPER FUNCTIONS
@@ -287,7 +293,10 @@ function love.load()
 
 
 
-    gdsGui_page_switch("IntialBooting", 3, 2, false)
+    gdsGui_saveLoad_loadFileContents("appSettings.lua")
+
+    local showTC = (appSettings.tcAcceptedVersion ~= APP_VERSION)
+    gdsGui_page_switch("IntialBooting", showTC and 4 or 3, 2, false)
 
     font = love.graphics.newFont(20)
     love.graphics.setFont(font)
@@ -641,5 +650,60 @@ function windKnobChanged(pos)
     local index           = math.floor(pos * 36 + 0.5) % 36
     local runway          = (index == 0) and 36 or index
     selectedWindDirection = runway * 10
+end
+
+-------------------------------------------------------------------------------
+-- TERMS AND CONDITIONS PAGE
+-------------------------------------------------------------------------------
+
+function createTermsAndConditionsObjects()
+    local thisPageName = "TermsAndConditions"
+    local tcText = love.filesystem.read("terms.txt") or "Terms and Conditions text not found."
+    local btnW = gdsGui_general_smartScaling("inverse", 0.36, .54, .080, 0.12, 0.22, "width")
+    local btnH = gdsGui_general_smartScaling("inverse", 0.36, .54, .080, 0.12, 0.22, "height")
+    local libSprites = "Libraries/jp_GUI_library/librarySprites/"
+
+    gdsGui_outputTxtBox_create("tcText", thisPageName, "Sprites/invisibleBox.png",
+        .5, .44, "CC",
+        globApp.safeScreenArea.w * 0.90, globApp.safeScreenArea.h * 0.72,
+        {1, 1, 1, 1}, tcText,
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    )
+
+    -- Toggle: user acknowledgement of agreement
+    gdsGui_button_create("tcAgreementToggle", thisPageName,
+        "toggle",
+        "Sprites/timerModeButton_down.png",
+        "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png",
+        0.28, 0.91, "CC",
+        btnW, btnH,
+        "tcAgreementToggled", 1)
+
+    -- PushOnOff: continue to main menu (locked until toggle is acknowledged)
+    gdsGui_button_create("tcContinueButton", thisPageName,
+        "pushonoff",
+        (libSprites .. "jpLoveGUI_yesConfirmButton_pushed.png"),
+        (libSprites .. "jpLoveGUI_yesConfirmButton_released.png"),
+        (libSprites .. "jpLoveGUI_yesConfirmButton_deactivated.png"),
+        0.72, 0.91, "CC",
+        btnW, btnH,
+        "tcContinuePressed", globApp.BUTTON_STATES.DEACTIVATED)
+end
+
+createTermsAndConditionsObjects()
+
+function tcAgreementToggled(newState)
+    if newState == globApp.BUTTON_STATES.PRESSED then
+        gdsGui_button_setState("tcContinueButton", "released")
+    else
+        gdsGui_button_setState("tcContinueButton", "deactivated")
+    end
+end
+
+function tcContinuePressed()
+    appSettings.tcAcceptedVersion = APP_VERSION
+    love.filesystem.write("appSettings.lua", table.show(appSettings, "appSettings"))
+    gdsGui_page_switch("LoadingMainMenu", 3, 1, false)
 end
 
