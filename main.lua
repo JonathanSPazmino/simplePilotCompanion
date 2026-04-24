@@ -348,23 +348,24 @@ function love.update(dt)
 
     if selectedWindDirection ~= _prevWindDir or selectedWindSpeed ~= _prevWindSpeed or
        selectedWindGust ~= _prevWindGust or selectedKnobPos ~= _prevKnobPos then
-        local windDir = string.format("%03d", selectedWindDirection)
-        local windSpd = string.format("%02d", selectedWindSpeed)
-        local hasGust = selectedWindGust > selectedWindSpeed
-        local windLine
-        if hasGust then
-            windLine = "WIND: " .. windDir .. windSpd .. "G" .. string.format("%02d", selectedWindGust) .. "KT"
+        local rwyDeg = selectedKnobPos * 10
+        local susXW, susSide, susHT, susLabel = calcWindComponents(selectedWindDirection, selectedWindSpeed, rwyDeg)
+        local crosswindText
+        if selectedWindGust > selectedWindSpeed then
+            local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, rwyDeg)
+            crosswindText = string.format(
+                "WIND: %03d%02dG%02dKT\nRWY: %02d\nSUS XW:%d%s %s:%d\nGST XW:%d%s %s:%d\nGust Factor: %d",
+                selectedWindDirection, selectedWindSpeed, selectedWindGust,
+                selectedKnobPos,
+                susXW, susSide, susLabel, susHT,
+                gstXW, gstSide, gstLabel, gstHT,
+                selectedWindGust - selectedWindSpeed)
         else
-            windLine = "WIND: " .. windDir .. windSpd .. "KT"
-        end
-        local rwyLine = "RWY: " .. string.format("%02d", selectedKnobPos)
-        local susXW, susSide, susHT, susLabel = calcWindComponents(selectedWindDirection, selectedWindSpeed, selectedKnobPos * 10)
-        local susLine = "SUS XW:" .. susXW .. susSide .. " " .. susLabel .. ":" .. susHT
-        local crosswindText = windLine .. "\n" .. rwyLine .. "\n" .. susLine
-        if hasGust then
-            local gstXW, gstSide, gstHT, gstLabel = calcWindComponents(selectedWindDirection, selectedWindGust, selectedKnobPos * 10)
-            crosswindText = crosswindText .. "\nGST XW:" .. gstXW .. gstSide .. " " .. gstLabel .. ":" .. gstHT
-                         .. "\nGust Factor: " .. (selectedWindGust - selectedWindSpeed)
+            crosswindText = string.format(
+                "WIND: %03d%02dKT\nRWY: %02d\nSUS XW:%d%s %s:%d",
+                selectedWindDirection, selectedWindSpeed,
+                selectedKnobPos,
+                susXW, susSide, susLabel, susHT)
         end
         gdsGui_outputTxtBox_setText("crosswindData", crosswindText)
         _prevWindDir, _prevWindSpeed, _prevWindGust, _prevKnobPos =

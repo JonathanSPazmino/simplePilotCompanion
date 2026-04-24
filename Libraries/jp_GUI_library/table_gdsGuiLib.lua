@@ -76,23 +76,19 @@ local function _syncTblScrollbars(tbl)
 	if tbl.combinedRowsHeight > tbl.scrollBox.height then
 		local spanY = tbl.combinedRowsHeight - tbl.scrollBox.height
 		local pos = math.max(0, math.min(1, -tbl.scroll.offsetY / spanY))
-		for _, sb in ipairs(globApp.objects.scrollBars) do
-			if sb.id == tbl.verticalScrollBar.name then
-				gdsGui_scrollBar_updatePosition(sb, pos)
-				tbl.dataCurrentVertPosition = pos
-				break
-			end
+		local sb = tbl.verticalScrollBar.ref
+		if sb then
+			gdsGui_scrollBar_updatePosition(sb, pos)
+			tbl.dataCurrentVertPosition = pos
 		end
 	end
 	if tbl.combinedCollumnsWidth > tbl.scrollBox.width then
 		local spanX = tbl.combinedCollumnsWidth - tbl.scrollBox.width
 		local pos = math.max(0, math.min(1, -tbl.scroll.offsetX / spanX))
-		for _, sb in ipairs(globApp.objects.scrollBars) do
-			if sb.id == tbl.horizontalScrollBar.name then
-				gdsGui_scrollBar_updatePosition(sb, pos)
-				tbl.dataCurrentHorzPosition = pos
-				break
-			end
+		local sb = tbl.horizontalScrollBar.ref
+		if sb then
+			gdsGui_scrollBar_updatePosition(sb, pos)
+			tbl.dataCurrentHorzPosition = pos
 		end
 	end
 end
@@ -332,16 +328,15 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 	-- NEW: The resize method for this object
     function t:resize()
         calculate_geometry_and_layout(self)
-        
-        -- Find and update child scrollbar objects
-        for _, sb in ipairs(globApp.objects.scrollBars) do
-            if sb.id == self.verticalScrollBar.name then
-				sb.original.x, sb.original.y, sb.original.width, sb.original.height = self.verticalScrollBar.x, self.verticalScrollBar.y, self.verticalScrollBar.width, self.verticalScrollBar.height
-				if sb.resize then sb:resize() end
-            elseif sb.id == self.horizontalScrollBar.name then
-                sb.original.x, sb.original.y, sb.original.width, sb.original.height = self.horizontalScrollBar.x, self.horizontalScrollBar.y, self.horizontalScrollBar.width, self.horizontalScrollBar.height
-				if sb.resize then sb:resize() end
-            end
+        local vsb = self.verticalScrollBar.ref
+        if vsb then
+            vsb.original.x, vsb.original.y, vsb.original.width, vsb.original.height = self.verticalScrollBar.x, self.verticalScrollBar.y, self.verticalScrollBar.width, self.verticalScrollBar.height
+            if vsb.resize then vsb:resize() end
+        end
+        local hsb = self.horizontalScrollBar.ref
+        if hsb then
+            hsb.original.x, hsb.original.y, hsb.original.width, hsb.original.height = self.horizontalScrollBar.x, self.horizontalScrollBar.y, self.horizontalScrollBar.width, self.horizontalScrollBar.height
+            if hsb.resize then hsb:resize() end
         end
     end
     t.resize = t.resize
@@ -357,6 +352,15 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 	-- Create the scrollbar objects
 	gdsGui_scrollBar_create (t.verticalScrollBar.name, t.page, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")
 	gdsGui_scrollBar_create (t.horizontalScrollBar.name, t.page, t.horizontalScrollBar.x, t.horizontalScrollBar.y, t.horizontalScrollBar.width, t.horizontalScrollBar.height, "LT", t.numCollumnsPerDisplay, t.collumnsCount, t.dataCurrentHorzPosition, "table-linked", "horizontal", 30, "speadSheetScrollbarHorzCallback")
+
+	-- Cache direct refs so _syncTblScrollbars and resize avoid O(n) search every frame
+	for _, sb in ipairs(globApp.objects.scrollBars) do
+		if sb.id == t.verticalScrollBar.name then
+			t.verticalScrollBar.ref = sb
+		elseif sb.id == t.horizontalScrollBar.name then
+			t.horizontalScrollBar.ref = sb
+		end
+	end
 end
 
 ------------------------------------------------------------
@@ -737,23 +741,17 @@ function gdsGui_table_draw (pageName)
 					--[[TABLE BUTTONS]]
 					for j, bt in pairs (x.buttons) do
 
-						local btFontColor = {0,0,0,1}
-						local btColor = {0,0,0,1}
-
-						if bt.isFocused == false then
-							btFontColor = {1,1,1,1}
-							btColor = {.3,.3,.3,1}
-						elseif bt.isFocused == true then
-							btFontColor = {1,0,0,1}
-							btColor = {0,1,1,1}
-						end
-
-							love.graphics.setColor(btColor[1], btColor[2], btColor[3], btColor[4])
+						if bt.isFocused == true then
+							love.graphics.setColor(0, 1, 1, 1)
 							love.graphics.rectangle("fill", bt.x, bt.y, bt.width, bt.height)
-
-							love.graphics.setColor(btFontColor[1], btFontColor[2], btFontColor[3], btFontColor[4])
-							love.graphics.printf(bt.text, bt.x + (bt.width * .1), bt.y + (bt.height * 0.1), (bt.width * 0.8), "center")
-							love.graphics.reset ()
+							love.graphics.setColor(1, 0, 0, 1)
+						else
+							love.graphics.setColor(.3, .3, .3, 1)
+							love.graphics.rectangle("fill", bt.x, bt.y, bt.width, bt.height)
+							love.graphics.setColor(1, 1, 1, 1)
+						end
+						love.graphics.printf(bt.text, bt.x + (bt.width * .1), bt.y + (bt.height * 0.1), (bt.width * 0.8), "center")
+						love.graphics.reset()
 
 
 					end
