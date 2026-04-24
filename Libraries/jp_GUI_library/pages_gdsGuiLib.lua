@@ -47,7 +47,7 @@ end
 
 local loadingObjects = {}
 
-function gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, testMode)
+function gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, myFromPg, testMode)
 
 	if testMode == true then
 		pgWidht = 1000
@@ -61,7 +61,6 @@ function gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, testMode)
 	NewLoadingObject.toPg = myToPg
 	NewLoadingObject.progress = 0
 	NewLoadingObject.minEndingProgress = myMinTime_secs
-	NewLoadingObject.minTime = myMinTime
 	NewLoadingObject.coreFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.025, 0.044)))
 	NewLoadingObject.devMsgFontSize = love.graphics.newFont(math.floor(gdsGui_general_smartFontScaling (0.022, 0.041)))
 
@@ -304,12 +303,12 @@ function gdsGui_page_loadingDraw ()
 				-- love.graphics.rectangle("line", lp.msgTxtX, lp.msgTxtY, lp.msgTxtWidth, lp.msgTxtHeight)
 
 			--PROGRESS BAR:--------------------------------------------
-			love.graphics.setColor(0, 1, 0, alpha)
+			love.graphics.setColor(0, 1, 0, 1)
 			love.graphics.rectangle("fill", lp.progressBarX, lp.progressBarY, lp.progressBarWidth, lp.progressBarHeight)
 
 			--PROGRESS BAR FRAME:
 
-			love.graphics.setColor(1, 1, 1, alpha)
+			love.graphics.setColor(1, 1, 1, 1)
 			love.graphics.rectangle("line", lp.progressBarFrameX, lp.progressBarFrameY, lp.progressBarFrameWidth, lp.progressBarFrameHeight)
 
 		end
@@ -331,7 +330,7 @@ function gdsGui_page_switch (myName, myToPg, myMinTime_secs, testMode)
 
 		globApp.currentPageIndex = 2 --opens loading page index
 
-		gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, testMode)
+		gdsGui_page_loadingCreate (myName, myToPg, myMinTime_secs, initialPage, testMode)
 
 		gdsGui_timeControl_createTrigger (timerName,  { myMinTime_secs, myMinTime_secs+.001}, {"gdsGui_page_loadingDelete","changePgto"})
 

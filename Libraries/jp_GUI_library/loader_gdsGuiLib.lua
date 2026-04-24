@@ -19,7 +19,6 @@ local function requireGUILibraries ()
 	require (pathToLibrary .. "haptics_gdsGuiLib") --[[haptic feedback]]
 	require (pathToLibrary .. "pages_gdsGuiLib") --[[handles all app pages]]
 	require (pathToLibrary .. "buttons_gdsGuiLib") --[[contains buttons related code]]
-	require (pathToLibrary .. "drawGrid_gdsGuiLib") --[[handles draw grids for scrollable sprites]]
 	require (pathToLibrary .. "inputTxtBox_gdsGuiLib") --[[contains text box related code]]
 	require (pathToLibrary .. "outputTxtBox_gdsGuiLib") --[[contains labels related code]]
 	require (pathToLibrary .. "saveLoad_gdsGuiLib") --[[save and load data code]]
@@ -27,8 +26,6 @@ local function requireGUILibraries ()
 	require (pathToLibrary .. "scrollBar_gdsGuiLib")--[[scrollbars]]
 	require (pathToLibrary .. "rotaryKnobs_gdsGuiLib")--[[rotary knob controls]]
 	require (pathToLibrary .. "timeControl_gdsGuiLib") --[[time triggers callbacks]]
-	require (pathToLibrary .. "appFrame_gdsGuiLib")--[[app frame]]
-	require (pathToLibrary .. "images_gdsGuiLib")--[[images]]
 	require (pathToLibrary .. "unitTests_gdsGuiLib")--[[developement and settings]]
 	require (pathToLibrary .. "devSettings_gdsGuiLib")--[[developement and settings]]
 

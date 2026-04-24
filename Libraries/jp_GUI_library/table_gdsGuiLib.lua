@@ -481,7 +481,6 @@ function gdsGui_table_update (spreadSheetName, strgPage, strgspreadSheetType, da
 				allTblHeaders[i] = dataTable[i]["ID"]
 			end
 
-			-- uniqueHeaderFilter (dataTable, t.collumnsCount)
 			t.cells = {}
 			
 			-- Header cell height: lines needed for header text + one font-size of padding on each side
@@ -636,49 +635,6 @@ end
 
 -- 	end
 -- end
-
-function uniqueHeaderFilter (array, headerCount)
-
-	local headers = {}
-	local counter = {}
-
-	for i = 1, headerCount, 1 do
-		headers[i] = "empty"
-	end
-
-	counter[1] = 0
-
-	for i, block in pairs (array) do
-
-		counter[1] = counter[1] + 1 
-		counter[2] = 0
-
-
-		if type (block) == "table" then
-
-			for j, rows in pairs (block) do
-
-				counter[2] = counter [2] + 1 
-				counter[3] = 0
-
-				for k = 1, headerCount, 1 do
-
-					if k == counter[2] then 
-
-						headers [counter[2]] = j
-
-					end 
-
-				end
-
-			end
-
-		end
-
-	end
-					
-	return headers
-end
 
 function gdsGui_table_draw (pageName)
 
@@ -1745,24 +1701,3 @@ function findMaxNumOfLinesNeeded (thisFont, wrapWidth, txt)
 	return maxLineFound
 end
 
-function returnTblRowsToScrollBoxVerticalPosition ()
-	for _, t in ipairs(globApp.objects.tables) do
-		if t.scroll and t.combinedRowsHeight > t.scrollBox.height then
-			local spanY = t.combinedRowsHeight - t.scrollBox.height
-			return math.max(0, math.min(1, -t.scroll.offsetY / spanY))
-		end
-		return 0
-	end
-	return 0
-end
-
-function returnTblCollumnsToScrollHorizontalPosition ()
-	for _, t in ipairs(globApp.objects.tables) do
-		if t.scroll and t.combinedCollumnsWidth > t.scrollBox.width then
-			local spanX = t.combinedCollumnsWidth - t.scrollBox.width
-			return math.max(0, math.min(1, -t.scroll.offsetX / spanX))
-		end
-		return 0
-	end
-	return 0
-end

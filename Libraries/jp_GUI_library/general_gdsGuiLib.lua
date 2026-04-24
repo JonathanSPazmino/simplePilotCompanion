@@ -812,7 +812,7 @@ function love.touchreleased( id, x, y, dx, dy, pressure )
 end
 
 
-function love.mousepressed (x,y,button,istouch)
+function love.mousepressed (x,y,button,istouch, presses)
 
 	gdsGui_general_mousepressed (x, y, button, istouch, presses)
 
@@ -847,16 +847,6 @@ function gdsGui_general_isTouchInSafeArea (touchX, touchY)
 	return result
 	
 end
-
-function gdsGui_general_isolateTouchableArea ()
-
-	gdsGui_general_relativePosition (anchorPoint, x, y, width, height, baseX, baseY, baseWidth, baseHeight)
-
-	local result = false
-
-end
-
-
 
 function gdsGui_general_convertButtonNumToString (buttonNum)
 
@@ -1217,13 +1207,6 @@ function gdsGui_general_projectSelect (id)
 	globApp.selectedProject = id
 	print ("globApp.selectedProject is " .. globApp.selectedProject )
 end
-
-function gdsGui_general_projectDeselect (id)
-	globApp.selectedProject = "none"
-	print ("globApp.selectedProject is " .. globApp.selectedProject )
-end
-
-
 
 --THE FOLLOWING TABLE VARIABLE CONTAINS ALL GUI OBJECTS
 -- gui_objects = {}

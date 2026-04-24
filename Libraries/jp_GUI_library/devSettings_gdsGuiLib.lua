@@ -196,21 +196,6 @@ local function returnDesktopDimensions (strgMode)
 	end
 end
 
-function gdsGui_dev_drawScanCode (mykey) --I check status of this function posible trash it.
-	local printingString = "nothing pressed yet"
-	local testkey = mykey
-
-	if testkey ~= nil then
-		local testscanCode = love.keyboard.getScancodeFromKey (testkey)
-		local testdown = love.keyboard.isScancodeDown(testscanCode)
-
-		if testdown == true then
-			printingString = testscanCode .. " is down"
-		else 
-			printingString = testscanCode .. " is NOT down"
-		end
-	end
-end
 
 
 ------------------------------------------------------------------------------

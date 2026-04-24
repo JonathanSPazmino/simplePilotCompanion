@@ -244,20 +244,6 @@ function love.load()
     --SCROLLBARS
     ----------------------------------------------------------------------------
 
-  local scrollbarSprites = {
-    up_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_UpArrowButton_pushed.png",
-    up_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_UpArrowButton_released.png",
-    down_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_downArrowButton_pushed.png",
-    down_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_downArrowButton_released.png",
-    left_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_leftArrowButton_pushed.png",
-    left_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_leftArrowButton_released.png",
-    right_active = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_pushed.png",
-    right_inactive = "Libraries/jp_GUI_library/librarySprites/jpLoveGUI_rightArrowButton_released.png",
-    thumb = "Sprites/screw.png",
-    frame = "Sprites/txtBox001_NotFocused.png"
-   }
-
-
     --LEFT TO RIGHT
     gdsGui_scrollBar_create ("timeScale", "MainMenu",
         0.16, 0.65, 30, 185, "CT", 5, 26, 1,
@@ -457,33 +443,6 @@ end
 -------------------------------------------------------------------------------
 function drawPages()
     gdsGui_page_drawBackground()
-    mainMenuDisplay()
-end
-
-function OpenMainMenuPage(position)
-    gdsGui_page_switch("LoadingMainMenu", 3, 1, false)
-end
-
--------------------------------------------------------------------------------
--- MAIN MENU DISPLAY
--------------------------------------------------------------------------------
-function mainMenuDisplay()
-    local fontSize = 12
-    local thisPageName = "MainMenu"
-
-    
-
-    ---------------------------------------------------------------------------
-    -- TEXT BOXES
-    ---------------------------------------------------------------------------
-    
-    ----------------------------------------------------------------------------
-    -- SCROLLBARS
-    ----------------------------------------------------------------------------
-
-
-
-
 end
 
 -------------------------------------------------------------------------------
