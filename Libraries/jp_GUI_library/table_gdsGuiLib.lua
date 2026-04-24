@@ -93,6 +93,28 @@ local function _syncTblScrollbars(tbl)
 	end
 end
 
+local function _tblScrollToOrigin(tbl)
+	if not tbl.scroll then return end
+	tbl.scroll.offsetY   = 0
+	tbl.scroll.offsetX   = 0
+	tbl.scroll.velocityY = 0
+	tbl.scroll.velocityX = 0
+	tbl.scroll.phase     = "idle"
+	tbl.dataCurrentVertPosition = 0
+	tbl.dataCurrentHorzPosition = 0
+	_applyTblScrollOffset(tbl)
+	_syncTblScrollbars(tbl)
+end
+
+function gdsGui_table_scrollToOrigin(tableName)
+	for _, tbl in ipairs(globApp.objects.tables) do
+		if tbl.name == tableName then
+			_tblScrollToOrigin(tbl)
+			return
+		end
+	end
+end
+
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
@@ -277,14 +299,16 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 			x = (tbl.frame.x + tbl.frame.width - tbl.fonts.cells.size) / globApp.safeScreenArea.w,
 			y = (tbl.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
 			width = tbl.fonts.cells.size,
-			height = tbl.scrollBox.height
+			height = tbl.scrollBox.height,
+			ref = tbl.verticalScrollBar and tbl.verticalScrollBar.ref
 		}
 		tbl.horizontalScrollBar = {
 			name = tbl.name .. "_hsb",
 			x = tbl.frame.x / globApp.safeScreenArea.w,
 			y = (tbl.scrollBox.y + tbl.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
 			width = tbl.scrollBox.width,
-			height = tbl.rowHeight
+			height = tbl.rowHeight,
+			ref = tbl.horizontalScrollBar and tbl.horizontalScrollBar.ref
 		}
 
 		if tbl.rowsCount > 0 then tbl.avrgRowHeight = tbl.combinedRowsHeight / tbl.rowsCount else tbl.avrgRowHeight = 1 end
@@ -573,20 +597,23 @@ function gdsGui_table_update (spreadSheetName, strgPage, strgspreadSheetType, da
 
 			-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP).
 			-- Subtract safeScreenArea offset before dividing to avoid double-add on mobile.
-			t.verticalScrollBar = {}
-				t.verticalScrollBar.name = spreadSheetName .. "_vsb"
-				t.verticalScrollBar.x = (t.frame.x + t.frame.width - t.fonts.cells.size) / globApp.safeScreenArea.w
-				t.verticalScrollBar.y = (t.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h
-				t.verticalScrollBar.width = t.fonts.cells.size
-				t.verticalScrollBar.height = t.scrollBox.height
-			--IMPORTANT: DONT REMOVE FOLLOWING LINE
+			t.verticalScrollBar = {
+				name = spreadSheetName .. "_vsb",
+				x = (t.frame.x + t.frame.width - t.fonts.cells.size) / globApp.safeScreenArea.w,
+				y = (t.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
+				width = t.fonts.cells.size,
+				height = t.scrollBox.height,
+				ref = t.verticalScrollBar and t.verticalScrollBar.ref
+			}
 
-			t.horizontalScrollBar = {}
-				t.horizontalScrollBar.name = spreadSheetName .. "_hsb"
-				t.horizontalScrollBar.x = t.frame.x / globApp.safeScreenArea.w
-				t.horizontalScrollBar.y = (t.scrollBox.y + t.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h
-				t.horizontalScrollBar.width = t.scrollBox.width
-				t.horizontalScrollBar.height = t.rowHeight
+			t.horizontalScrollBar = {
+				name = spreadSheetName .. "_hsb",
+				x = t.frame.x / globApp.safeScreenArea.w,
+				y = (t.scrollBox.y + t.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
+				width = t.scrollBox.width,
+				height = t.rowHeight,
+				ref = t.horizontalScrollBar and t.horizontalScrollBar.ref
+			}
 
 			if t.rowsCount > 0 then
 				t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
@@ -604,18 +631,10 @@ function gdsGui_table_update (spreadSheetName, strgPage, strgspreadSheetType, da
 			end
 			t.numCollumnsPerDisplay = t.scrollBox.width / t.collumWidth
 
-			t.dataCurrentVertPosition = t.dataCurrentVertPosition
-			t.dataCurrentHorzPosition = t.dataCurrentHorzPosition
-			t.state = 0 --[[0 deactivated, 1 = released, 2 = pressed.]]
+			t.state = 1 --[[0 deactivated, 1 = released, 2 = pressed.]]
 
-			-- scrollBar_update calls removed as they were redundant and non-functional.
-			-- Resizing is now handled by the .resize() method on each object.
-
-			-- scrollBar_update calls removed as they were redundant and non-functional.
-			-- Resizing is now handled by the .resize() method on each object.
-
-			-- Prime draw caches after data rebuild.
-			if t.scroll then _applyTblScrollOffset(t) end
+			-- Scroll back to origin so freshly-rebuilt cells are in view and thumbs match.
+			_tblScrollToOrigin(t)
 		end
 
 	end

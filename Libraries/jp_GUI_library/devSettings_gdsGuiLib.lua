@@ -768,6 +768,7 @@ end
 function gdsGui_dev_rerunUnitTests()
 	gdsGui_unitTests_rerunAll()
 	gdsGui_dev_refreshUnitTestDisplay()
+	gdsGui_table_scrollToOrigin("devUnitTest")
 end
 
 local focusedUnitTest = "none"
