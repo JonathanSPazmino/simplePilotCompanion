@@ -309,6 +309,18 @@ function love.load()
 
     selectedAltitude = 0
     selectedTime = 0
+
+    ---------------------------------------------------------------------------
+    -- APP-SPECIFIC UNIT TESTS
+    -- Add gdsGui_dev_testExecute calls here to test app logic alongside GUI tests.
+    ---------------------------------------------------------------------------
+    gdsGui_unitTests_registerSuite("app", function()
+        -- example:
+        -- gdsGui_dev_testExecute {["id"]="format_time_zero",
+        --     ["funcName"]={"format_time"},
+        --     ["funcParameters"]={0},
+        --     ["funcExpctOutput"]={"00:00"}}
+    end)
 end
 
 function love.update(dt)

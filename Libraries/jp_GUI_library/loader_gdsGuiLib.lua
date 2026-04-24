@@ -53,5 +53,3 @@ end
 gdsGui_generateConsoleMessage ("info", "GDS_LOVE2D_GUI initilized")
 
 requireGUILibraries ()
-
-gdsGui_unitTests_executeAll ("Blank")

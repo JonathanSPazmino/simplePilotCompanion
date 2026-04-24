@@ -739,8 +739,8 @@ function gdsGui_dev_createUnitTestObjects ()
 
 
 
-	gdsGui_button_create("returnDevMenu"--[[ButtonLable]], 
-		thisPageName--[[page]], 
+	gdsGui_button_create("returnDevMenu"--[[ButtonLable]],
+		thisPageName--[[page]],
 		"pushonoff"--[[buttonType]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
 		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_released.png")--[[sprite: released]],
@@ -750,7 +750,21 @@ function gdsGui_dev_createUnitTestObjects ()
 		"LT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
 		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
 		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"gdsGui_dev_openMainMenu"--[[callback function]], 
+		"gdsGui_dev_openMainMenu"--[[callback function]],
+		1--[[button initial status]])
+
+	gdsGui_button_create("rerunUnitTests"--[[ButtonLable]],
+		thisPageName--[[page]],
+		"pushonoff"--[[buttonType]],
+		(devSpritesPath .. "jpLoveGUI_devUnitTest_pushed.png")--[[sprite: pushed]],
+		(devSpritesPath .. "jpLoveGUI_devUnitTest_released.png")--[[sprite: released]],
+		(devSpritesPath .. "jpLoveGUI_devUnitTest_deactivated.png")--[[sprite: deactivated]],
+		.965--[[x coordinate]],
+		.043--[[y coordinate]],
+		"RT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
+		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
+		"gdsGui_unitTests_rerunAll"--[[callback function]],
 		1--[[button initial status]])
 end
 
