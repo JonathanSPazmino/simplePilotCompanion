@@ -64,7 +64,7 @@ appSettings = {}
 -------------------------------------------------------------------------------
 
 -- Format seconds into mm:ss
-local function format_time(s)
+function format_time(s)
     if s < 0 then s = 0 end
     local minutes = math.floor(s / 60)
     local seconds = math.floor(s % 60)
@@ -309,18 +309,6 @@ function love.load()
 
     selectedAltitude = 0
     selectedTime = 0
-
-    ---------------------------------------------------------------------------
-    -- APP-SPECIFIC UNIT TESTS
-    -- Add gdsGui_dev_testExecute calls here to test app logic alongside GUI tests.
-    ---------------------------------------------------------------------------
-    gdsGui_unitTests_registerSuite("app", function()
-        -- example:
-        -- gdsGui_dev_testExecute {["id"]="format_time_zero",
-        --     ["funcName"]={"format_time"},
-        --     ["funcParameters"]={0},
-        --     ["funcExpctOutput"]={"00:00"}}
-    end)
 end
 
 function love.update(dt)
@@ -617,18 +605,21 @@ end
 
 function roundSelectedAltitude (pos)
     selectedAltitude = math.max(0, math.floor(51 * (1 - pos) + 0.5)) * 1000
+    return selectedAltitude
 end
 
 
 function roundSelectedTime (pos)
     selectedTime = math.max(0, math.floor(25 * (1 - pos) + 0.5))
+    return selectedTime
 end
 
 function roundSelectedDegree (pos)
     selectedDegree = math.floor(32 * (1 - pos) + 0.5) * 0.25
+    return selectedDegree
 end
 
-function calcWindComponents(windDir, windSpd, rwyHeading)
+function calcWindComponents(windDir, windSpd, rwyHeading, devMode)
     local relAngle = math.rad(windDir - rwyHeading)
     local sinA = math.sin(relAngle)
     local cosA = math.cos(relAngle)
@@ -636,16 +627,19 @@ function calcWindComponents(windDir, windSpd, rwyHeading)
     local ht    = math.floor(windSpd * cosA + 0.5)
     local side  = (sinA >= 0) and "R" or "L"
     local label = (ht >= 0) and "HW" or "TW"
+    if devMode then return {xw, side, math.abs(ht), label} end
     return xw, side, math.abs(ht), label
 end
 
 function windSpeedChanged(pos)
     selectedWindSpeed = math.floor(45 * (1 - pos) + 0.5)
+    return selectedWindSpeed
 end
 
 function windGustChanged(pos)
     local range = 60 - selectedWindSpeed
     selectedWindGust = selectedWindSpeed + math.floor(range * (1 - pos) + 0.5)
+    return selectedWindGust
 end
 
 -- Inner knob callback: runway selector.
@@ -653,6 +647,7 @@ end
 function mainKnobChanged(pos)
     local index     = math.floor(pos * 36 + 0.5) % 36
     selectedKnobPos = (index == 0) and 36 or index
+    return selectedKnobPos
 end
 
 -- Outer knob callback: wind direction.
@@ -662,6 +657,7 @@ function windKnobChanged(pos)
     local index           = math.floor(pos * 36 + 0.5) % 36
     local runway          = (index == 0) and 36 or index
     selectedWindDirection = runway * 10
+    return selectedWindDirection
 end
 
 -------------------------------------------------------------------------------
@@ -718,4 +714,207 @@ function tcContinuePressed()
     love.filesystem.write("appSettings.lua", table.show(appSettings, "appSettings"))
     gdsGui_page_switch("LoadingMainMenu", 3, 1, false)
 end
+
+-------------------------------------------------------------------------------
+-- APP-SPECIFIC UNIT TESTS
+-- Registered here (top-level, after all app functions are defined) so both
+-- the "gui" and "app" suites exist when gdsGui_dev_createUnitTestObjects()
+-- builds the devUnitTest table below.
+-------------------------------------------------------------------------------
+gdsGui_unitTests_registerSuite("app", function()
+
+    --------------------------------------------------------------------------
+    --  format_time
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="format_time_zero",
+        ["funcName"]={"format_time"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={"00:00"}}
+
+    gdsGui_dev_testExecute {["id"]="format_time_90sec",
+        ["funcName"]={"format_time"},
+        ["funcParameters"]={90},
+        ["funcExpctOutput"]={"01:30"}}
+
+    gdsGui_dev_testExecute {["id"]="format_time_3599sec",
+        ["funcName"]={"format_time"},
+        ["funcParameters"]={3599},
+        ["funcExpctOutput"]={"59:59"}}
+
+    gdsGui_dev_testExecute {["id"]="format_time_negative_clamps_to_zero",
+        ["funcName"]={"format_time"},
+        ["funcParameters"]={-5},
+        ["funcExpctOutput"]={"00:00"}}
+
+    --------------------------------------------------------------------------
+    --  calcWindComponents  (returns {xw, side, ht, label} in devMode)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_direct_headwind",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={360, 20, 360},
+        ["funcExpctOutput"]={0, "R", 20, "HW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_right_crosswind",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={90, 20, 360},
+        ["funcExpctOutput"]={20, "R", 0, "HW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_direct_tailwind",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={180, 20, 360},
+        ["funcExpctOutput"]={0, "L", 20, "TW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_left_crosswind",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={270, 20, 360},
+        ["funcExpctOutput"]={20, "L", 0, "HW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_calm_wind",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={360, 0, 360},
+        ["funcExpctOutput"]={0, "R", 0, "HW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_45deg_right_from_ahead",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={45, 20, 360},
+        ["funcExpctOutput"]={14, "R", 14, "HW"}}
+
+    gdsGui_dev_testExecute {["id"]="calcWindComponents_45deg_left_from_ahead",
+        ["funcName"]={"calcWindComponents"},
+        ["funcParameters"]={315, 20, 360},
+        ["funcExpctOutput"]={14, "L", 14, "HW"}}
+
+    --------------------------------------------------------------------------
+    --  roundSelectedAltitude  (scrollbar top=0, bottom=1)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="roundSelectedAltitude_top_pos_51000ft",
+        ["funcName"]={"roundSelectedAltitude"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={51000}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedAltitude_bottom_pos_0ft",
+        ["funcName"]={"roundSelectedAltitude"},
+        ["funcParameters"]={1},
+        ["funcExpctOutput"]={0}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedAltitude_mid_pos_26000ft",
+        ["funcName"]={"roundSelectedAltitude"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={26000}}
+
+    --------------------------------------------------------------------------
+    --  roundSelectedTime  (scrollbar top=0 → 25 min, bottom=1 → 0 min)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="roundSelectedTime_top_pos_25min",
+        ["funcName"]={"roundSelectedTime"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={25}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedTime_bottom_pos_0min",
+        ["funcName"]={"roundSelectedTime"},
+        ["funcParameters"]={1},
+        ["funcExpctOutput"]={0}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedTime_mid_pos_13min",
+        ["funcName"]={"roundSelectedTime"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={13}}
+
+    --------------------------------------------------------------------------
+    --  roundSelectedDegree  (scrollbar top=0 → 8.0°, bottom=1 → 0°)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="roundSelectedDegree_top_pos_8deg",
+        ["funcName"]={"roundSelectedDegree"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={8.0}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedDegree_bottom_pos_0deg",
+        ["funcName"]={"roundSelectedDegree"},
+        ["funcParameters"]={1},
+        ["funcExpctOutput"]={0.0}}
+
+    gdsGui_dev_testExecute {["id"]="roundSelectedDegree_mid_pos_4deg",
+        ["funcName"]={"roundSelectedDegree"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={4.0}}
+
+    --------------------------------------------------------------------------
+    --  windSpeedChanged  (scrollbar top=0 → 45 kt, bottom=1 → 0 kt)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="windSpeedChanged_top_pos_45kt",
+        ["funcName"]={"windSpeedChanged"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={45}}
+
+    gdsGui_dev_testExecute {["id"]="windSpeedChanged_bottom_pos_0kt",
+        ["funcName"]={"windSpeedChanged"},
+        ["funcParameters"]={1},
+        ["funcExpctOutput"]={0}}
+
+    gdsGui_dev_testExecute {["id"]="windSpeedChanged_mid_pos_23kt",
+        ["funcName"]={"windSpeedChanged"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={23}}
+
+    --------------------------------------------------------------------------
+    --  windGustChanged  (range relative to selectedWindSpeed; fixed at 0)
+    --------------------------------------------------------------------------
+    selectedWindSpeed = 0
+    gdsGui_dev_testExecute {["id"]="windGustChanged_top_pos_60kt",
+        ["funcName"]={"windGustChanged"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={60}}
+
+    selectedWindSpeed = 0
+    gdsGui_dev_testExecute {["id"]="windGustChanged_bottom_pos_0kt",
+        ["funcName"]={"windGustChanged"},
+        ["funcParameters"]={1},
+        ["funcExpctOutput"]={0}}
+
+    selectedWindSpeed = 0
+    gdsGui_dev_testExecute {["id"]="windGustChanged_mid_pos_30kt",
+        ["funcName"]={"windGustChanged"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={30}}
+
+    --------------------------------------------------------------------------
+    --  mainKnobChanged  (36 detents: pos=0 → RWY 36, 1/36 → RWY 01)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="mainKnobChanged_pos0_rwy36",
+        ["funcName"]={"mainKnobChanged"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={36}}
+
+    gdsGui_dev_testExecute {["id"]="mainKnobChanged_first_detent_rwy01",
+        ["funcName"]={"mainKnobChanged"},
+        ["funcParameters"]={1/36},
+        ["funcExpctOutput"]={1}}
+
+    gdsGui_dev_testExecute {["id"]="mainKnobChanged_mid_rwy18",
+        ["funcName"]={"mainKnobChanged"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={18}}
+
+    --------------------------------------------------------------------------
+    --  windKnobChanged  (36 detents: pos=0 → 360°, 1/36 → 10°)
+    --------------------------------------------------------------------------
+    gdsGui_dev_testExecute {["id"]="windKnobChanged_pos0_360deg",
+        ["funcName"]={"windKnobChanged"},
+        ["funcParameters"]={0},
+        ["funcExpctOutput"]={360}}
+
+    gdsGui_dev_testExecute {["id"]="windKnobChanged_first_detent_10deg",
+        ["funcName"]={"windKnobChanged"},
+        ["funcParameters"]={1/36},
+        ["funcExpctOutput"]={10}}
+
+    gdsGui_dev_testExecute {["id"]="windKnobChanged_mid_180deg",
+        ["funcName"]={"windKnobChanged"},
+        ["funcParameters"]={0.5},
+        ["funcExpctOutput"]={180}}
+
+end)
+
+-- Build the unit-test table widget now that both "gui" and "app" suites are registered.
+gdsGui_dev_createUnitTestObjects()
 

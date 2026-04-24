@@ -764,11 +764,26 @@ function gdsGui_dev_createUnitTestObjects ()
 		"RT"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
 		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
 		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"gdsGui_unitTests_rerunAll"--[[callback function]],
+		"gdsGui_dev_rerunUnitTests"--[[callback function]],
 		1--[[button initial status]])
 end
 
-gdsGui_dev_createUnitTestObjects ()
+function gdsGui_dev_refreshUnitTestDisplay()
+	gdsGui_table_update(
+		"devUnitTest", "UnitTesting", "static", devTests,
+		.5,
+		gdsGui_general_smartRelocation(.30, 0, .27, .25, .24, .5, .21, 1, "y"),
+		.8, .6, "CT", nil,
+		{ [1]={["INFO"]="gdsGui_dev_openUTInfoCallback"} },
+		gdsGui_general_smartFontScaling(0.025, 0.032),
+		{"name", "result", "failingParameter"}
+	)
+end
+
+function gdsGui_dev_rerunUnitTests()
+	gdsGui_unitTests_rerunAll()
+	gdsGui_dev_refreshUnitTestDisplay()
+end
 
 local focusedUnitTest = "none"
 function gdsGui_dev_openUTInfoCallback (utID)

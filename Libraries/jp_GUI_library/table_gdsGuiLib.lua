@@ -325,8 +325,8 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 			tbl.scroll.axisLock          = nil
 			tbl.scroll.accumDx           = 0
 			tbl.scroll.accumDy           = 0
-			_applyTblScrollOffset(tbl)
 		end
+		_applyTblScrollOffset(tbl)
 	end
 
 	-- NEW: The resize method for this object
