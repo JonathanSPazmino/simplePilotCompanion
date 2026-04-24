@@ -21,6 +21,7 @@ local function requireGUILibraries ()
 	require (pathToLibrary .. "buttons_gdsGuiLib") --[[contains buttons related code]]
 	require (pathToLibrary .. "inputTxtBox_gdsGuiLib") --[[contains text box related code]]
 	require (pathToLibrary .. "outputTxtBox_gdsGuiLib") --[[contains labels related code]]
+	require (pathToLibrary .. "container_gdsGuiLib") --[[scrollable widget containers]]
 	require (pathToLibrary .. "saveLoad_gdsGuiLib") --[[save and load data code]]
 	require (pathToLibrary .. "table_gdsGuiLib") --[[data display tables]]
 	require (pathToLibrary .. "scrollBar_gdsGuiLib")--[[scrollbars]]

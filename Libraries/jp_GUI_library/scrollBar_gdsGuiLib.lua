@@ -271,9 +271,47 @@ end
 -- end
 
 
+-- Draw one scrollbar object.  Called by the container system for owned scrollbars.
+function gdsGui_scrollBar_drawSingle(x)
+	love.graphics.setColor(1, 1, 1, 1)
+	if x.frame.img then
+		love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / x._dimFrameW, x.frame.height / x._dimFrameH)
+	else
+		love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
+	end
+	if x.bar.img then
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
+	else
+		love.graphics.setColor(x.isFocused and {0, 0, 1, 1} or {0, 1, 0, 1})
+		love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
+	end
+	love.graphics.setColor(1, 0, 0, 1)
+	if x.orientation == "vertical" then
+		if x.upButton then
+			love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
+			local imgW, imgH = x._dimUpW, x._dimUpH
+			local img = x.upButton.isActive and x.imgButtonUpArrow_active or x.imgButtonUpArrow_inactive
+			local cx = x.upButton.x + (x.upButton.width  - imgW * x.upButton.factorWidth)  / 2
+			local cy = x.upButton.y + (x.upButton.height - imgH * x.upButton.factorHeight) / 2
+			love.graphics.draw(img, cx, cy, 0, x.upButton.factorWidth, x.upButton.factorHeight)
+		end
+		if x.downButton then
+			love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
+			local imgW, imgH = x._dimDownW, x._dimDownH
+			local img = x.downButton.isActive and x.imgButtonDownArrow_active or x.imgButtonDownArrow_inactive
+			local cx = x.downButton.x + (x.downButton.width  - imgW * x.downButton.factorWidth)  / 2
+			local cy = x.downButton.y + (x.downButton.height - imgH * x.downButton.factorHeight) / 2
+			love.graphics.draw(img, cx, cy, 0, x.downButton.factorWidth, x.downButton.factorHeight)
+		end
+	end
+	love.graphics.reset()
+end
+
+
 function gdsGui_scrollBar_draw (pageName)
 	for i,x in pairs(globApp.objects.scrollBars) do --[[runs continuously]]
-			if x.page == pageName then
+			if x.page == pageName and not x.ownerContainer then
 				if x.bar.position ~= dataRelativePosition and dataRelativePosition ~= nil then
 					if x.type == "independent" then
 						gdsGui_scrollBar_updatePosition (x, x.bar.position)

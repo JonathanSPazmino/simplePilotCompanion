@@ -285,7 +285,7 @@ end
 
 function gdsGui_outputTxtBox_draw (pg)
 	for i, t in ipairs(globApp.objects.outputTextBox) do
-		if t.page == pg then
+		if t.page == pg and not t.ownerContainer then
 
 			if t.bgSprite.sprite ~= nil then
 				love.graphics.draw(t.bgSprite.sprite, t.bgSprite.x, t.bgSprite.y,
@@ -352,6 +352,9 @@ function gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, is
 
 	for i, tb in ipairs(globApp.objects.outputTextBox) do
 
+		-- Skip textboxes owned by a container (the container handles their scroll)
+		if tb.ownerContainer then goto continue_tb end
+
 		-- Only act when the pointer is inside this textbox
 		if x >= tb.frame.x and x <= (tb.frame.x + tb.frame.width) and
 		   y >= tb.frame.y and y <= (tb.frame.y + tb.frame.height) then
@@ -375,6 +378,7 @@ function gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, is
 			_apply_scroll_offset(tb)
 		end
 
+		::continue_tb::
 	end
 
 end

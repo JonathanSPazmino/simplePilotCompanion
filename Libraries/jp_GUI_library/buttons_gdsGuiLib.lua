@@ -138,7 +138,7 @@ end
 ]]
 function gdsGui_button_draw(pageName)
     for _, button in ipairs(globApp.objects.buttons) do
-        if button.page == pageName then
+        if button.page == pageName and not button.ownerContainer then
             local imageToDraw = button.images[button.state]
             if imageToDraw then
                 love.graphics.draw(imageToDraw, button.myx, button.myy, 0, button.factorWidth, button.factorHeight)

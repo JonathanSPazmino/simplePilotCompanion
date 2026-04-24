@@ -279,6 +279,44 @@ function love.load()
 
 
 
+    ---------------------------------------------------------------------------
+    -- CONTAINERS
+    ---------------------------------------------------------------------------
+
+    -- 1) UTC clock + timer controls
+    gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
+    gdsGui_container_addObject("timerPanel", "outputTextBox", "utcData")
+    gdsGui_container_addObject("timerPanel", "outputTextBox", "timerTopRight")
+    gdsGui_container_addObject("timerPanel", "button",        "modeSelectRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "pauseRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "resetRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "incrsMinRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "dcrsMinRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "incrsSecRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "dcrsSecRHTopTimer")
+    gdsGui_container_addObject("timerPanel", "button",        "acknowlegeAlarm")
+
+    -- 2) Runway knob + crosswind + wind speed/gust scrollbars
+    gdsGui_container_create("windPanel", "MainMenu", "RUNWAY / WIND", 32, 0)
+    gdsGui_container_addObject("windPanel", "rotaryKnob",    "runwayKnob")
+    gdsGui_container_addObject("windPanel", "outputTextBox", "crosswindData")
+    gdsGui_container_addObject("windPanel", "scrollBar",     "windSpeed")
+    gdsGui_container_addObject("windPanel", "scrollBar",     "windGust")
+    gdsGui_container_addObject("windPanel", "outputTextBox", "windSpeedGustLabel")
+
+    -- 3) Altitude / time / degree selectors and computed outputs
+    gdsGui_container_create("calcPanel", "MainMenu", "CALCULATIONS", 32, 0)
+    gdsGui_container_addObject("calcPanel", "scrollBar",     "timeScale")
+    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedTimeBox")
+    gdsGui_container_addObject("calcPanel", "scrollBar",     "altScale")
+    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedAltitudeBox")
+    gdsGui_container_addObject("calcPanel", "scrollBar",     "deg")
+    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedDegreeBox")
+    gdsGui_container_addObject("calcPanel", "outputTextBox", "requiredFPM")
+    gdsGui_container_addObject("calcPanel", "outputTextBox", "requiredDistance")
+
+    gdsGui_container_finalise("MainMenu")
+
     gdsGui_saveLoad_loadFileContents("appSettings.lua")
 
     local showTC = (appSettings.tcAcceptedVersion ~= APP_VERSION)

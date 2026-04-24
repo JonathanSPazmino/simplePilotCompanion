@@ -262,9 +262,26 @@ end
     For dual knobs, the outer sprite is drawn first and the inner on top of it.
     Each part switches between its released and focused sprites based on focus state.
 ]]
+-- Draw one rotary knob.  Called by the container system for owned knobs.
+function gdsGui_rotaryKnob_drawSingle(knob)
+    love.graphics.setColor(1, 1, 1, 1)
+    local outerImg = knob.isFocused and knob.imgFocused or knob.imgReleased
+    love.graphics.draw(outerImg, knob.centerX, knob.centerY, knob.angle,
+                       knob.scaleX, knob.scaleY, knob.imgOriginX, knob.imgOriginY)
+    if knob.isDual then
+        local innerImg = knob.inner.isFocused and knob.inner.imgFocused or knob.inner.imgReleased
+        love.graphics.draw(innerImg, knob.centerX, knob.centerY, knob.inner.angle,
+                           knob.inner.scaleX, knob.inner.scaleY,
+                           knob.inner.imgOriginX, knob.inner.imgOriginY)
+    end
+    love.graphics.reset()
+end
+
+
 function gdsGui_rotaryKnob_draw(pageName)
     for _, knob in ipairs(globApp.objects.rotaryKnobs) do
         if knob.page ~= pageName then goto continue end
+        if knob.ownerContainer      then goto continue end
 
         love.graphics.setColor(1, 1, 1, 1)
 

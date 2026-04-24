@@ -130,7 +130,7 @@ function gdsGui_general_handleResize()
     for _, obj in ipairs(globApp.objects.rotaryKnobs) do
         if obj.resize then obj:resize() end
     end
-    -- TODO: Add loops for other object types like text boxes...
+    gdsGui_container_resize(gdsGui_page_currentName())
 end
 
 
@@ -161,6 +161,7 @@ function gdsGui_update (dt)
 
 	gdsGui_outputTxtBox_update(dt)
 	gdsGui_table_physicsUpdate(dt)
+	gdsGui_container_physicsUpdate(dt)
 
 	globApp.txtBoxChangeDetected = gdsGui_inputTxtBox_changeTrigger ()
 	if globApp.txtBoxChangeDetected == true then
@@ -201,6 +202,7 @@ function gdsGui_general_draw ()
 		end
 	end
 
+	gdsGui_container_draw (activePageName)
 	gdsGui_outputTxtBox_draw (activePageName)
 	gdsGui_table_draw (activePageName)
 	gdsGui_scrollBar_draw (activePageName)
@@ -895,6 +897,8 @@ gdsGui_button_pressed (x,y,button,istouch) --runs when clicked on created button
 			end
 		end
 
+		gdsGui_container_markTouchStart(x, y)
+
 		if x >= .8 * globApp.safeScreenArea.xw and y >= .9 * globApp.safeScreenArea.yh then
 
 			gdsGui_dev_openByEightTap (x,y,button,istouch) -- opens and closes devPage
@@ -929,6 +933,7 @@ function gdsGui_general_mousereleased (x, y, button, istouch, presses)
 
 			gdsGui_outputTxtBox_touchReleased (x, y)
 			gui_touchReleasedTableScroll (x, y)
+			gdsGui_container_touchReleased(x, y)
 
 			globApp.userInput = "none"
 
@@ -953,6 +958,7 @@ function gdsGui_general_mousemoved (x, y, button, istouch, presses)
 	-- button = dx, istouch = dy (see note above).
 	gdsGui_outputTxtBox_touchScroll(nil, x, y, button, istouch, nil, nil, nil)
 	gdsGui_table_touchScroll(nil, x, y, button, istouch, nil, nil, nil)
+	gdsGui_container_touchScroll(nil, x, y, button, istouch)
 
 end
 
@@ -1032,6 +1038,8 @@ function gdsGui_general_touchpressed (id, x, y, dx, dy, pressure)
 		end
 	end
 
+	gdsGui_container_markTouchStart(x, y)
+
 end
 
 function gdsGui_general_touchmoved (id, x, y, dx, dy, pressure)
@@ -1062,6 +1070,7 @@ function gdsGui_general_touchmoved (id, x, y, dx, dy, pressure)
 			gdsGui_table_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 
 			gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
+			gdsGui_container_touchScroll(id, x, y, dx, dy)
 
 		end
 
@@ -1104,6 +1113,7 @@ function gdsGui_general_touchreleased (id, x, y, dx, dy, pressure)
 
 	gdsGui_outputTxtBox_touchReleased (x, y)
 	gui_touchReleasedTableScroll (x, y)
+	gdsGui_container_touchReleased(x, y)
 
 	globApp.userInput = "none"
 
