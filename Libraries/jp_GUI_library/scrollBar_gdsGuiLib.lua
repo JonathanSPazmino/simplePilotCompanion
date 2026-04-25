@@ -22,7 +22,7 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 
 		t.id = id
 		t.type = sbType --[[independent or table-linked]]
-		t.objectType = "scrollbar"
+		t.objectType = "scrollBar"
 		t.orientation = sbOrientation
 		t.state = 1
 		t.scrollSpeedFactor = scrollSpeed

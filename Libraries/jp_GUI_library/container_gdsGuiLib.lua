@@ -1,69 +1,72 @@
 -- container_gdsGuiLib.lua
--- Scrollable widget containers with automatic page-level grid layout.
+-- Page-layout system: fixed header/footer zones + single scrollable body containing panels.
 --
 -- DEVELOPER USAGE (in main.lua):
 --
---   gdsGui_container_create("myPanel", "MainMenu", "Panel Title", 40, 40)
---   gdsGui_container_addObject("myPanel", "button",        "myButtonName")
---   gdsGui_container_addObject("myPanel", "outputTextBox", "myLabelName")
---   gdsGui_container_addObject("myPanel", "button",        "footerBtn", "footer")
+--   -- Optional fixed zones at top/bottom of page (headerHeight = total zone height):
+--   gdsGui_container_create("navBar",  "MainMenu", "PILOT COMPANION", 50, 0, "pageHeader")
+--   gdsGui_container_create("footBar", "MainMenu", "",                40, 0, "pageFooter")
+--
+--   -- Body panels (default pageRole "body") auto-size and scroll together:
+--   gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
+--   gdsGui_container_addObject("timerPanel", "button",        "myBtn")
+--   gdsGui_container_addObject("timerPanel", "outputTextBox", "myLabel")
+--   gdsGui_container_addObject("timerPanel", "button",        "footerBtn", "footer")
 --   gdsGui_container_finalise("MainMenu")   -- call once after all containers on a page are declared
 --
--- role parameter on addObject: "scroll" (default) | "header" | "footer"
+-- addObject role: "scroll" (default) | "header" | "footer"
+-- Container pageRole: nil/"body" | "pageHeader" | "pageFooter"
+--   pageHeader/pageFooter: fixed zones; their headerHeight param = total zone pixel height.
+--   body: auto-sizes to content and participates in page-level scroll.
 
 gdsGui_generateConsoleMessage("info", "Containers initialized")
 
-globApp.objects.containers = {}
+globApp.objects.containers       = {}
+globApp.objects.pageScrollStates = {}  -- keyed by pageName
 
 -- ---------------------------------------------------------------------------
---  PHYSICS CONSTANTS  (mirrors outputTxtBox values exactly)
+--  PHYSICS CONSTANTS
 -- ---------------------------------------------------------------------------
-local CONT_FRICTION        = 3.5
-local CONT_SPRING_OMEGA    = 18.0
-local CONT_SPRING_K        = CONT_SPRING_OMEGA * CONT_SPRING_OMEGA
-local CONT_SPRING_C        = 2.0 * CONT_SPRING_OMEGA
-local CONT_RUBBER_BAND     = 0.35
-local CONT_COAST_STOP_VEL  = 8.0
-local CONT_BOUNCE_STOP_D   = 0.5
-local CONT_BOUNCE_STOP_V   = 5.0
+local CONT_FRICTION       = 3.5
+local CONT_SPRING_OMEGA   = 18.0
+local CONT_SPRING_K       = CONT_SPRING_OMEGA * CONT_SPRING_OMEGA
+local CONT_SPRING_C       = 2.0 * CONT_SPRING_OMEGA
+local CONT_RUBBER_BAND    = 0.35
+local CONT_COAST_STOP_VEL = 8.0
+local CONT_BOUNCE_STOP_D  = 0.5
+local CONT_BOUNCE_STOP_V  = 5.0
 
 -- ---------------------------------------------------------------------------
 --  LAYOUT CONSTANTS
 -- ---------------------------------------------------------------------------
-local PADDING       = 8    -- px gap around/between objects inside a container
-local MIN_ITEM_W    = 120  -- px: min item width before the layout adds a second column
+local PADDING    = 8    -- px gap around/between objects inside a container
+local MIN_ITEM_W = 120  -- px: min item width before layout adds a second column
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — object dimension accessors
+--  PRIVATE — object dimension accessors
 -- ---------------------------------------------------------------------------
 
 local function _objWidth(obj)
     if obj.objectType == "button"        then return obj.mywidth        end
     if obj.objectType == "outputTextBox" then return obj.frame.width    end
     if obj.objectType == "scrollBar"     then return obj.original.width end
-    if obj.objectType == "rotaryKnob"   then return obj.size           end
+    if obj.objectType == "rotaryKnob"    then return obj.size           end
     return MIN_ITEM_W
 end
 
 local function _objHeight(obj)
-    if obj.objectType == "button"        then return obj.myheight         end
-    if obj.objectType == "outputTextBox" then return obj.frame.height     end
-    if obj.objectType == "scrollBar"     then return obj.original.height  end
-    if obj.objectType == "rotaryKnob"   then return obj.size             end
+    if obj.objectType == "button"        then return obj.myheight        end
+    if obj.objectType == "outputTextBox" then return obj.frame.height    end
+    if obj.objectType == "scrollBar"     then return obj.original.height end
+    if obj.objectType == "rotaryKnob"    then return obj.size            end
     return 40
 end
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — move a widget's screen-space Y each frame
+--  PRIVATE — position a widget absolutely (used at layout time and on scroll)
 -- ---------------------------------------------------------------------------
 
--- Called once when the widget is first positioned inside a container.
--- Stores per-widget "natural" (zero-scroll) reference data so _setObjY is
--- cheap every frame without touching the widget's own creation data.
 local function _initObjForContainer(obj, natX, natY)
-    obj.containerNatX = natX
-    obj.containerNatY = natY
-
     if obj.objectType == "button" then
         obj.myx    = math.floor(natX)
         obj.myy    = math.floor(natY)
@@ -71,12 +74,12 @@ local function _initObjForContainer(obj, natX, natY)
         obj.myMaxy = obj.myy + obj.myheight
 
     elseif obj.objectType == "outputTextBox" then
-        local dy        = natY - obj.frame.y
-        obj.frame.x     = math.floor(natX)
-        obj.frame.y     = math.floor(natY)
-        obj.bgSprite.x  = obj.frame.x
-        obj.bgSprite.y  = obj.frame.y
-        obj.text.x      = obj.frame.x + (obj.frame.width - obj.text.width) / 2
+        local dy       = natY - obj.frame.y
+        obj.frame.x    = math.floor(natX)
+        obj.frame.y    = math.floor(natY)
+        obj.bgSprite.x = obj.frame.x
+        obj.bgSprite.y = obj.frame.y
+        obj.text.x     = obj.frame.x + (obj.frame.width - obj.text.width) / 2
         for _, line in ipairs(obj.text.lines) do
             line.naturalY  = line.naturalY + dy
             line.y         = line.naturalY
@@ -85,7 +88,7 @@ local function _initObjForContainer(obj, natX, natY)
         end
 
     elseif obj.objectType == "scrollBar" then
-        local top = math.floor(natY)
+        local top  = math.floor(natY)
         local left = math.floor(natX)
         if obj.upButton then
             obj.upButton.x   = left
@@ -108,7 +111,7 @@ local function _initObjForContainer(obj, natX, natY)
     end
 end
 
--- Called every frame after physics updates offsetY.
+-- Update only the Y coordinate of a widget (called every frame during scroll).
 local function _setObjY(obj, newY)
     if obj.objectType == "button" then
         obj.myy    = math.floor(newY)
@@ -142,87 +145,93 @@ local function _setObjY(obj, newY)
 end
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — scroll limits & apply
--- ---------------------------------------------------------------------------
-
-local function _scrollLimits(cont)
-    local minOff = math.min(0, cont.scrollRect.height - cont.contentHeight)
-    return minOff, 0
-end
-
-local function _applyScroll(cont)
-    local offsetY = cont.scroll.offsetY
-    for _, entry in ipairs(cont.objects) do
-        if entry.role == "scroll" then
-            _setObjY(entry.ref, entry.naturalY + offsetY)
-        end
-    end
-end
-
--- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — compute header/scroll/footer sub-rects from frame
+--  PRIVATE — sub-rect geometry
 -- ---------------------------------------------------------------------------
 
 local function _computeSubrects(cont)
     local f  = cont.frame
     local hh = cont.headerHeight
     local fh = cont.footerHeight
-    cont.headerRect = { x = f.x, y = f.y,                     width = f.width, height = hh }
-    cont.footerRect = { x = f.x, y = f.y + f.height - fh,     width = f.width, height = fh }
-    cont.scrollRect = { x = f.x, y = f.y + hh,                width = f.width, height = f.height - hh - fh }
+    cont.headerRect = { x=f.x, y=f.y,                   width=f.width, height=hh }
+    cont.scrollRect = { x=f.x, y=f.y + hh,              width=f.width, height=f.height - hh - fh }
+    cont.footerRect = { x=f.x, y=f.y + f.height - fh,   width=f.width, height=fh }
 end
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — layout objects within a single container
+--  PRIVATE — page-level scroll helpers
 -- ---------------------------------------------------------------------------
 
-local function _layoutObjects(cont)
-    local sr      = cont.scrollRect
-    local avail_w = sr.width - 2 * PADDING
-    local cols    = math.max(1, math.floor(avail_w / MIN_ITEM_W))
-    local cellW   = math.floor(avail_w / cols)
+local function _pageScrollLimits(state)
+    local minOff = math.min(0, state.bodyArea.height - state.contentHeight)
+    return minOff, 0
+end
 
-    -- Bucket scroll objects into rows, then position each row using its own max height.
-    local rows = {}
-    local current_row = {}
-    local col = 0
-    for _, entry in ipairs(cont.objects) do
-        if entry.role == "scroll" then
-            table.insert(current_row, entry)
-            col = col + 1
-            if col >= cols then
-                table.insert(rows, current_row)
-                current_row = {}
-                col = 0
+-- Move all body containers on a page by the current page scroll offset.
+-- entry.naturalY stores the widget's Y at offsetY == 0 (set at layout time).
+local function _applyPageScroll(pageName)
+    local state = globApp.objects.pageScrollStates[pageName]
+    if not state then return end
+    local offsetY = state.scroll.offsetY
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == pageName and cont.pageRole == "body" then
+            cont.frame.y = cont.frameNaturalY + offsetY
+            _computeSubrects(cont)
+            for _, entry in ipairs(cont.objects) do
+                _setObjY(entry.ref, entry.naturalY + offsetY)
             end
         end
     end
-    if #current_row > 0 then table.insert(rows, current_row) end
+end
 
-    local cursor_y = PADDING
+-- ---------------------------------------------------------------------------
+--  PRIVATE — layout widgets within a single container
+-- ---------------------------------------------------------------------------
+
+local function _layoutObjects(cont)
+    local sr     = cont.scrollRect
+    local availW = sr.width - 2 * PADDING
+    local cols   = math.max(1, math.floor(availW / MIN_ITEM_W))
+    local cellW  = math.floor(availW / cols)
+
+    -- Grid-pack scroll-role objects into rows.
+    local rows       = {}
+    local currentRow = {}
+    local col        = 0
+    for _, entry in ipairs(cont.objects) do
+        if entry.role == "scroll" then
+            table.insert(currentRow, entry)
+            col = col + 1
+            if col >= cols then
+                table.insert(rows, currentRow)
+                currentRow = {}
+                col        = 0
+            end
+        end
+    end
+    if #currentRow > 0 then table.insert(rows, currentRow) end
+
+    local cursorY = PADDING
     for _, row in ipairs(rows) do
-        -- Find tallest object in this row
         local rowH = 0
         for _, entry in ipairs(row) do
             local h = _objHeight(entry.ref)
             if h > rowH then rowH = h end
         end
-
         for c, entry in ipairs(row) do
-            local obj = entry.ref
-            local w   = _objWidth(obj)
-            local h   = _objHeight(obj)
+            local obj  = entry.ref
+            local w    = _objWidth(obj)
+            local h    = _objHeight(obj)
             local natX = sr.x + PADDING + (c - 1) * cellW + math.floor((cellW - w) / 2)
-            local natY = sr.y + cursor_y + math.floor((rowH - h) / 2)
+            local natY = sr.y + cursorY + math.floor((rowH - h) / 2)
             entry.naturalX = natX
             entry.naturalY = natY
             _initObjForContainer(obj, natX, natY)
         end
-        cursor_y = cursor_y + rowH + PADDING
+        cursorY = cursorY + rowH + PADDING
     end
-    cont.contentHeight = cursor_y + PADDING
+    cont.contentHeight = cursorY + PADDING
 
-    -- Position header-role objects across the header strip
+    -- Header-role objects (laid out left-to-right in the header strip).
     local hx = cont.headerRect.x + PADDING
     for _, entry in ipairs(cont.objects) do
         if entry.role == "header" then
@@ -234,7 +243,7 @@ local function _layoutObjects(cont)
         end
     end
 
-    -- Position footer-role objects across the footer strip
+    -- Footer-role objects (laid out left-to-right in the footer strip).
     local fx = cont.footerRect.x + PADDING
     for _, entry in ipairs(cont.objects) do
         if entry.role == "footer" then
@@ -245,63 +254,130 @@ local function _layoutObjects(cont)
             fx = fx + _objWidth(entry.ref) + PADDING
         end
     end
-
-    -- Clamp and re-apply current scroll
-    local minOff, maxOff = _scrollLimits(cont)
-    cont.scroll.offsetY  = math.max(minOff, math.min(maxOff, cont.scroll.offsetY))
-    _applyScroll(cont)
 end
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — page-level container grid layout
+--  PRIVATE — page-level layout
 -- ---------------------------------------------------------------------------
 
 local function _layoutPage(pageName)
-    local conts = {}
+    local sa          = globApp.safeScreenArea
+    local orientation = globApp.displayOrientation
+
+    -- Bucket containers by role.
+    local headerConts, footerConts, bodyConts = {}, {}, {}
     for _, c in ipairs(globApp.objects.containers) do
         if c.page == pageName then
-            table.insert(conts, c)
+            if     c.pageRole == "pageHeader" then table.insert(headerConts, c)
+            elseif c.pageRole == "pageFooter" then table.insert(footerConts, c)
+            else                                   table.insert(bodyConts,   c)
+            end
         end
     end
-    if #conts == 0 then return end
 
-    local sa          = globApp.safeScreenArea
-    local orientation = globApp.displayOrientation  -- "portrait"|"landscape"|"square"
-
-    -- Columns: landscape gets up to min(N, 3); portrait/square → 1
-    local cols
-    if orientation == "landscape" then
-        cols = math.min(#conts, 3)
-    else
-        cols = 1
-    end
-    local rows  = math.ceil(#conts / cols)
-    local cellW = math.floor(sa.w / cols)
-    local cellH = math.floor(sa.h / rows)
-
-    for i, cont in ipairs(conts) do
-        local col = (i - 1) % cols
-        local row = math.floor((i - 1) / cols)
-        cont.frame = {
-            x      = sa.x + col * cellW,
-            y      = sa.y + row * cellH,
-            width  = cellW,
-            height = cellH,
-        }
+    -- ── pageHeader containers (stacked at top, full width) ──────────────────
+    -- For these, headerHeight is the total pixel height of the fixed zone.
+    local headerZoneH = 0
+    for _, cont in ipairs(headerConts) do
+        local h = cont.headerHeight
+        cont.frame = { x=sa.x, y=sa.y + headerZoneH, width=sa.w, height=h }
         _computeSubrects(cont)
-        -- Reset scroll when re-laid-out (orientation change etc.)
-        cont.scroll.offsetY   = 0
-        cont.scroll.velocityY = 0
-        cont.scroll.phase     = "idle"
         _layoutObjects(cont)
+        headerZoneH = headerZoneH + h
+    end
+
+    -- ── pageFooter containers (stacked at bottom, full width) ───────────────
+    local footerZoneH = 0
+    for _, cont in ipairs(footerConts) do
+        footerZoneH = footerZoneH + cont.headerHeight
+    end
+    local footerCurY = sa.y + sa.h - footerZoneH
+    for _, cont in ipairs(footerConts) do
+        local h = cont.headerHeight
+        cont.frame = { x=sa.x, y=footerCurY, width=sa.w, height=h }
+        _computeSubrects(cont)
+        _layoutObjects(cont)
+        footerCurY = footerCurY + h
+    end
+
+    -- ── Body area (middle zone) ──────────────────────────────────────────────
+    local bodyArea = {
+        x      = sa.x,
+        y      = sa.y + headerZoneH,
+        width  = sa.w,
+        height = sa.h - headerZoneH - footerZoneH,
+    }
+
+    if #bodyConts > 0 then
+        local cols = (orientation == "landscape") and math.min(#bodyConts, 3) or 1
+        local colW = math.floor(bodyArea.width / cols)
+
+        -- First pass: measure each container's natural height.
+        for i, cont in ipairs(bodyConts) do
+            local col = (i - 1) % cols
+            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=0 }
+            _computeSubrects(cont)
+            _layoutObjects(cont)
+            cont.frame.height = cont.headerHeight + cont.contentHeight + cont.footerHeight
+        end
+
+        -- Second pass: assign final Y positions, re-layout with correct subrects.
+        local colCurY = {}
+        for c = 1, cols do colCurY[c] = bodyArea.y end
+
+        for i, cont in ipairs(bodyConts) do
+            local col = (i - 1) % cols + 1
+            cont.frame.y = colCurY[col]
+            _computeSubrects(cont)
+            _layoutObjects(cont)
+            cont.frameNaturalY = cont.frame.y  -- Y at pageScrollOffset == 0
+            colCurY[col] = colCurY[col] + cont.frame.height
+        end
+
+        -- Total body content height = tallest column.
+        local contentH = 0
+        for c = 1, cols do
+            local colH = colCurY[c] - bodyArea.y
+            if colH > contentH then contentH = colH end
+        end
+
+        -- Initialise or update the page scroll state for this page.
+        if not globApp.objects.pageScrollStates[pageName] then
+            globApp.objects.pageScrollStates[pageName] = {
+                bodyArea      = bodyArea,
+                contentHeight = contentH,
+                scroll = {
+                    offsetY            = 0,
+                    velocityY          = 0,
+                    phase              = "idle",
+                    isDragging         = false,
+                    touchStartedInside = false,
+                },
+            }
+        else
+            local state = globApp.objects.pageScrollStates[pageName]
+            state.bodyArea      = bodyArea
+            state.contentHeight = contentH
+            local minOff = math.min(0, bodyArea.height - contentH)
+            state.scroll.offsetY   = math.max(minOff, math.min(0, state.scroll.offsetY))
+            state.scroll.velocityY = 0
+            state.scroll.phase     = "idle"
+            _applyPageScroll(pageName)
+        end
     end
 end
 
 -- ---------------------------------------------------------------------------
---  PRIVATE HELPERS — draw a single widget (called inside container draw)
+--  PRIVATE — drawing helpers
 -- ---------------------------------------------------------------------------
 
-local function _drawWidget(obj)
+local function _setClip(clip)
+    if clip then
+        love.graphics.setScissor(clip.x, clip.y, clip.width, clip.height)
+    end
+end
+
+local function _drawWidget(obj, clip)
     local ot = obj.objectType
 
     if ot == "button" then
@@ -331,38 +407,106 @@ local function _drawWidget(obj)
     elseif ot == "rotaryKnob" then
         gdsGui_rotaryKnob_drawSingle(obj)
     end
+
+    -- Restore clip after any widget that may call love.graphics.reset().
+    _setClip(clip)
+end
+
+local function _drawContainer(cont, clip)
+    local f  = cont.frame
+    local hr = cont.headerRect
+    local fr = cont.footerRect
+
+    _setClip(clip)
+
+    -- Background + border.
+    love.graphics.setColor(cont.bgColor[1], cont.bgColor[2], cont.bgColor[3], cont.bgColor[4] or 1)
+    love.graphics.rectangle("fill", f.x, f.y, f.width, f.height)
+    love.graphics.setColor(cont.borderColor[1], cont.borderColor[2], cont.borderColor[3], 1)
+    love.graphics.rectangle("line", f.x, f.y, f.width, f.height)
+
+    -- Header strip.
+    if hr.height > 0 then
+        love.graphics.setColor(cont.headerColor[1], cont.headerColor[2], cont.headerColor[3], 1)
+        love.graphics.rectangle("fill", hr.x, hr.y, hr.width, hr.height)
+        if cont.title and cont.title ~= "" then
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.printf(cont.title, hr.x + PADDING, hr.y + PADDING,
+                                 hr.width - 2 * PADDING, "left")
+        end
+        for _, entry in ipairs(cont.objects) do
+            if entry.role == "header" then
+                _drawWidget(entry.ref, clip)
+            end
+        end
+    end
+
+    -- Content (scroll-role) widgets.
+    for _, entry in ipairs(cont.objects) do
+        if entry.role == "scroll" then
+            _drawWidget(entry.ref, clip)
+        end
+    end
+
+    -- Footer strip.
+    if fr.height > 0 then
+        _setClip(clip)
+        love.graphics.setColor(cont.footerColor[1], cont.footerColor[2], cont.footerColor[3], 1)
+        love.graphics.rectangle("fill", fr.x, fr.y, fr.width, fr.height)
+        for _, entry in ipairs(cont.objects) do
+            if entry.role == "footer" then
+                _drawWidget(entry.ref, clip)
+            end
+        end
+    end
+
+    love.graphics.setScissor()
 end
 
 -- ---------------------------------------------------------------------------
---  PUBLIC API
+--  PRIVATE — touch-on-widget hit test
 -- ---------------------------------------------------------------------------
 
--- Create a container.  Call gdsGui_container_finalise(page) after all
--- containers on the page have been declared.
-function gdsGui_container_create(name, page, title, headerHeight, footerHeight)
-    local cont = {}
-    cont.name         = name
-    cont.page         = page
-    cont.title        = title or ""
-    cont.headerHeight = headerHeight or 0
-    cont.footerHeight = footerHeight or 0
-    cont.objects      = {}
-    cont.contentHeight = 0
+local function _isTouchOnWidget(obj, x, y)
+    local ot = obj.objectType
+    if ot == "button" then
+        return x >= obj.myx and x <= obj.myMaxx and y >= obj.myy and y <= obj.myMaxy
+    elseif ot == "outputTextBox" then
+        return x >= obj.frame.x and x <= obj.frame.x + obj.frame.width and
+               y >= obj.frame.y and y <= obj.frame.y + obj.frame.height
+    elseif ot == "scrollBar" then
+        local top    = obj.upButton   and obj.upButton.y                          or obj.frame.y
+        local bottom = obj.downButton and (obj.downButton.y + obj.downButton.height) or (obj.frame.y + obj.frame.height)
+        return x >= obj.frame.x and x <= obj.frame.x + obj.frame.width and
+               y >= top and y <= bottom
+    elseif ot == "rotaryKnob" then
+        return x >= obj.x and x <= obj.x + obj.size and y >= obj.y and y <= obj.y + obj.size
+    end
+    return false
+end
 
-    -- Frame assigned by _layoutPage; placeholders until then
+-- ---------------------------------------------------------------------------
+--  PUBLIC API — creation
+-- ---------------------------------------------------------------------------
+
+-- pageRole: nil/"body" | "pageHeader" | "pageFooter"
+-- For pageHeader/pageFooter, headerHeight doubles as the total fixed zone height.
+function gdsGui_container_create(name, page, title, headerHeight, footerHeight, pageRole)
+    local cont = {}
+    cont.name          = name
+    cont.page          = page
+    cont.title         = title or ""
+    cont.headerHeight  = headerHeight or 0
+    cont.footerHeight  = footerHeight or 0
+    cont.pageRole      = pageRole or "body"
+    cont.objects       = {}
+    cont.contentHeight = 0
+    cont.frameNaturalY = 0
+
     cont.frame      = { x=0, y=0, width=0, height=0 }
     cont.headerRect = { x=0, y=0, width=0, height=0 }
     cont.scrollRect = { x=0, y=0, width=0, height=0 }
     cont.footerRect = { x=0, y=0, width=0, height=0 }
-
-    cont.scroll = {
-        offsetY            = 0,
-        velocityY          = 0,
-        phase              = "idle",
-        isDragging         = false,
-        touchStartedInside = false,
-        lastTouchY         = 0,
-    }
 
     cont.bgColor     = { 0.18, 0.18, 0.18, 1 }
     cont.headerColor = { 0.25, 0.25, 0.25, 1 }
@@ -373,10 +517,9 @@ function gdsGui_container_create(name, page, title, headerHeight, footerHeight)
     gdsGui_generateConsoleMessage("info", "Container '" .. name .. "' created on page '" .. page .. "'")
 end
 
--- Assign an existing widget (already created) to a container.
+-- Assign an existing widget to a container.
 -- role: "scroll" (default) | "header" | "footer"
 function gdsGui_container_addObject(containerName, objectType, objectName, role)
-    -- Find container
     local cont
     for _, c in ipairs(globApp.objects.containers) do
         if c.name == containerName then cont = c; break end
@@ -386,7 +529,6 @@ function gdsGui_container_addObject(containerName, objectType, objectName, role)
         return
     end
 
-    -- Find widget in the appropriate global list
     local obj
     if objectType == "button" then
         for _, o in ipairs(globApp.objects.buttons) do
@@ -414,76 +556,69 @@ function gdsGui_container_addObject(containerName, objectType, objectName, role)
         return
     end
 
-    -- Mark as owned so normal draw passes skip it
     obj.ownerContainer = containerName
 
-    local entry = {
+    table.insert(cont.objects, {
         ref      = obj,
         role     = role or "scroll",
         naturalX = 0,
         naturalY = 0,
-    }
-    table.insert(cont.objects, entry)
+    })
 end
 
--- Call once after declaring all containers (and their objects) for a page.
--- Also call again whenever the screen layout needs rebuilding (resize, orientation change).
+-- Call once after all containers on a page are declared, and again on resize.
 function gdsGui_container_finalise(pageName)
     _layoutPage(pageName)
 end
 
 -- ---------------------------------------------------------------------------
---  PHYSICS UPDATE  (called from gdsGui_update via general_gdsGuiLib)
+--  PUBLIC API — physics update (page-level scroll)
 -- ---------------------------------------------------------------------------
 
 function gdsGui_container_physicsUpdate(dt)
     if not dt or dt <= 0 then return end
 
     local activePage = gdsGui_page_currentName()
+    local state      = globApp.objects.pageScrollStates[activePage]
+    if not state then return end
 
-    for _, cont in ipairs(globApp.objects.containers) do
-        if cont.page == activePage and not cont.scroll.isDragging
-           and cont.scroll.phase ~= "idle" then
+    local s = state.scroll
+    if s.isDragging or s.phase == "idle" then return end
 
-            local minOff, maxOff = _scrollLimits(cont)
-            local canScroll      = (minOff < -0.5)
-            if not canScroll then goto continue_cont end
+    local minOff, maxOff = _pageScrollLimits(state)
+    if minOff >= -0.5 then return end  -- content fits; nothing to animate
 
-            if cont.scroll.phase == "coasting" then
-                cont.scroll.velocityY = cont.scroll.velocityY * math.exp(-CONT_FRICTION * dt)
-                cont.scroll.offsetY   = cont.scroll.offsetY   + cont.scroll.velocityY * dt
+    if s.phase == "coasting" then
+        s.velocityY = s.velocityY * math.exp(-CONT_FRICTION * dt)
+        s.offsetY   = s.offsetY   + s.velocityY * dt
 
-                if cont.scroll.offsetY < minOff or cont.scroll.offsetY > maxOff then
-                    cont.scroll.phase = "bouncing"
-                elseif math.abs(cont.scroll.velocityY) < CONT_COAST_STOP_VEL then
-                    cont.scroll.phase     = "idle"
-                    cont.scroll.velocityY = 0
-                end
-                _applyScroll(cont)
-
-            elseif cont.scroll.phase == "bouncing" then
-                local target    = math.max(minOff, math.min(maxOff, cont.scroll.offsetY))
-                local disp      = cont.scroll.offsetY - target
-                local acc       = (-CONT_SPRING_K * disp) + (-CONT_SPRING_C * cont.scroll.velocityY)
-                cont.scroll.velocityY = cont.scroll.velocityY + acc * dt
-                cont.scroll.offsetY   = cont.scroll.offsetY   + cont.scroll.velocityY * dt
-
-                local newDisp = math.abs(cont.scroll.offsetY - target)
-                if newDisp < CONT_BOUNCE_STOP_D and math.abs(cont.scroll.velocityY) < CONT_BOUNCE_STOP_V then
-                    cont.scroll.offsetY   = target
-                    cont.scroll.velocityY = 0
-                    cont.scroll.phase     = "idle"
-                end
-                _applyScroll(cont)
-            end
-
-            ::continue_cont::
+        if s.offsetY < minOff or s.offsetY > maxOff then
+            s.phase = "bouncing"
+        elseif math.abs(s.velocityY) < CONT_COAST_STOP_VEL then
+            s.phase     = "idle"
+            s.velocityY = 0
         end
+        _applyPageScroll(activePage)
+
+    elseif s.phase == "bouncing" then
+        local target  = math.max(minOff, math.min(maxOff, s.offsetY))
+        local disp    = s.offsetY - target
+        local acc     = (-CONT_SPRING_K * disp) + (-CONT_SPRING_C * s.velocityY)
+        s.velocityY   = s.velocityY + acc * dt
+        s.offsetY     = s.offsetY   + s.velocityY * dt
+
+        if math.abs(s.offsetY - target) < CONT_BOUNCE_STOP_D and
+           math.abs(s.velocityY) < CONT_BOUNCE_STOP_V then
+            s.offsetY   = target
+            s.velocityY = 0
+            s.phase     = "idle"
+        end
+        _applyPageScroll(activePage)
     end
 end
 
 -- ---------------------------------------------------------------------------
---  TOUCH / MOUSE SCROLL  (called from general_gdsGuiLib)
+--  PUBLIC API — touch/mouse scroll (page-level)
 -- ---------------------------------------------------------------------------
 
 function gdsGui_container_touchScroll(id, x, y, dx, dy)
@@ -491,76 +626,86 @@ function gdsGui_container_touchScroll(id, x, y, dx, dy)
     if not isGestureActive then return end
 
     local activePage = gdsGui_page_currentName()
+    local state      = globApp.objects.pageScrollStates[activePage]
+    if not state or not state.scroll.touchStartedInside then return end
 
-    for _, cont in ipairs(globApp.objects.containers) do
-        if cont.page == activePage and cont.scroll.touchStartedInside then
-            local sr = cont.scrollRect
-            local minOff, maxOff = _scrollLimits(cont)
-            if minOff >= -0.5 then goto skip_cont end  -- content fits, nothing to scroll
+    local s              = state.scroll
+    local minOff, maxOff = _pageScrollLimits(state)
+    if minOff >= -0.5 then return end
 
-            cont.scroll.isDragging = true
-            cont.scroll.phase      = "coasting"
+    s.isDragging = true
+    s.phase      = "coasting"
 
-            -- Rubber-band resistance past limits
-            local newOff = cont.scroll.offsetY + dy
-            if newOff < minOff then
-                newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
-            elseif newOff > maxOff then
-                newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
-            end
-            cont.scroll.offsetY = newOff
-
-            -- Exponential moving-average velocity
-            local frameDt = love.timer.getDelta()
-            if frameDt > 0 then
-                local rawVel = dy / frameDt
-                cont.scroll.velocityY = cont.scroll.velocityY * 0.5 + rawVel * 0.5
-            end
-
-            _applyScroll(cont)
-
-            ::skip_cont::
-        end
+    local newOff = s.offsetY + dy
+    if newOff < minOff then
+        newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
+    elseif newOff > maxOff then
+        newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
     end
+    s.offsetY = newOff
+
+    local frameDt = love.timer.getDelta()
+    if frameDt > 0 then
+        local rawVel = dy / frameDt
+        s.velocityY  = s.velocityY * 0.5 + rawVel * 0.5
+    end
+
+    _applyPageScroll(activePage)
 end
 
 function gdsGui_container_touchReleased(x, y)
-    for _, cont in ipairs(globApp.objects.containers) do
-        if cont.scroll.isDragging then
-            cont.scroll.isDragging         = false
-            cont.scroll.touchStartedInside = false
-            local minOff, maxOff = _scrollLimits(cont)
+    local activePage = gdsGui_page_currentName()
+    local state      = globApp.objects.pageScrollStates[activePage]
+    if not state then return end
 
-            if cont.scroll.offsetY < minOff or cont.scroll.offsetY > maxOff then
-                cont.scroll.phase = "bouncing"
-            elseif math.abs(cont.scroll.velocityY) > CONT_COAST_STOP_VEL then
-                cont.scroll.phase = "coasting"
-            else
-                cont.scroll.phase     = "idle"
-                cont.scroll.velocityY = 0
-            end
+    local s = state.scroll
+    if s.isDragging then
+        s.isDragging         = false
+        s.touchStartedInside = false
+        local minOff, maxOff = _pageScrollLimits(state)
+
+        if s.offsetY < minOff or s.offsetY > maxOff then
+            s.phase = "bouncing"
+        elseif math.abs(s.velocityY) > CONT_COAST_STOP_VEL then
+            s.phase = "coasting"
+        else
+            s.phase     = "idle"
+            s.velocityY = 0
         end
-        cont.scroll.touchStartedInside = false
     end
+    s.touchStartedInside = false
 end
 
--- Mark which container a new touch/click started inside (called from pressed handlers).
+-- Mark page-level scroll as started when the touch lands in the body area on
+-- empty space (not on any widget inside a body container).
 function gdsGui_container_markTouchStart(x, y)
     local activePage = gdsGui_page_currentName()
+    local state      = globApp.objects.pageScrollStates[activePage]
+    if not state then return end
+
+    local ba = state.bodyArea
+    if not (x >= ba.x and x <= ba.x + ba.width and
+            y >= ba.y and y <= ba.y + ba.height) then
+        return
+    end
+
+    -- Suppress page scroll when the touch is directly on a widget.
     for _, cont in ipairs(globApp.objects.containers) do
-        if cont.page == activePage then
-            local sr = cont.scrollRect
-            if x >= sr.x and x <= sr.x + sr.width and
-               y >= sr.y and y <= sr.y + sr.height then
-                cont.scroll.touchStartedInside = true
-                cont.scroll.velocityY          = 0
+        if cont.page == activePage and cont.pageRole == "body" then
+            for _, entry in ipairs(cont.objects) do
+                if _isTouchOnWidget(entry.ref, x, y) then
+                    return
+                end
             end
         end
     end
+
+    state.scroll.touchStartedInside = true
+    state.scroll.velocityY          = 0
 end
 
 -- ---------------------------------------------------------------------------
---  RESIZE  (called from gdsGui_general_handleResize)
+--  PUBLIC API — resize
 -- ---------------------------------------------------------------------------
 
 function gdsGui_container_resize(pageName)
@@ -568,74 +713,27 @@ function gdsGui_container_resize(pageName)
 end
 
 -- ---------------------------------------------------------------------------
---  DRAW  (called from gdsGui_general_draw)
+--  PUBLIC API — draw
 -- ---------------------------------------------------------------------------
 
 function gdsGui_container_draw(pageName)
+    local state    = globApp.objects.pageScrollStates[pageName]
+    local bodyClip = state and state.bodyArea
+
+    -- Pass 1: body containers (clipped to body area so they can't bleed into
+    -- the fixed header/footer zones when partially scrolled off-screen).
     for _, cont in ipairs(globApp.objects.containers) do
-        if cont.page ~= pageName then goto next_cont end
-
-        local f  = cont.frame
-        local hr = cont.headerRect
-        local fr = cont.footerRect
-        local sr = cont.scrollRect
-
-        -- ── Container background ──────────────────────────────────────────
-        love.graphics.setColor(cont.bgColor[1], cont.bgColor[2], cont.bgColor[3], cont.bgColor[4] or 1)
-        love.graphics.rectangle("fill", f.x, f.y, f.width, f.height)
-
-        -- ── Border ───────────────────────────────────────────────────────
-        love.graphics.setColor(cont.borderColor[1], cont.borderColor[2], cont.borderColor[3], 1)
-        love.graphics.rectangle("line", f.x, f.y, f.width, f.height)
-
-        -- ── Header strip ─────────────────────────────────────────────────
-        if hr.height > 0 then
-            love.graphics.setColor(cont.headerColor[1], cont.headerColor[2], cont.headerColor[3], 1)
-            love.graphics.rectangle("fill", hr.x, hr.y, hr.width, hr.height)
-            -- Title text
-            if cont.title and cont.title ~= "" then
-                love.graphics.setColor(1, 1, 1, 1)
-                love.graphics.printf(cont.title, hr.x + PADDING, hr.y + PADDING,
-                                     hr.width - 2 * PADDING, "left")
-            end
-            -- Header-role objects
-            for _, entry in ipairs(cont.objects) do
-                if entry.role == "header" then
-                    _drawWidget(entry.ref)
-                end
-            end
+        if cont.page == pageName and cont.pageRole == "body" then
+            _drawContainer(cont, bodyClip)
         end
-
-        -- ── Scrollable area (scissored) ───────────────────────────────────
-        love.graphics.setScissor(sr.x, sr.y, sr.width, sr.height)
-        for _, entry in ipairs(cont.objects) do
-            if entry.role == "scroll" then
-                _drawWidget(entry.ref)
-            end
-        end
-        love.graphics.setScissor()
-
-        -- ── Fade masks at scroll area top/bottom edges ────────────────────
-        -- Top mask: covers transition from header into scroll area
-        love.graphics.setColor(cont.headerColor[1], cont.headerColor[2], cont.headerColor[3], 0.6)
-        love.graphics.rectangle("fill", sr.x, sr.y, sr.width, 4)
-        -- Bottom mask: covers transition from scroll area into footer
-        love.graphics.setColor(cont.footerColor[1], cont.footerColor[2], cont.footerColor[3], 0.6)
-        love.graphics.rectangle("fill", sr.x, sr.y + sr.height - 4, sr.width, 4)
-
-        -- ── Footer strip ─────────────────────────────────────────────────
-        if fr.height > 0 then
-            love.graphics.setColor(cont.footerColor[1], cont.footerColor[2], cont.footerColor[3], 1)
-            love.graphics.rectangle("fill", fr.x, fr.y, fr.width, fr.height)
-            for _, entry in ipairs(cont.objects) do
-                if entry.role == "footer" then
-                    _drawWidget(entry.ref)
-                end
-            end
-        end
-
-        love.graphics.reset()
-
-        ::next_cont::
     end
+
+    -- Pass 2: fixed pageHeader / pageFooter containers (no clip).
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == pageName and cont.pageRole ~= "body" then
+            _drawContainer(cont, nil)
+        end
+    end
+
+    love.graphics.reset()
 end
