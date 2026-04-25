@@ -4,7 +4,7 @@ textBoxes = {}
 
 CurrentPageTxtBoxValues = {}
 
-function gdsGui_inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText)
+function gdsGui_inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, theme_NOTfocus,theme_deactivated,strgtxtBoxCursor,isRequired, myx, myy, anchorPoint, myWidth, myHeight, strgCallbackFunc, tabNum, fontSize, customText, containerName)
 
 	--[[INPUT:
 		txtBxId -------------------string-------name of button
@@ -190,6 +190,9 @@ function gdsGui_inputTxtBox_create (txtBxId, page, tblTextSpecs, theme_focus, th
 	table.insert(textBoxes,nitb)
 
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+	if containerName then
+		gdsGui_container_addObject(containerName, "inputTxtBox", txtBxId)
+	end
 
 end
 

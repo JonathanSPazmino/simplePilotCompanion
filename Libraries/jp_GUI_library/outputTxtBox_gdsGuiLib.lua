@@ -52,7 +52,7 @@ end
 --  CREATION
 -- ---------------------------------------------------------------------------
 
-function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, width, height, txtColor, text, fontSize)
+function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, width, height, txtColor, text, fontSize, containerName)
 
 	local tb = {}
 
@@ -132,6 +132,9 @@ function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, widt
 
 		table.insert(globApp.objects.outputTextBox, tb)
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+		if containerName then
+			gdsGui_container_addObject(containerName, "outputTextBox", id)
+		end
 
 end
 
@@ -146,19 +149,26 @@ local function _recalculate_textBox(updtLbl)
 
 		updtLbl.rltvWidth  = updtLbl.frame.width
 		updtLbl.rltvHeight = updtLbl.frame.height
-		local myPositions = gdsGui_general_relativePosition(updtLbl.anchorPoint, updtLbl.x, updtLbl.y,
-		                                     updtLbl.rltvWidth, updtLbl.rltvHeight,
-		                                     globApp.safeScreenArea.x, globApp.safeScreenArea.y,
-		                                     globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
-		updtLbl.frame.x = math.floor(myPositions[1])
-		updtLbl.frame.y = math.floor(myPositions[2])
+		-- Container-owned textboxes: the container system owns frame.x/y.
+		-- Recalculating from relative coords would snap the box back to its
+		-- original pre-scroll position on every text change.
+		if not updtLbl.ownerContainer then
+			local myPositions = gdsGui_general_relativePosition(updtLbl.anchorPoint, updtLbl.x, updtLbl.y,
+			                                     updtLbl.rltvWidth, updtLbl.rltvHeight,
+			                                     globApp.safeScreenArea.x, globApp.safeScreenArea.y,
+			                                     globApp.safeScreenArea.w, globApp.safeScreenArea.h)
+			updtLbl.frame.x = math.floor(myPositions[1])
+			updtLbl.frame.y = math.floor(myPositions[2])
+			if updtLbl.bgSprite.sprite ~= nil then
+				updtLbl.bgSprite.x = updtLbl.frame.x
+				updtLbl.bgSprite.y = updtLbl.frame.y
+			end
+		end
 
 		if updtLbl.bgSprite.sprite ~= nil then
 			updtLbl.bgSprite.width  = updtLbl.frame.width  / updtLbl.bgSprite.sprite:getWidth()
 			updtLbl.bgSprite.height = updtLbl.frame.height / updtLbl.bgSprite.sprite:getHeight()
-			updtLbl.bgSprite.x = updtLbl.frame.x
-			updtLbl.bgSprite.y = updtLbl.frame.y
 		end
 
 		updtLbl.text.width             = updtLbl.frame.width * 0.8

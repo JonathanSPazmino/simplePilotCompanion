@@ -118,7 +118,7 @@ end
 ------------------------------------------------------------
 			--OBJECT CREATION
 ------------------------------------------------------------
-function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles, hapticEnabled)
+function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles, hapticEnabled, containerName)
 
 	local t = {}
 
@@ -372,6 +372,9 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 
 	table.insert(globApp.objects.tables, t)
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+	if containerName then
+		gdsGui_container_addObject(containerName, "table", spreadSheetName)
+	end
 
 	-- Create the scrollbar objects
 	gdsGui_scrollBar_create (t.verticalScrollBar.name, t.page, t.verticalScrollBar.x, t.verticalScrollBar.y, t.verticalScrollBar.width, t.verticalScrollBar.height, "LT", t.numRowsPerDisplay, t.rowsCount, t.dataCurrentVertPosition, "table-linked", "vertical", 30, "spreadSheetScrollbarVertCallback")

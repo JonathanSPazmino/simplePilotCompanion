@@ -5,7 +5,7 @@ local librarySpritesPath = "Libraries/jp_GUI_library/librarySprites/"
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
 
-function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback, assets, hapticEnabled)
+function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint, visibleValues, totalValues, dataRelativePosition, sbType, sbOrientation, scrollSpeed, callback, assets, hapticEnabled, containerName)
 
 	local t = {}
 		t.assets = assets or {}
@@ -256,7 +256,10 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 
 	table.insert(globApp.objects.scrollBars, t)
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
-	
+	if containerName then
+		gdsGui_container_addObject(containerName, "scrollBar", id)
+	end
+
 end
 
 

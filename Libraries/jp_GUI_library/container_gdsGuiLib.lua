@@ -3,16 +3,18 @@
 --
 -- DEVELOPER USAGE (in main.lua):
 --
---   -- Optional fixed zones at top/bottom of page (headerHeight = total zone height):
---   gdsGui_container_create("navBar",  "MainMenu", "PILOT COMPANION", 50, 0, "pageHeader")
---   gdsGui_container_create("footBar", "MainMenu", "",                40, 0, "pageFooter")
+--   -- 1) Create containers FIRST (before any widgets that belong to them):
+--   gdsGui_container_create("navBar",    "MainMenu", "PILOT COMPANION", 50, 0, "pageHeader")
+--   gdsGui_container_create("footBar",   "MainMenu", "",                40, 0, "pageFooter")
+--   gdsGui_container_create("myPanel",   "MainMenu", "MY PANEL",        32, 0)
 --
---   -- Body panels (default pageRole "body") auto-size and scroll together:
---   gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
---   gdsGui_container_addObject("timerPanel", "button",        "myBtn")
---   gdsGui_container_addObject("timerPanel", "outputTextBox", "myLabel")
---   gdsGui_container_addObject("timerPanel", "button",        "footerBtn", "footer")
---   gdsGui_container_finalise("MainMenu")   -- call once after all containers on a page are declared
+--   -- 2) Pass the container name as the last arg when creating widgets:
+--   gdsGui_button_create("myBtn",   "MainMenu", ..., true, "myPanel")
+--   gdsGui_outputTxtBox_create("myLabel", "MainMenu", ..., 12, "myPanel")
+--   -- gdsGui_container_addObject is called automatically; no manual calls needed.
+--
+--   -- 3) Finalise once after all containers on a page are declared:
+--   gdsGui_container_finalise("MainMenu")
 --
 -- addObject role: "scroll" (default) | "header" | "footer"
 -- Container pageRole: nil/"body" | "pageHeader" | "pageFooter"
@@ -122,7 +124,8 @@ local function _setObjY(obj, newY)
         obj.frame.y    = math.floor(newY)
         obj.bgSprite.y = obj.frame.y
         for _, line in ipairs(obj.text.lines) do
-            line.y         = line.y + dy
+            line.naturalY  = line.naturalY + dy
+            line.y         = line.naturalY + obj.scroll.offsetY
             line.isVisible = (line.y + line.height > obj.frame.y) and
                              (line.y < obj.frame.y + obj.frame.height)
         end
@@ -544,6 +547,14 @@ function gdsGui_container_addObject(containerName, objectType, objectName, role)
         end
     elseif objectType == "rotaryKnob" then
         for _, o in ipairs(globApp.objects.rotaryKnobs) do
+            if o.id == objectName then obj = o; break end
+        end
+    elseif objectType == "table" then
+        for _, o in ipairs(globApp.objects.tables) do
+            if o.name == objectName then obj = o; break end
+        end
+    elseif objectType == "inputTxtBox" then
+        for _, o in ipairs(textBoxes) do
             if o.id == objectName then obj = o; break end
         end
     else

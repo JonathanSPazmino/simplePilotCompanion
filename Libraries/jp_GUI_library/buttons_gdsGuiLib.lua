@@ -54,7 +54,7 @@ end
 --[[
     Creates a new button and adds it to the global button list.
 ]]
-function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState, hapticEnabled)
+function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, imgDeactivated, x, y, anchorPoint, width, height, callbackFunc, initialState, hapticEnabled, containerName)
     local newButton = {}
 
     newButton.name = label
@@ -131,6 +131,9 @@ function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, 
 
     table.insert(globApp.objects.buttons, newButton)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+    if containerName then
+        gdsGui_container_addObject(containerName, "button", label)
+    end
 end
 
 --[[

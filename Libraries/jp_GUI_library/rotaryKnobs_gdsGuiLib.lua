@@ -151,7 +151,7 @@ end
     hapticEnabled   boolean  — haptic fires once on the initial tap
 ]]
 function gdsGui_rotaryKnob_create(id, page, x, y, anchorPoint, size, numDetents,
-        initialPosition, spriteReleased, spriteFocused, callbackFunc, hapticEnabled)
+        initialPosition, spriteReleased, spriteFocused, callbackFunc, hapticEnabled, containerName)
 
     local knob = {}
     knob.id            = id
@@ -181,6 +181,9 @@ function gdsGui_rotaryKnob_create(id, page, x, y, anchorPoint, size, numDetents,
 
     table.insert(globApp.objects.rotaryKnobs, knob)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+    if containerName then
+        gdsGui_container_addObject(containerName, "rotaryKnob", id)
+    end
 end
 
 
@@ -216,7 +219,7 @@ end
 function gdsGui_rotaryKnob_createDual(id, page, x, y, anchorPoint, size,
         outerNumDetents, outerInitialPos, outerSpriteReleased, outerSpriteFocused, outerCallbackFunc,
         innerNumDetents, innerInitialPos, innerSpriteReleased, innerSpriteFocused, innerCallbackFunc,
-        hapticEnabled)
+        hapticEnabled, containerName)
 
     local knob = {}
     knob.id            = id
@@ -254,6 +257,9 @@ function gdsGui_rotaryKnob_createDual(id, page, x, y, anchorPoint, size,
 
     table.insert(globApp.objects.rotaryKnobs, knob)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
+    if containerName then
+        gdsGui_container_addObject(containerName, "rotaryKnob", id)
+    end
 end
 
 

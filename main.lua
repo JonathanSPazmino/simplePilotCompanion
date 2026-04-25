@@ -84,6 +84,13 @@ function love.load()
     selectedWindGust      = 0
 
     ---------------------------------------------------------------------------
+    -- CONTAINERS (created first; widgets self-register during creation)
+    ---------------------------------------------------------------------------
+    gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER",   32, 0)
+    gdsGui_container_create("windPanel",  "MainMenu", "RUNWAY / WIND", 32, 0)
+    gdsGui_container_create("calcPanel",  "MainMenu", "CALCULATIONS",  32, 0)
+
+    ---------------------------------------------------------------------------
     -- BUTTONS
     ---------------------------------------------------------------------------
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
@@ -91,7 +98,7 @@ function love.load()
         "Sprites/resetButton_deactivated.png", .90, .15, "RT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
+        "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
 
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
@@ -99,7 +106,7 @@ function love.load()
         "Sprites/pausePlayButton_deactivated.png", .75, .15, "CT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
+        "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
 
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
@@ -107,7 +114,7 @@ function love.load()
         "Sprites/timerModeButton_deactivated.png", .6, .15, "LT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true
+        "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
 
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -115,7 +122,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .05, "LT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
+        "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
@@ -123,7 +130,7 @@ function love.load()
         "Sprites/invisibleBox.png", .5, .15, "LT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
+        "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -131,7 +138,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .05, "LT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
+        "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
@@ -139,7 +146,7 @@ function love.load()
         "Sprites/invisibleBox.png", .92, .15, "LT",
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "width"),
         gdsGui_general_smartScaling("inverse", 0.08, .08, .08, 0.08, 1, "height"),
-        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true
+        "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
 
@@ -148,7 +155,7 @@ function love.load()
         "Sprites/invisibleBox.png", 
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .1,
-        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true
+        "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 	
 	---------------------------------------------------------------------------
@@ -157,14 +164,14 @@ function love.load()
     gdsGui_outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
         .05, .05, "LT",
         globApp.safeScreenArea.w * .4, globApp.safeScreenArea.h * .1,
-        colorYellow, utcPrintString, 12
+        colorYellow, utcPrintString, 12, "timerPanel"
     )
 
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
         .90, .05, "RT",
         globApp.safeScreenArea.w * .3, globApp.safeScreenArea.h * .1,
-        colorYellow, text, 12
+        colorYellow, text, 12, "timerPanel"
     )
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
@@ -172,14 +179,14 @@ function love.load()
     gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
         .5, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
-        colorYellow, textAltSlctd, 12
+        colorYellow, textAltSlctd, 12, "calcPanel"
     )
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     
     gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
         .15, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
-        colorYellow, textTimeSlctd, 12
+        colorYellow, textTimeSlctd, 12, "calcPanel"
     )
 
     local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
@@ -187,7 +194,7 @@ function love.load()
     gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
         .82, .6, "CC",
         globApp.safeScreenArea.w * .20, globApp.safeScreenArea.h * .08,
-        colorYellow, textDegreeSlctd, 12
+        colorYellow, textDegreeSlctd, 12, "calcPanel"
     )
 
     local requiredFPM = 0
@@ -199,7 +206,7 @@ function love.load()
     gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
         .33, .8, "CC",
         globApp.safeScreenArea.w * .2, globApp.safeScreenArea.h * .1,
-        colorYellow, requiredFPMtext, 12
+        colorYellow, requiredFPMtext, 12, "calcPanel"
     )
 
     local requiredDistance = 0
@@ -211,7 +218,7 @@ function love.load()
     gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
         .66, .8, "CC",
         globApp.safeScreenArea.w * .2, globApp.safeScreenArea.h * .1,
-        colorYellow, requiredDistText, 12
+        colorYellow, requiredDistText, 12, "calcPanel"
     )
 
     ---------------------------------------------------------------------------
@@ -229,14 +236,14 @@ function love.load()
         "Sprites/knob_wind_released.png", "Sprites/knob_wind_pushed.png",
         "windKnobChanged",
         -- Inner knob: runway (36 detents, RWY 36/01/02…/35)
-        
-        true
+
+        true, "windPanel"
     )
 
     gdsGui_outputTxtBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
         .26, .435, "CT",
         globApp.safeScreenArea.w * .46, globApp.safeScreenArea.h * .12,
-        colorYellow, "WIND: 36000KT", 11
+        colorYellow, "WIND: 36000KT", 11, "windPanel"
     )
 
 
@@ -247,15 +254,15 @@ function love.load()
     --LEFT TO RIGHT
     gdsGui_scrollBar_create ("timeScale", "MainMenu",
         0.16, 0.65, 30, 185, "CT", 5, 26, 1,
-        "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+        "independent", "vertical", 26, "roundSelectedTime", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     gdsGui_scrollBar_create ("altScale", "MainMenu",
         0.50, 0.65, 30, 185, "CT", 5, 52, 1,
-        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+        "independent", "vertical", 52, "roundSelectedAltitude", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     gdsGui_scrollBar_create ("deg", "MainMenu",
         0.82, 0.65, 30, 185, "CT", 5, 33, 1,
-        "independent", "vertical", 33, "roundSelectedDegree", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"},true)
+        "independent", "vertical", 33, "roundSelectedDegree", {frame =  "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     local knobSize    = globApp.safeScreenArea.w * 0.45
     local windSBTopY  = 0.32 - (knobSize * 0.5) / globApp.safeScreenArea.h
@@ -263,18 +270,18 @@ function love.load()
     gdsGui_scrollBar_create ("windSpeed", "MainMenu",
         0.62, windSBTopY, 30, math.floor(knobSize), "CT", 5, 46, 1,
         "independent", "vertical", 46, "windSpeedChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true)
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
 
     gdsGui_scrollBar_create ("windGust", "MainMenu",
         windGustSBX, windSBTopY, 30, math.floor(knobSize), "CT", 5, 61, 1,
         "independent", "vertical", 61, "windGustChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true)
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
 
     local windLabelY = windSBTopY + math.floor(knobSize) / globApp.safeScreenArea.h + 0.025
     gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
         (0.62 + windGustSBX) / 2, windLabelY, "CT",
         90, globApp.safeScreenArea.h * 0.065,
-        colorYellow, "wind:\nspeed  gust", 12
+        colorYellow, "wind:\nspeed  gust", 12, "windPanel"
     )
 
 
@@ -282,39 +289,6 @@ function love.load()
     ---------------------------------------------------------------------------
     -- CONTAINERS
     ---------------------------------------------------------------------------
-
-    -- 1) UTC clock + timer controls
-    gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
-    gdsGui_container_addObject("timerPanel", "outputTextBox", "utcData")
-    gdsGui_container_addObject("timerPanel", "outputTextBox", "timerTopRight")
-    gdsGui_container_addObject("timerPanel", "button",        "modeSelectRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "pauseRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "resetRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "incrsMinRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "dcrsMinRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "incrsSecRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "dcrsSecRHTopTimer")
-    gdsGui_container_addObject("timerPanel", "button",        "acknowlegeAlarm")
-
-    -- 2) Runway knob + crosswind + wind speed/gust scrollbars
-    gdsGui_container_create("windPanel", "MainMenu", "RUNWAY / WIND", 32, 0)
-    gdsGui_container_addObject("windPanel", "rotaryKnob",    "runwayKnob")
-    gdsGui_container_addObject("windPanel", "outputTextBox", "crosswindData")
-    gdsGui_container_addObject("windPanel", "scrollBar",     "windSpeed")
-    gdsGui_container_addObject("windPanel", "scrollBar",     "windGust")
-    gdsGui_container_addObject("windPanel", "outputTextBox", "windSpeedGustLabel")
-
-    -- 3) Altitude / time / degree selectors and computed outputs
-    gdsGui_container_create("calcPanel", "MainMenu", "CALCULATIONS", 32, 0)
-    gdsGui_container_addObject("calcPanel", "scrollBar",     "timeScale")
-    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedTimeBox")
-    gdsGui_container_addObject("calcPanel", "scrollBar",     "altScale")
-    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedAltitudeBox")
-    gdsGui_container_addObject("calcPanel", "scrollBar",     "deg")
-    gdsGui_container_addObject("calcPanel", "outputTextBox", "selectedDegreeBox")
-    gdsGui_container_addObject("calcPanel", "outputTextBox", "requiredFPM")
-    gdsGui_container_addObject("calcPanel", "outputTextBox", "requiredDistance")
-
     gdsGui_container_finalise("MainMenu")
 
     gdsGui_saveLoad_loadFileContents("appSettings.lua")
