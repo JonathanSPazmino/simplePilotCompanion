@@ -116,19 +116,20 @@ end
 
 
 function gdsGui_general_handleResize()
-    -- This function will call the resize method for all active objects
-    -- For now, we iterate through each type separately.
+    -- Container-owned widgets use fraction-based sizing resolved by the container.
+    -- Their standalone resize() methods reference creation-time values that are
+    -- now fractions, not pixels, so skip them here; gdsGui_container_resize handles them.
     for _, obj in ipairs(globApp.objects.buttons) do
-        if obj.resize then obj:resize() end
+        if obj.resize and not obj.ownerContainer then obj:resize() end
     end
     for _, obj in ipairs(globApp.objects.tables) do
         if obj.resize then obj:resize() end
     end
     for _, obj in ipairs(globApp.objects.scrollBars) do
-        if obj.resize then obj:resize() end
+        if obj.resize and not obj.ownerContainer then obj:resize() end
     end
     for _, obj in ipairs(globApp.objects.rotaryKnobs) do
-        if obj.resize then obj:resize() end
+        if obj.resize and not obj.ownerContainer then obj:resize() end
     end
     gdsGui_container_resize(gdsGui_page_currentName())
 end
@@ -187,9 +188,8 @@ end
 function gdsGui_draw ()
 
 	gdsGui_page_loadingDraw ()
-	gdsGui_dev_drawAll()
 	gdsGui_general_draw ()
-	
+	gdsGui_dev_drawAll()
 
 end
 

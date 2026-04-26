@@ -132,6 +132,7 @@ function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, 
     table.insert(globApp.objects.buttons, newButton)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
     if containerName then
+        newButton.containerFrac = { x=x, y=y, w=width, h=height, anchorPoint=anchorPoint }
         gdsGui_container_addObject(containerName, "button", label)
     end
 end

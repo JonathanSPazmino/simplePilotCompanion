@@ -133,6 +133,7 @@ function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, widt
 		table.insert(globApp.objects.outputTextBox, tb)
 		globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 		if containerName then
+			tb.containerFrac = { x=x, y=y, w=width, h=height, anchorPoint=anchorPoint }
 			gdsGui_container_addObject(containerName, "outputTextBox", id)
 		end
 

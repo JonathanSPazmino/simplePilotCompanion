@@ -182,6 +182,7 @@ function gdsGui_rotaryKnob_create(id, page, x, y, anchorPoint, size, numDetents,
     table.insert(globApp.objects.rotaryKnobs, knob)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
     if containerName then
+        knob.containerFrac = { x=x, y=y, w=size, h=size, anchorPoint=anchorPoint }
         gdsGui_container_addObject(containerName, "rotaryKnob", id)
     end
 end
@@ -249,6 +250,8 @@ function gdsGui_rotaryKnob_createDual(id, page, x, y, anchorPoint, size,
         aspectRatio = 1.0
     }
 
+    knob.innerRatio = _KNOB_INNER_RATIO  -- stored so container can resize the inner knob
+
     _initPartState(knob,       outerNumDetents, outerInitialPos, outerCallbackFunc)
     _initPartState(knob.inner, innerNumDetents, innerInitialPos, innerCallbackFunc)
     _calculateGeometry(knob)
@@ -258,6 +261,7 @@ function gdsGui_rotaryKnob_createDual(id, page, x, y, anchorPoint, size,
     table.insert(globApp.objects.rotaryKnobs, knob)
     globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
     if containerName then
+        knob.containerFrac = { x=x, y=y, w=size, h=size, anchorPoint=anchorPoint }
         gdsGui_container_addObject(containerName, "rotaryKnob", id)
     end
 end

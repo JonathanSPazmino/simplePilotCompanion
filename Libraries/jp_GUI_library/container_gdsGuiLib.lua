@@ -45,23 +45,69 @@ local PADDING    = 8    -- px gap around/between objects inside a container
 local MIN_ITEM_W = 120  -- px: min item width before layout adds a second column
 
 -- ---------------------------------------------------------------------------
---  PRIVATE — object dimension accessors
+--  PRIVATE — resize a widget to explicit pixel dimensions
 -- ---------------------------------------------------------------------------
 
-local function _objWidth(obj)
-    if obj.objectType == "button"        then return obj.mywidth        end
-    if obj.objectType == "outputTextBox" then return obj.frame.width    end
-    if obj.objectType == "scrollBar"     then return obj.original.width end
-    if obj.objectType == "rotaryKnob"    then return obj.size           end
-    return MIN_ITEM_W
-end
+local function _setObjDimensions(obj, pixW, pixH)
+    if obj.objectType == "button" then
+        obj.mywidth  = pixW
+        obj.myheight = pixH
+        local baseImg = obj.images[globApp.BUTTON_STATES.RELEASED]
+                     or obj.images[globApp.BUTTON_STATES.PRESSED]
+        obj.factorWidth  = pixW / baseImg:getWidth()
+        obj.factorHeight = pixH / baseImg:getHeight()
 
-local function _objHeight(obj)
-    if obj.objectType == "button"        then return obj.myheight        end
-    if obj.objectType == "outputTextBox" then return obj.frame.height    end
-    if obj.objectType == "scrollBar"     then return obj.original.height end
-    if obj.objectType == "rotaryKnob"    then return obj.size            end
-    return 40
+    elseif obj.objectType == "outputTextBox" then
+        obj.frame.width  = pixW
+        obj.frame.height = pixH
+        if obj.bgSprite and obj.bgSprite.sprite then
+            obj.bgSprite.width  = pixW / obj.bgSprite.sprite:getWidth()
+            obj.bgSprite.height = pixH / obj.bgSprite.sprite:getHeight()
+        end
+        obj.text.width             = pixW * 0.8
+        obj.text.maxTextLineCount  = findMaxNumOfLinesNeeded(obj.text.font, obj.text.width, obj.text.text)
+        obj.text.height            = gdsGui_general_returnFontInfo(obj.text.font, "height")
+        obj.text.combinedTxtHeight = obj.text.height * obj.text.maxTextLineCount
+        obj.text.lastText          = nil  -- force line reflow on next update
+
+    elseif obj.objectType == "scrollBar" then
+        obj.original.width  = pixW
+        obj.original.height = pixH
+        obj.frame.width     = pixW
+        if obj.upButton then
+            local arrowSide = pixW
+            obj.upButton.width          = pixW;     obj.upButton.height          = arrowSide
+            obj.downButton.width        = pixW;     obj.downButton.height        = arrowSide
+            obj.upButton.factorWidth    = pixW / obj.imgButtonUpArrow_active:getWidth()
+            obj.upButton.factorHeight   = arrowSide / obj.imgButtonUpArrow_active:getHeight()
+            obj.downButton.factorWidth  = pixW / obj.imgButtonDownArrow_active:getWidth()
+            obj.downButton.factorHeight = arrowSide / obj.imgButtonDownArrow_active:getHeight()
+            obj.frame.height = pixH - 2 * arrowSide
+        else
+            obj.frame.height = pixH
+        end
+        if obj.orientation == "vertical" then
+            obj.bar.width = pixW;  obj.bar.height = pixW
+        else
+            obj.bar.width = pixH;  obj.bar.height = pixH
+        end
+
+    elseif obj.objectType == "rotaryKnob" then
+        local s        = pixW   -- knobs are square; width drives size
+        obj.size       = s
+        local iw, ih   = obj.imgReleased:getDimensions()
+        obj.scaleX     = s / iw
+        obj.scaleY     = s / ih
+        obj.imgOriginX = iw * 0.5
+        obj.imgOriginY = ih * 0.5
+        if obj.isDual then
+            local ratio        = obj.innerRatio or 0.8
+            obj.inner.size     = s * ratio
+            local iiw, iih     = obj.inner.imgReleased:getDimensions()
+            obj.inner.scaleX   = obj.inner.size / iiw
+            obj.inner.scaleY   = obj.inner.size / iih
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -83,6 +129,7 @@ local function _initObjForContainer(obj, natX, natY)
         obj.bgSprite.y = obj.frame.y
         obj.text.x     = obj.frame.x + (obj.frame.width - obj.text.width) / 2
         for _, line in ipairs(obj.text.lines) do
+            line.x         = obj.text.x
             line.naturalY  = line.naturalY + dy
             line.y         = line.naturalY
             line.isVisible = (line.y + line.height > obj.frame.y) and
@@ -190,73 +237,76 @@ end
 --  PRIVATE — layout widgets within a single container
 -- ---------------------------------------------------------------------------
 
+-- Lay out all objects registered to a container using each widget's containerFrac
+-- (x, y, w, h as fractions of the container's reference rect dimensions).
+-- cont.containerRefWidth / cont.containerRefHeight are set by _layoutPage before
+-- this function is called and remain stable across both layout passes so that
+-- widget pixel sizes do not change between passes.
 local function _layoutObjects(cont)
-    local sr     = cont.scrollRect
-    local availW = sr.width - 2 * PADDING
-    local cols   = math.max(1, math.floor(availW / MIN_ITEM_W))
-    local cellW  = math.floor(availW / cols)
+    local sr   = cont.scrollRect
+    local refW = cont.containerRefWidth  or math.max(1, sr.width)
+    local refH = cont.containerRefHeight or math.max(1, sr.height)
 
-    -- Grid-pack scroll-role objects into rows.
-    local rows       = {}
-    local currentRow = {}
-    local col        = 0
+    local maxContentH = 0
+    local minTopY     = math.huge  -- topmost scroll-role widget top, relative to sr.y
+
     for _, entry in ipairs(cont.objects) do
-        if entry.role == "scroll" then
-            table.insert(currentRow, entry)
-            col = col + 1
-            if col >= cols then
-                table.insert(rows, currentRow)
-                currentRow = {}
-                col        = 0
-            end
-        end
-    end
-    if #currentRow > 0 then table.insert(rows, currentRow) end
+        local obj = entry.ref
+        local cf  = obj.containerFrac
+        if not cf then goto continue end
 
-    local cursorY = PADDING
-    for _, row in ipairs(rows) do
-        local rowH = 0
-        for _, entry in ipairs(row) do
-            local h = _objHeight(entry.ref)
-            if h > rowH then rowH = h end
-        end
-        for c, entry in ipairs(row) do
-            local obj  = entry.ref
-            local w    = _objWidth(obj)
-            local h    = _objHeight(obj)
-            local natX = sr.x + PADDING + (c - 1) * cellW + math.floor((cellW - w) / 2)
-            local natY = sr.y + cursorY + math.floor((rowH - h) / 2)
-            entry.naturalX = natX
-            entry.naturalY = natY
-            _initObjForContainer(obj, natX, natY)
-        end
-        cursorY = cursorY + rowH + PADDING
-    end
-    cont.contentHeight = cursorY + PADDING
-
-    -- Header-role objects (laid out left-to-right in the header strip).
-    local hx = cont.headerRect.x + PADDING
-    for _, entry in ipairs(cont.objects) do
+        -- Choose the base rect for this role.
+        local baseX, baseY, baseW, baseH
         if entry.role == "header" then
-            local natY = cont.headerRect.y + math.floor((cont.headerRect.height - _objHeight(entry.ref)) / 2)
-            entry.naturalX = hx
-            entry.naturalY = natY
-            _initObjForContainer(entry.ref, hx, natY)
-            hx = hx + _objWidth(entry.ref) + PADDING
+            baseX, baseY = cont.headerRect.x, cont.headerRect.y
+            baseW = cont.headerRect.width
+            baseH = math.max(1, cont.headerRect.height)
+        elseif entry.role == "footer" then
+            baseX, baseY = cont.footerRect.x, cont.footerRect.y
+            baseW = cont.footerRect.width
+            baseH = math.max(1, cont.footerRect.height)
+        else  -- "scroll" (body)
+            baseX, baseY = sr.x, sr.y
+            baseW = refW
+            baseH = math.max(1, refH)
         end
+
+        -- Resolve pixel dimensions from fractions.
+        local pixW = math.max(1, math.floor(cf.w * baseW))
+        local pixH = math.max(1, math.floor(cf.h * baseH))
+
+        -- Rotary knobs are always square; width fraction drives the size.
+        if obj.objectType == "rotaryKnob" then pixH = pixW end
+
+        _setObjDimensions(obj, pixW, pixH)
+
+        -- Pixel size used for anchor-offset calculation.
+        local anchorW = pixW
+        local anchorH = (obj.objectType == "rotaryKnob") and obj.size or pixH
+
+        local pos = gdsGui_general_relativePosition(
+            cf.anchorPoint, cf.x, cf.y,
+            anchorW, anchorH,
+            baseX, baseY, baseW, baseH
+        )
+        entry.naturalX = pos[1]
+        entry.naturalY = pos[2]
+        _initObjForContainer(obj, pos[1], pos[2])
+
+        if entry.role == "scroll" then
+            local topY   = pos[2] - sr.y
+            local bottom = topY + anchorH
+            if topY < minTopY     then minTopY     = topY     end
+            if bottom > maxContentH then maxContentH = bottom end
+        end
+
+        ::continue::
     end
 
-    -- Footer-role objects (laid out left-to-right in the footer strip).
-    local fx = cont.footerRect.x + PADDING
-    for _, entry in ipairs(cont.objects) do
-        if entry.role == "footer" then
-            local natY = cont.footerRect.y + math.floor((cont.footerRect.height - _objHeight(entry.ref)) / 2)
-            entry.naturalX = fx
-            entry.naturalY = natY
-            _initObjForContainer(entry.ref, fx, natY)
-            fx = fx + _objWidth(entry.ref) + PADDING
-        end
-    end
+    -- Add a bottom buffer equal to the topmost widget's y offset so the spacing
+    -- below the last widget mirrors the spacing above the first widget.
+    local bottomBuffer = (minTopY < math.huge) and minTopY or 0
+    cont.contentHeight = math.max(0, maxContentH + bottomBuffer)
 end
 
 -- ---------------------------------------------------------------------------
@@ -285,6 +335,8 @@ local function _layoutPage(pageName)
         local h = cont.headerHeight
         cont.frame = { x=sa.x, y=sa.y + headerZoneH, width=sa.w, height=h }
         _computeSubrects(cont)
+        cont.containerRefWidth  = cont.scrollRect.width
+        cont.containerRefHeight = math.max(1, cont.scrollRect.height)
         _layoutObjects(cont)
         headerZoneH = headerZoneH + h
     end
@@ -299,6 +351,8 @@ local function _layoutPage(pageName)
         local h = cont.headerHeight
         cont.frame = { x=sa.x, y=footerCurY, width=sa.w, height=h }
         _computeSubrects(cont)
+        cont.containerRefWidth  = cont.scrollRect.width
+        cont.containerRefHeight = math.max(1, cont.scrollRect.height)
         _layoutObjects(cont)
         footerCurY = footerCurY + h
     end
@@ -315,10 +369,15 @@ local function _layoutPage(pageName)
         local cols = (orientation == "landscape") and math.min(#bodyConts, 3) or 1
         local colW = math.floor(bodyArea.width / cols)
 
-        -- First pass: measure each container's natural height.
+        -- First pass: measure each container's natural content height.
+        -- containerRefWidth/Height are fixed references for fraction resolution
+        -- and must not change between passes (avoids circular dependency where
+        -- widget pixel sizes depend on the content height they themselves produce).
         for i, cont in ipairs(bodyConts) do
             local col = (i - 1) % cols
-            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=0 }
+            cont.containerRefWidth  = colW
+            cont.containerRefHeight = math.max(1, bodyArea.height - cont.headerHeight - cont.footerHeight)
+            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=bodyArea.height }
             _computeSubrects(cont)
             _layoutObjects(cont)
             cont.frame.height = cont.headerHeight + cont.contentHeight + cont.footerHeight

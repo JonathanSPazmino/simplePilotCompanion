@@ -257,6 +257,7 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 	table.insert(globApp.objects.scrollBars, t)
 	globApp.numObjectsDisplayed = globApp.numObjectsDisplayed + 1
 	if containerName then
+		t.containerFrac = { x=x, y=y, w=width, h=height, anchorPoint=anchorPoint }
 		gdsGui_container_addObject(containerName, "scrollBar", id)
 	end
 
