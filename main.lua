@@ -171,21 +171,21 @@ function love.load()
 
     local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
     gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.50, 0.04, "CC",
+        0.50, .08, "CC",
         0.20, 0.08,
         colorYellow, textAltSlctd, 12, "calcPanel"
     )
 
     local textTimeSlctd = "time:\n" .. selectedTime .. " min"
     gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.15, 0.04, "CC",
+        0.15, .08, "CC",
         0.20, 0.08,
         colorYellow, textTimeSlctd, 12, "calcPanel"
     )
 
     local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
     gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.82, 0.04, "CC",
+        0.82, .08, "CC",
         0.20, 0.08,
         colorYellow, textDegreeSlctd, 12, "calcPanel"
     )
@@ -196,7 +196,7 @@ function love.load()
     end
     local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
     gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        0.33, 0.2, "CC",
+        0.33, 0.25, "CC",
         0.20, 0.10,
         colorYellow, requiredFPMtext, 12, "calcPanel"
     )
@@ -207,7 +207,7 @@ function love.load()
     end
     local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
     gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
-        0.66, 0.2, "CC",
+        0.66, 0.25, "CC",
         0.20, 0.10,
         colorYellow, requiredDistText, 12, "calcPanel"
     )
@@ -244,17 +244,17 @@ function love.load()
     -- where knobH = 0.47*refW/refH ≈ 0.257 → top ≈ 0.30 - 0.129 = 0.171.
     ----------------------------------------------------------------------------
     gdsGui_scrollBar_create("timeScale", "MainMenu",
-        0.16, 0.08, 0.094, 0.316, "CT", 5, 26, 1,
+        0.16, .12, 0.094, 0.316, "CT", 5, 26, 1,
         "independent", "vertical", 26, "roundSelectedTime",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     gdsGui_scrollBar_create("altScale", "MainMenu",
-        0.50, 0.08, 0.094, 0.316, "CT", 5, 52, 1,
+        0.50, .12, 0.094, 0.316, "CT", 5, 52, 1,
         "independent", "vertical", 52, "roundSelectedAltitude",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     gdsGui_scrollBar_create("deg", "MainMenu",
-        0.82, 0.08, 0.094, 0.316, "CT", 5, 33, 1,
+        0.82, .12, 0.094, 0.316, "CT", 5, 33, 1,
         "independent", "vertical", 33, "roundSelectedDegree",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 

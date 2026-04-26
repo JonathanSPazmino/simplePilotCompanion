@@ -303,9 +303,9 @@ local function _layoutObjects(cont)
         ::continue::
     end
 
-    -- Add a bottom buffer equal to the topmost widget's y offset so the spacing
-    -- below the last widget mirrors the spacing above the first widget.
-    local bottomBuffer = (minTopY < math.huge) and minTopY or 0
+    -- Bottom buffer mirrors the top gap, with PADDING as a minimum so containers
+    -- whose topmost widget starts at y=0 (e.g. CC-anchored) still get spacing.
+    local bottomBuffer = (minTopY < math.huge) and math.max(PADDING, minTopY) or PADDING
     cont.contentHeight = math.max(0, maxContentH + bottomBuffer)
 end
 
