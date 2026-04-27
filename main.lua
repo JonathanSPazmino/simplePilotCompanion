@@ -12,6 +12,10 @@ require("Libraries.jp_GUI_library.loader_gdsGuiLib")
 
 APP_VERSION = "1.0.0"
 
+-- Original orientation the app was designed for; used by the GUI library to
+-- establish the reference container width at first finalize (portrait = 1 col).
+globApp.appOriginalOrientation = "portrait"
+
 -- Create base pages
 globApp.appColor = {.2, .2, .2, 1} --initializes bg color
 gdsGui_page_create(3, "MainMenu",           false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
@@ -143,49 +147,49 @@ function love.load()
     -- Buttons (26×26 px square; acknowlegeAlarm wider at 96×59)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", 288, 88, "RT",
+        "Sprites/resetButton_deactivated.png", 283, 95, "RT",
         26, 26,
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", 240, 88, "CT",
+        "Sprites/pausePlayButton_deactivated.png", 230, 95, "CT",
         26, 26,
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", 192, 88, "LT",
+        "Sprites/timerModeButton_deactivated.png", 177, 95, "LT",
         26, 26,
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 160, 29, "LT",
+        "Sprites/invisibleBox.png", 145, 29, "LT",
         26, 26,
         "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 160, 88, "LT",
+        "Sprites/invisibleBox.png", 145, 95, "LT",
         26, 26,
         "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 294, 29, "LT",
+        "Sprites/invisibleBox.png", 289, 29, "LT",
         26, 26,
         "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 294, 88, "LT",
+        "Sprites/invisibleBox.png", 289, 95, "LT",
         26, 26,
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
         "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 288, 29, "RT",
+        "Sprites/invisibleBox.png", 278, 29, "RT",
         96, 59,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
@@ -198,7 +202,7 @@ function love.load()
     )
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
-        288, 29, "RT",
+        278, 29, "RT",
         96, 59,
         colorYellow, text, 12, "timerPanel"
     )

@@ -367,12 +367,90 @@ local function _layoutObjects(cont)
 end
 
 -- ---------------------------------------------------------------------------
+--  PRIVATE — reposition widgets when a container's scroll-rect dimensions change
+-- ---------------------------------------------------------------------------
+-- Repositions widgets when a container's scroll-rect dimensions change.
+-- Widget sizes (DIP) are never altered; only positions shift so that each
+-- widget maintains its relationship to the container edge it was anchored to:
+--   L → fixed left offset      C → tracks the midpoint      R → fixed right offset
+--   T → fixed top  offset      C → tracks the midpoint      B → fixed bottom offset
+-- Y shifts are suppressed for header/footer-role objects (fixed-height title strip).
+local function _layoutObjectsScaled(cont)
+    local origW = cont.originalScrollWidth
+    local origH = cont.originalScrollHeight
+    local sr    = cont.scrollRect          -- already updated by _computeSubrects
+    local dW    = sr.width  - origW        -- how much wider/narrower the scroll area is
+    local dH    = sr.height - origH        -- how much taller/shorter
+
+    local maxContentH = 0
+    local minTopY     = math.huge
+
+    for _, entry in ipairs(cont.objects) do
+        local obj = entry.ref
+        local cf0 = entry.origCF or obj.containerFrac
+        if not cf0 then goto continue end
+
+        local baseX, baseY
+        if     entry.role == "header" then baseX, baseY = cont.headerRect.x, cont.headerRect.y
+        elseif entry.role == "footer" then baseX, baseY = cont.footerRect.x, cont.footerRect.y
+        else                               baseX, baseY = sr.x, sr.y
+        end
+
+        -- Sizes are density-independent and never rescaled.
+        local pixW = math.max(1, cf0.w)
+        local pixH = math.max(1, cf0.h)
+        if obj.objectType == "rotaryKnob" then pixH = pixW end
+
+        _setObjDimensions(obj, pixW, pixH)
+
+        local anchorW = pixW
+        local anchorH = (obj.objectType == "rotaryKnob") and obj.size or pixH
+
+        -- Horizontal: shift position so the anchored edge stays at the same
+        -- distance from the container edge it was originally anchored to.
+        local ax  = cf0.anchorPoint:sub(1, 1)   -- L / C / R
+        local effX = cf0.x
+        if     ax == "C" then effX = cf0.x + dW * 0.5
+        elseif ax == "R" then effX = cf0.x + dW
+        end
+
+        -- Vertical: same logic, but Y shift is suppressed outside the scroll area.
+        local ay   = cf0.anchorPoint:sub(2, 2)  -- T / C / B
+        local effY = cf0.y
+        if entry.role == "scroll" then
+            if     ay == "C" then effY = cf0.y + dH * 0.5
+            elseif ay == "B" then effY = cf0.y + dH
+            end
+        end
+
+        local pos = _anchorPos(cf0.anchorPoint,
+                               math.floor(effX), math.floor(effY),
+                               anchorW, anchorH, baseX, baseY)
+
+        entry.naturalX = pos[1]
+        entry.naturalY = pos[2]
+        _initObjForContainer(obj, pos[1], pos[2])
+
+        if entry.role == "scroll" then
+            local topY   = pos[2] - sr.y
+            local bottom = topY + anchorH
+            if topY   < minTopY     then minTopY     = topY   end
+            if bottom > maxContentH then maxContentH = bottom  end
+        end
+
+        ::continue::
+    end
+
+    local bottomBuffer = (minTopY < math.huge) and math.max(PADDING, minTopY) or PADDING
+    cont.contentHeight = math.max(0, maxContentH + bottomBuffer)
+end
+
+-- ---------------------------------------------------------------------------
 --  PRIVATE — page-level layout
 -- ---------------------------------------------------------------------------
 
 local function _layoutPage(pageName)
-    local sa          = globApp.safeScreenArea
-    local orientation = globApp.displayOrientation
+    local sa = globApp.safeScreenArea
 
     -- Bucket containers by role.
     local headerConts, footerConts, bodyConts = {}, {}, {}
@@ -421,36 +499,96 @@ local function _layoutPage(pageName)
     }
 
     if #bodyConts > 0 then
-        local cols = (orientation == "landscape") and math.min(#bodyConts, 3) or 1
-        local colW = math.floor(bodyArea.width / cols)
+        -- First-layout detection: originalScrollWidth is nil until first finalize.
+        -- At first finalize we always use single-column (portrait reference) to
+        -- establish per-container original dimensions and per-object origCF.
+        local isFirstLayout = not bodyConts[1].originalScrollWidth
 
-        -- First pass: measure each container's natural content height.
-        for i, cont in ipairs(bodyConts) do
-            local col = (i - 1) % cols
-            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=0 }
-            _computeSubrects(cont)
-            _layoutObjects(cont)
-            cont.frame.height = cont.headerHeight + cont.contentHeight + cont.footerHeight
-        end
+        -- Original container width = portrait single-column body width.
+        -- On subsequent layouts this drives the column count decision.
+        local origContW = isFirstLayout and bodyArea.width
+                                        or  bodyConts[1].originalScrollWidth
 
-        -- Second pass: assign final Y positions, re-layout with correct subrects.
-        local colCurY = {}
-        for c = 1, cols do colCurY[c] = bodyArea.y end
+        -- Number of columns: how many original-width containers fit side by side.
+        local numCols = math.max(1, math.min(#bodyConts,
+                                 math.floor(bodyArea.width / origContW)))
 
-        for i, cont in ipairs(bodyConts) do
-            local col = (i - 1) % cols + 1
-            cont.frame.y = colCurY[col]
-            _computeSubrects(cont)
-            _layoutObjects(cont)
-            cont.frameNaturalY = cont.frame.y  -- Y at pageScrollOffset == 0
-            colCurY[col] = colCurY[col] + cont.frame.height
-        end
-
-        -- Total body content height = tallest column.
         local contentH = 0
-        for c = 1, cols do
-            local colH = colCurY[c] - bodyArea.y
-            if colH > contentH then contentH = colH end
+        local curY     = bodyArea.y
+
+        if isFirstLayout then
+            -- ── First layout: single column, capture reference dimensions ──────
+            for _, cont in ipairs(bodyConts) do
+                cont.frame = { x=bodyArea.x, y=curY, width=bodyArea.width, height=0 }
+                _computeSubrects(cont)
+                _layoutObjects(cont)
+                cont.frame.height = cont.headerHeight + cont.contentHeight + cont.footerHeight
+
+                -- Store per-container originals (portrait, single-column reference).
+                cont.originalScrollWidth  = cont.scrollRect.width
+                cont.originalScrollHeight = cont.contentHeight
+
+                -- Store per-object origCF so resize can scale positions proportionally.
+                for _, entry in ipairs(cont.objects) do
+                    local cf = entry.ref.containerFrac
+                    if cf then
+                        entry.origCF = { x=cf.x, y=cf.y, w=cf.w, h=cf.h,
+                                         anchorPoint=cf.anchorPoint }
+                    end
+                end
+
+                cont.frameNaturalY = curY
+                curY = curY + cont.frame.height
+            end
+            contentH = curY - bodyArea.y
+
+        else
+            -- ── Resize layout: row-based, proportional X/Y scaling ───────────
+
+            -- Build rows of numCols containers each.
+            local rows = {}
+            local idx  = 1
+            while idx <= #bodyConts do
+                local row = {}
+                for _ = 1, numCols do
+                    if bodyConts[idx] then
+                        table.insert(row, bodyConts[idx])
+                        idx = idx + 1
+                    end
+                end
+                table.insert(rows, row)
+            end
+
+            for _, row in ipairs(rows) do
+                local numInRow = #row
+                local baseW    = math.floor(bodyArea.width / numInRow)
+
+                -- Row frame height = tallest container in the row
+                -- (each cont's natural frame height = header + origScrollH + footer).
+                local rowFrameH = 0
+                for _, cont in ipairs(row) do
+                    local fh = cont.headerHeight + cont.originalScrollHeight + cont.footerHeight
+                    if fh > rowFrameH then rowFrameH = fh end
+                end
+
+                for ci, cont in ipairs(row) do
+                    -- Last container fills any remaining pixel-rounding remainder.
+                    local x = bodyArea.x + (ci - 1) * baseW
+                    local w = (ci == numInRow)
+                              and (bodyArea.x + bodyArea.width - x) or baseW
+
+                    cont.frame = { x=x, y=curY, width=w, height=rowFrameH }
+                    _computeSubrects(cont)
+                    -- _computeSubrects sets scrollRect to reflect the new dimensions,
+                    -- so _layoutObjectsScaled can read dW/dH directly from cont.
+                    _layoutObjectsScaled(cont)
+                    cont.frameNaturalY = curY
+                end
+
+                curY    = curY    + rowFrameH
+            end
+
+            contentH = curY - bodyArea.y
         end
 
         -- Initialise or update the page scroll state for this page.
