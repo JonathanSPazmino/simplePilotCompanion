@@ -84,142 +84,148 @@ function love.load()
     selectedWindGust      = 0
 
     ---------------------------------------------------------------------------
-    -- CONTAINERS (created first; widgets self-register during creation)
+    -- PAGE HEADER  (fixed, ~20 % of screen height)
     ---------------------------------------------------------------------------
-    gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER",   32, 0)
-    gdsGui_container_create("windPanel",  "MainMenu", "RUNWAY / WIND", 32, 0)
-    gdsGui_container_create("calcPanel",  "MainMenu", "CALCULATIONS",  32, 0)
+    local pageHdrH = math.floor(globApp.safeScreenArea.h * 0.10)
+    gdsGui_pageHeader_create("pageHeader", "MainMenu", pageHdrH, {0.15, 0.15, 0.20, 1})
+
+    -- Page title textbox — horizontally centred in the header strip.
+    local hdrCX = math.floor(globApp.safeScreenArea.w * 0.5)
+    local hdrCY = math.floor(pageHdrH * 0.5)
+    gdsGui_outputTxtBox_create("pageTitle", "MainMenu", "Sprites/invisibleBox.png",
+        hdrCX, hdrCY, "CC",
+        math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
+        {1, 1, 1, 1}, "PILOT COMPANION", 16, "pageHeader"
+    )
 
     ---------------------------------------------------------------------------
-    -- BUTTONS
-    -- w/h are fractions of containerRefWidth / containerRefHeight.
-    -- For square sprites keep pixW == pixH: h = w * (refW / refH) ≈ w * (320/585).
-    -- Small control buttons target ~8% of container width → w=0.08, h=0.044.
+    -- PAGE FOOTER  (fixed, ~20 % of screen height)
+    -- Five navigation buttons; the last one is off-screen to demo h-scroll.
     ---------------------------------------------------------------------------
+    local pageFootH = pageHdrH
+    gdsGui_pageFooter_create("pageFooter", "MainMenu", pageFootH, {0.15, 0.15, 0.20, 1})
+
+    local footBtnW  = math.floor(globApp.safeScreenArea.w * 0.22)  -- ~70 px on 320
+    local footBtnH  = math.floor(pageFootH * 0.60)
+    local footBtnY  = math.floor(pageFootH * 0.50)
+    local footBtnX1 = math.floor(globApp.safeScreenArea.w * 0.15)
+    local footBtnX2 = math.floor(globApp.safeScreenArea.w * 0.38)
+    local footBtnX3 = math.floor(globApp.safeScreenArea.w * 0.62)
+    local footBtnX4 = math.floor(globApp.safeScreenArea.w * 0.85)
+    -- Extra button that requires horizontal scrolling to reach.
+    local footBtnX5 = math.floor(globApp.safeScreenArea.w * 1.08)
+
+    gdsGui_button_create("footNavTimer", "MainMenu", "pushonoff",
+        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+        "Sprites/SettingsButton_deactivated.png",
+        footBtnX1, footBtnY, "CC", footBtnW, footBtnH,
+        "navScrollToTimer", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
+    )
+    gdsGui_button_create("footNavWind", "MainMenu", "pushonoff",
+        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+        "Sprites/SettingsButton_deactivated.png",
+        footBtnX2, footBtnY, "CC", footBtnW, footBtnH,
+        "navScrollToWind", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
+    )
+    gdsGui_button_create("footNavCalc", "MainMenu", "pushonoff",
+        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+        "Sprites/SettingsButton_deactivated.png",
+        footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
+        "navScrollToCalc", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
+    )
+    gdsGui_button_create("footNavSettings", "MainMenu", "pushonoff",
+        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+        "Sprites/SettingsButton_deactivated.png",
+        footBtnX4, footBtnY, "CC", footBtnW, footBtnH,
+        "navScrollToTop", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
+    )
+    gdsGui_button_create("footNavExtra", "MainMenu", "pushonoff",
+        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+        "Sprites/SettingsButton_deactivated.png",
+        footBtnX5, footBtnY, "CC", footBtnW, footBtnH,
+        "navScrollToTop", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
+    )
+
+    ---------------------------------------------------------------------------
+    -- TIMER PANEL
+    -- Pixel positions are relative to the container's scroll-rect origin.
+    -- Design canvas: 320 px wide, 585 px tall (portrait, 32 px header stripped).
+    ---------------------------------------------------------------------------
+    gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
+
+    -- Buttons (26×26 px square; acknowlegeAlarm wider at 96×59)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", 0.90, 0.15, "RT",
-        0.08, 0.044,
+        "Sprites/resetButton_deactivated.png", 288, 88, "RT",
+        26, 26,
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
-
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", 0.75, 0.15, "CT",
-        0.08, 0.044,
+        "Sprites/pausePlayButton_deactivated.png", 240, 88, "CT",
+        26, 26,
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
-
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", 0.60, 0.15, "LT",
-        0.08, 0.044,
+        "Sprites/timerModeButton_deactivated.png", 192, 88, "LT",
+        26, 26,
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
-
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 0.50, 0.05, "LT",
-        0.08, 0.044,
+        "Sprites/invisibleBox.png", 160, 29, "LT",
+        26, 26,
         "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
-
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 0.50, 0.15, "LT",
-        0.08, 0.044,
+        "Sprites/invisibleBox.png", 160, 88, "LT",
+        26, 26,
         "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
-
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 0.92, 0.05, "LT",
-        0.08, 0.044,
+        "Sprites/invisibleBox.png", 294, 29, "LT",
+        26, 26,
         "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
-
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 0.92, 0.15, "LT",
-        0.08, 0.044,
+        "Sprites/invisibleBox.png", 294, 88, "LT",
+        26, 26,
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
-
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
         "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png",
-        0.90, 0.05, "RT",
-        0.30, 0.10,
+        "Sprites/invisibleBox.png", 288, 29, "RT",
+        96, 59,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
-    ---------------------------------------------------------------------------
-    -- TEXT BOXES
-    ---------------------------------------------------------------------------
+    -- Text boxes
     gdsGui_outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
-        0.05, 0.05, "LT",
-        0.40, 0.10,
+        16, 29, "LT",
+        128, 59,
         colorYellow, utcPrintString, 12, "timerPanel"
     )
-
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
-        0.90, 0.05, "RT",
-        0.30, 0.10,
+        288, 29, "RT",
+        96, 59,
         colorYellow, text, 12, "timerPanel"
     )
 
-    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
-    gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.50, .08, "CC",
-        0.20, 0.08,
-        colorYellow, textAltSlctd, 12, "calcPanel"
-    )
-
-    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
-    gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.15, .08, "CC",
-        0.20, 0.08,
-        colorYellow, textTimeSlctd, 12, "calcPanel"
-    )
-
-    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
-    gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
-        0.82, .08, "CC",
-        0.20, 0.08,
-        colorYellow, textDegreeSlctd, 12, "calcPanel"
-    )
-
-    local requiredFPM = 0
-    if selectedTime > 0 then
-        requiredFPM = math.ceil(selectedAltitude / selectedTime)
-    end
-    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
-    gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        0.33, 0.25, "CC",
-        0.20, 0.10,
-        colorYellow, requiredFPMtext, 12, "calcPanel"
-    )
-
-    local requiredDistance = 0
-    if selectedDegree > 0 and selectedAltitude > 0 then
-        requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
-    end
-    local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
-    gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
-        0.66, 0.25, "CC",
-        0.20, 0.10,
-        colorYellow, requiredDistText, 12, "calcPanel"
-    )
-
     ---------------------------------------------------------------------------
-    -- ROTARY KNOB
-    -- size is now a fraction of containerRefWidth (0.47 → 47% of panel width).
+    -- WIND PANEL
     ---------------------------------------------------------------------------
+    gdsGui_container_create("windPanel", "MainMenu", "RUNWAY / WIND", 32, 0)
+
+    -- Rotary knob (150×150 px square)
     gdsGui_rotaryKnob_createDual(
         "runwayKnob", "MainMenu",
-        0.05, 0.05, "LT",
-        0.47,
+        16, 29, "LT",
+        150,
         36, 0,
         "Sprites/knob_runway_released.png", "Sprites/runwayNumber_pushed.png",
         "mainKnobChanged",
@@ -229,55 +235,89 @@ function love.load()
         true, "windPanel"
     )
 
+    -- Text boxes
     gdsGui_outputTxtBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
-        0.26, 0.35, "CT",
-        0.46, 0.12,
+        83, 205, "CT",
+        147, 70,
         colorYellow, "WIND: 36000KT", 11, "windPanel"
     )
-
-    ----------------------------------------------------------------------------
-    -- SCROLLBARS
-    -- w/h are fractions of containerRefWidth / containerRefHeight.
-    -- calcPanel bars: w=0.094 (30/320), h=0.316 (185/585).
-    -- windPanel bars: w=0.094, h=0.246 (≈144px ÷ 585).
-    -- windSBTopY aligns bar top with knob top: knobCenterY(0.30) - knobH/2,
-    -- where knobH = 0.47*refW/refH ≈ 0.257 → top ≈ 0.30 - 0.129 = 0.171.
-    ----------------------------------------------------------------------------
-    gdsGui_scrollBar_create("timeScale", "MainMenu",
-        0.16, .12, 0.094, 0.316, "CT", 5, 26, 1,
-        "independent", "vertical", 26, "roundSelectedTime",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
-
-    gdsGui_scrollBar_create("altScale", "MainMenu",
-        0.50, .12, 0.094, 0.316, "CT", 5, 52, 1,
-        "independent", "vertical", 52, "roundSelectedAltitude",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
-
-    gdsGui_scrollBar_create("deg", "MainMenu",
-        0.82, .12, 0.094, 0.316, "CT", 5, 33, 1,
-        "independent", "vertical", 33, "roundSelectedDegree",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
-
-    gdsGui_scrollBar_create("windSpeed", "MainMenu",
-        0.7, 0.05, 0.094, .30, "CT", 5, 46, 1,
-        "independent", "vertical", 46, "windSpeedChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
-
-    gdsGui_scrollBar_create("windGust", "MainMenu",
-        0.86, 0.05, 0.094, .30, "CT", 5, 61, 1,
-        "independent", "vertical", 61, "windGustChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
-
     gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
-        0.78, 0.36, "CT",
-        0.281, 0.07,
+        250, 211, "CT",
+        90, 41,
         colorYellow, "wind:\nspeed  gust", 12, "windPanel"
     )
 
-
+    -- Scrollbars (30×176 px)
+    gdsGui_scrollBar_create("windSpeed", "MainMenu",
+        224, 29, 30, 176, "CT", 5, 46, 1,
+        "independent", "vertical", 46, "windSpeedChanged",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
+    gdsGui_scrollBar_create("windGust", "MainMenu",
+        275, 29, 30, 176, "CT", 5, 61, 1,
+        "independent", "vertical", 61, "windGustChanged",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
 
     ---------------------------------------------------------------------------
-    -- CONTAINERS
+    -- CALCULATIONS PANEL
+    ---------------------------------------------------------------------------
+    gdsGui_container_create("calcPanel", "MainMenu", "CALCULATIONS", 32, 0)
+
+    -- Text boxes
+    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
+        160, 47, "CC",
+        64, 47,
+        colorYellow, textAltSlctd, 12, "calcPanel"
+    )
+    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
+        48, 47, "CC",
+        64, 47,
+        colorYellow, textTimeSlctd, 12, "calcPanel"
+    )
+    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
+    gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
+        262, 47, "CC",
+        64, 47,
+        colorYellow, textDegreeSlctd, 12, "calcPanel"
+    )
+    local requiredFPM = 0
+    if selectedTime > 0 then
+        requiredFPM = math.ceil(selectedAltitude / selectedTime)
+    end
+    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
+    gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
+        106, 146, "CC",
+        64, 59,
+        colorYellow, requiredFPMtext, 12, "calcPanel"
+    )
+    local requiredDistance = 0
+    if selectedDegree > 0 and selectedAltitude > 0 then
+        requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
+    end
+    local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
+    gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
+        211, 146, "CC",
+        64, 59,
+        colorYellow, requiredDistText, 12, "calcPanel"
+    )
+
+    -- Scrollbars (30×185 px)
+    gdsGui_scrollBar_create("timeScale", "MainMenu",
+        51, 70, 30, 185, "CT", 5, 26, 1,
+        "independent", "vertical", 26, "roundSelectedTime",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+    gdsGui_scrollBar_create("altScale", "MainMenu",
+        160, 70, 30, 185, "CT", 5, 52, 1,
+        "independent", "vertical", 52, "roundSelectedAltitude",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+    gdsGui_scrollBar_create("deg", "MainMenu",
+        262, 70, 30, 185, "CT", 5, 33, 1,
+        "independent", "vertical", 33, "roundSelectedDegree",
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+
+    ---------------------------------------------------------------------------
+    -- FINALISE
     ---------------------------------------------------------------------------
     gdsGui_container_finalise("MainMenu")
 
@@ -675,6 +715,26 @@ function tcContinuePressed()
     appSettings.tcAcceptedVersion = APP_VERSION
     love.filesystem.write("appSettings.lua", table.show(appSettings, "appSettings"))
     gdsGui_page_switch("LoadingMainMenu", 3, 1, false)
+end
+
+-------------------------------------------------------------------------------
+-- FOOTER NAVIGATION CALLBACKS
+-------------------------------------------------------------------------------
+
+function navScrollToTimer()
+    gdsGui_container_scrollToBody("MainMenu", "timerPanel")
+end
+
+function navScrollToWind()
+    gdsGui_container_scrollToBody("MainMenu", "windPanel")
+end
+
+function navScrollToCalc()
+    gdsGui_container_scrollToBody("MainMenu", "calcPanel")
+end
+
+function navScrollToTop()
+    gdsGui_container_scrollToBody("MainMenu", "timerPanel")
 end
 
 -------------------------------------------------------------------------------

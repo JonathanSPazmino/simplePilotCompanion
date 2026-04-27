@@ -194,6 +194,66 @@ local function _setObjY(obj, newY)
     end
 end
 
+-- Update only the X coordinate of a widget (mirror of _setObjY, used by hScroll).
+local function _setObjX(obj, newX)
+    if obj.objectType == "button" then
+        obj.myx    = math.floor(newX)
+        obj.myMaxx = obj.myx + obj.mywidth
+
+    elseif obj.objectType == "outputTextBox" then
+        obj.frame.x    = math.floor(newX)
+        if obj.bgSprite then obj.bgSprite.x = obj.frame.x end
+        obj.text.x = obj.frame.x + (obj.frame.width - obj.text.width) / 2
+        for _, line in ipairs(obj.text.lines) do
+            line.x = obj.text.x
+        end
+
+    elseif obj.objectType == "rotaryKnob" then
+        obj.x       = math.floor(newX)
+        obj.centerX = obj.x + obj.size * 0.5
+    end
+end
+
+-- ---------------------------------------------------------------------------
+--  PRIVATE — horizontal scroll helpers (pageHeader / pageFooter containers)
+-- ---------------------------------------------------------------------------
+
+-- Returns (minOffsetX, maxOffsetX) for cont.hScroll.offsetX.
+-- maxOffset is always 0 (content at natural left).
+local function _hScrollLimits(cont)
+    if not cont.hScroll then return 0, 0 end
+    local minOff = math.min(0, cont.frame.width - (cont.hScroll.contentWidth or 0))
+    return minOff, 0
+end
+
+-- Shift all widgets in a header/footer container by hScroll.offsetX.
+local function _applyHScroll(cont)
+    if not cont.hScroll then return end
+    local ox = cont.hScroll.offsetX
+    for _, entry in ipairs(cont.objects) do
+        _setObjX(entry.ref, entry.naturalX + ox)
+    end
+end
+
+-- Called after _layoutObjects to measure the total content width and clamp offset.
+local function _computeHScrollContentWidth(cont)
+    if not cont.hScroll then return end
+    local maxRight = cont.frame.x
+    for _, entry in ipairs(cont.objects) do
+        local obj   = entry.ref
+        local right = entry.naturalX
+        if     obj.objectType == "button"       then right = right + obj.mywidth
+        elseif obj.objectType == "outputTextBox" then right = right + obj.frame.width
+        elseif obj.objectType == "rotaryKnob"   then right = right + obj.size
+        end
+        if right > maxRight then maxRight = right end
+    end
+    cont.hScroll.contentWidth = math.max(0, maxRight - cont.frame.x) + PADDING
+    local minOff = math.min(0, cont.frame.width - cont.hScroll.contentWidth)
+    cont.hScroll.offsetX = math.max(minOff, math.min(0, cont.hScroll.offsetX))
+    _applyHScroll(cont)
+end
+
 -- ---------------------------------------------------------------------------
 --  PRIVATE — sub-rect geometry
 -- ---------------------------------------------------------------------------
@@ -234,61 +294,58 @@ local function _applyPageScroll(pageName)
 end
 
 -- ---------------------------------------------------------------------------
+--  PRIVATE — resolve anchor-point pixel position
+-- ---------------------------------------------------------------------------
+
+-- ox, oy: pixel offsets from the base rect's origin (container scroll-rect
+-- top-left).  Returns {floor(x), floor(y)} of the widget's top-left corner.
+local function _anchorPos(anchor, ox, oy, w, h, bx, by)
+    local ax = anchor:sub(1, 1)   -- L / C / R
+    local ay = anchor:sub(2, 2)   -- T / C / B
+    local px = bx + ox
+    local py = by + oy
+    if     ax == "C" then px = px - w * 0.5
+    elseif ax == "R" then px = px - w
+    end
+    if     ay == "C" then py = py - h * 0.5
+    elseif ay == "B" then py = py - h
+    end
+    return { math.floor(px), math.floor(py) }
+end
+
+-- ---------------------------------------------------------------------------
 --  PRIVATE — layout widgets within a single container
 -- ---------------------------------------------------------------------------
 
--- Lay out all objects registered to a container using each widget's containerFrac
--- (x, y, w, h as fractions of the container's reference rect dimensions).
--- cont.containerRefWidth / cont.containerRefHeight are set by _layoutPage before
--- this function is called and remain stable across both layout passes so that
--- widget pixel sizes do not change between passes.
+-- Positions widgets using pixel-based containerFrac values (x, y, w, h in px).
+-- x/y are pixel offsets from the container's scroll-rect origin; the anchor
+-- point determines which corner/edge of the widget sits at that coordinate.
 local function _layoutObjects(cont)
-    local sr   = cont.scrollRect
-    local refW = cont.containerRefWidth  or math.max(1, sr.width)
-    local refH = cont.containerRefHeight or math.max(1, sr.height)
-
+    local sr          = cont.scrollRect
     local maxContentH = 0
-    local minTopY     = math.huge  -- topmost scroll-role widget top, relative to sr.y
+    local minTopY     = math.huge
 
     for _, entry in ipairs(cont.objects) do
         local obj = entry.ref
         local cf  = obj.containerFrac
         if not cf then goto continue end
 
-        -- Choose the base rect for this role.
-        local baseX, baseY, baseW, baseH
-        if entry.role == "header" then
-            baseX, baseY = cont.headerRect.x, cont.headerRect.y
-            baseW = cont.headerRect.width
-            baseH = math.max(1, cont.headerRect.height)
-        elseif entry.role == "footer" then
-            baseX, baseY = cont.footerRect.x, cont.footerRect.y
-            baseW = cont.footerRect.width
-            baseH = math.max(1, cont.footerRect.height)
-        else  -- "scroll" (body)
-            baseX, baseY = sr.x, sr.y
-            baseW = refW
-            baseH = math.max(1, refH)
+        local baseX, baseY
+        if     entry.role == "header" then baseX, baseY = cont.headerRect.x, cont.headerRect.y
+        elseif entry.role == "footer" then baseX, baseY = cont.footerRect.x, cont.footerRect.y
+        else                               baseX, baseY = sr.x, sr.y
         end
 
-        -- Resolve pixel dimensions from fractions.
-        local pixW = math.max(1, math.floor(cf.w * baseW))
-        local pixH = math.max(1, math.floor(cf.h * baseH))
-
-        -- Rotary knobs are always square; width fraction drives the size.
+        local pixW = math.max(1, math.floor(cf.w))
+        local pixH = math.max(1, math.floor(cf.h))
         if obj.objectType == "rotaryKnob" then pixH = pixW end
 
         _setObjDimensions(obj, pixW, pixH)
 
-        -- Pixel size used for anchor-offset calculation.
         local anchorW = pixW
         local anchorH = (obj.objectType == "rotaryKnob") and obj.size or pixH
+        local pos     = _anchorPos(cf.anchorPoint, cf.x, cf.y, anchorW, anchorH, baseX, baseY)
 
-        local pos = gdsGui_general_relativePosition(
-            cf.anchorPoint, cf.x, cf.y,
-            anchorW, anchorH,
-            baseX, baseY, baseW, baseH
-        )
         entry.naturalX = pos[1]
         entry.naturalY = pos[2]
         _initObjForContainer(obj, pos[1], pos[2])
@@ -296,8 +353,8 @@ local function _layoutObjects(cont)
         if entry.role == "scroll" then
             local topY   = pos[2] - sr.y
             local bottom = topY + anchorH
-            if topY < minTopY     then minTopY     = topY     end
-            if bottom > maxContentH then maxContentH = bottom end
+            if topY   < minTopY     then minTopY     = topY   end
+            if bottom > maxContentH then maxContentH = bottom  end
         end
 
         ::continue::
@@ -335,9 +392,8 @@ local function _layoutPage(pageName)
         local h = cont.headerHeight
         cont.frame = { x=sa.x, y=sa.y + headerZoneH, width=sa.w, height=h }
         _computeSubrects(cont)
-        cont.containerRefWidth  = cont.scrollRect.width
-        cont.containerRefHeight = math.max(1, cont.scrollRect.height)
         _layoutObjects(cont)
+        _computeHScrollContentWidth(cont)
         headerZoneH = headerZoneH + h
     end
 
@@ -351,9 +407,8 @@ local function _layoutPage(pageName)
         local h = cont.headerHeight
         cont.frame = { x=sa.x, y=footerCurY, width=sa.w, height=h }
         _computeSubrects(cont)
-        cont.containerRefWidth  = cont.scrollRect.width
-        cont.containerRefHeight = math.max(1, cont.scrollRect.height)
         _layoutObjects(cont)
+        _computeHScrollContentWidth(cont)
         footerCurY = footerCurY + h
     end
 
@@ -370,14 +425,9 @@ local function _layoutPage(pageName)
         local colW = math.floor(bodyArea.width / cols)
 
         -- First pass: measure each container's natural content height.
-        -- containerRefWidth/Height are fixed references for fraction resolution
-        -- and must not change between passes (avoids circular dependency where
-        -- widget pixel sizes depend on the content height they themselves produce).
         for i, cont in ipairs(bodyConts) do
             local col = (i - 1) % cols
-            cont.containerRefWidth  = colW
-            cont.containerRefHeight = math.max(1, bodyArea.height - cont.headerHeight - cont.footerHeight)
-            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=bodyArea.height }
+            cont.frame = { x=bodyArea.x + col * colW, y=bodyArea.y, width=colW, height=0 }
             _computeSubrects(cont)
             _layoutObjects(cont)
             cont.frame.height = cont.headerHeight + cont.contentHeight + cont.footerHeight
@@ -479,7 +529,14 @@ local function _drawContainer(cont, clip)
     local hr = cont.headerRect
     local fr = cont.footerRect
 
-    _setClip(clip)
+    -- pageHeader/pageFooter clip to their own frame so h-scrolled content
+    -- doesn't bleed outside the fixed zones.
+    local effectiveClip = clip
+    if cont.pageRole == "pageHeader" or cont.pageRole == "pageFooter" then
+        effectiveClip = f
+    end
+
+    _setClip(effectiveClip)
 
     -- Background + border.
     love.graphics.setColor(cont.bgColor[1], cont.bgColor[2], cont.bgColor[3], cont.bgColor[4] or 1)
@@ -498,7 +555,7 @@ local function _drawContainer(cont, clip)
         end
         for _, entry in ipairs(cont.objects) do
             if entry.role == "header" then
-                _drawWidget(entry.ref, clip)
+                _drawWidget(entry.ref, effectiveClip)
             end
         end
     end
@@ -506,18 +563,18 @@ local function _drawContainer(cont, clip)
     -- Content (scroll-role) widgets.
     for _, entry in ipairs(cont.objects) do
         if entry.role == "scroll" then
-            _drawWidget(entry.ref, clip)
+            _drawWidget(entry.ref, effectiveClip)
         end
     end
 
     -- Footer strip.
     if fr.height > 0 then
-        _setClip(clip)
+        _setClip(effectiveClip)
         love.graphics.setColor(cont.footerColor[1], cont.footerColor[2], cont.footerColor[3], 1)
         love.graphics.rectangle("fill", fr.x, fr.y, fr.width, fr.height)
         for _, entry in ipairs(cont.objects) do
             if entry.role == "footer" then
-                _drawWidget(entry.ref, clip)
+                _drawWidget(entry.ref, effectiveClip)
             end
         end
     end
@@ -575,6 +632,20 @@ function gdsGui_container_create(name, page, title, headerHeight, footerHeight, 
     cont.footerColor = { 0.22, 0.22, 0.22, 1 }
     cont.borderColor = { 0.35, 0.35, 0.35, 1 }
 
+    -- Horizontal scroll state (only for fixed pageHeader / pageFooter zones).
+    if pageRole == "pageHeader" or pageRole == "pageFooter" then
+        cont.hScroll = {
+            offsetX      = 0,
+            velocityX    = 0,
+            phase        = "idle",
+            isDragging   = false,
+            touchStarted = false,
+            contentWidth = 0,
+        }
+        cont.gestureDx = 0
+        cont.gestureDy = 0
+    end
+
     table.insert(globApp.objects.containers, cont)
     gdsGui_generateConsoleMessage("info", "Container '" .. name .. "' created on page '" .. page .. "'")
 end
@@ -628,9 +699,16 @@ function gdsGui_container_addObject(containerName, objectType, objectName, role)
 
     obj.ownerContainer = containerName
 
+    -- pageHeader/pageFooter containers have no separate scroll area; default
+    -- widgets to the "header" role so they are laid out in the full frame.
+    local effectiveRole = role or (
+        (cont.pageRole == "pageHeader" or cont.pageRole == "pageFooter")
+        and "header" or "scroll"
+    )
+
     table.insert(cont.objects, {
         ref      = obj,
-        role     = role or "scroll",
+        role     = effectiveRole,
         naturalX = 0,
         naturalY = 0,
     })
@@ -642,6 +720,45 @@ function gdsGui_container_finalise(pageName)
 end
 
 -- ---------------------------------------------------------------------------
+--  PUBLIC API — convenience header / footer creators
+-- ---------------------------------------------------------------------------
+-- These wrap gdsGui_container_create so callers don't need to know about
+-- pageRole or the internal height/footer-height parameters.
+--
+-- Widgets are added to a header or footer the same way as any container:
+--   pass the header/footer name as the last "containerName" argument of any
+--   widget-creation function (gdsGui_button_create, gdsGui_outputTxtBox_create …)
+-- ---------------------------------------------------------------------------
+
+-- Creates a fixed-height zone pinned to the top of the page.
+--   name    : unique string identifier
+--   page    : page this header belongs to
+--   height  : pixel height of the zone
+--   bgColor : {r,g,b[,a]} fill color; nil uses the library default dark gray
+function gdsGui_pageHeader_create(name, page, height, bgColor)
+    gdsGui_container_create(name, page, "", height, 0, "pageHeader")
+    if bgColor then
+        local cont = globApp.objects.containers[#globApp.objects.containers]
+        cont.bgColor     = { bgColor[1], bgColor[2], bgColor[3], bgColor[4] or 1 }
+        cont.headerColor = cont.bgColor
+    end
+end
+
+-- Creates a fixed-height zone pinned to the bottom of the page.
+--   name    : unique string identifier
+--   page    : page this footer belongs to
+--   height  : pixel height of the zone
+--   bgColor : {r,g,b[,a]} fill color; nil uses the library default dark gray
+function gdsGui_pageFooter_create(name, page, height, bgColor)
+    gdsGui_container_create(name, page, "", height, 0, "pageFooter")
+    if bgColor then
+        local cont = globApp.objects.containers[#globApp.objects.containers]
+        cont.bgColor     = { bgColor[1], bgColor[2], bgColor[3], bgColor[4] or 1 }
+        cont.headerColor = cont.bgColor
+    end
+end
+
+-- ---------------------------------------------------------------------------
 --  PUBLIC API — physics update (page-level scroll)
 -- ---------------------------------------------------------------------------
 
@@ -649,41 +766,70 @@ function gdsGui_container_physicsUpdate(dt)
     if not dt or dt <= 0 then return end
 
     local activePage = gdsGui_page_currentName()
-    local state      = globApp.objects.pageScrollStates[activePage]
-    if not state then return end
 
-    local s = state.scroll
-    if s.isDragging or s.phase == "idle" then return end
-
-    local minOff, maxOff = _pageScrollLimits(state)
-    if minOff >= -0.5 then return end  -- content fits; nothing to animate
-
-    if s.phase == "coasting" then
-        s.velocityY = s.velocityY * math.exp(-CONT_FRICTION * dt)
-        s.offsetY   = s.offsetY   + s.velocityY * dt
-
-        if s.offsetY < minOff or s.offsetY > maxOff then
-            s.phase = "bouncing"
-        elseif math.abs(s.velocityY) < CONT_COAST_STOP_VEL then
-            s.phase     = "idle"
-            s.velocityY = 0
+    -- ── Vertical page scroll ────────────────────────────────────────────────
+    local state = globApp.objects.pageScrollStates[activePage]
+    if state then
+        local s = state.scroll
+        if not (s.isDragging or s.phase == "idle") then
+            local minOff, maxOff = _pageScrollLimits(state)
+            if minOff < -0.5 then
+                if s.phase == "coasting" then
+                    s.velocityY = s.velocityY * math.exp(-CONT_FRICTION * dt)
+                    s.offsetY   = s.offsetY   + s.velocityY * dt
+                    if s.offsetY < minOff or s.offsetY > maxOff then
+                        s.phase = "bouncing"
+                    elseif math.abs(s.velocityY) < CONT_COAST_STOP_VEL then
+                        s.phase = "idle";  s.velocityY = 0
+                    end
+                    _applyPageScroll(activePage)
+                elseif s.phase == "bouncing" then
+                    local target = math.max(minOff, math.min(maxOff, s.offsetY))
+                    local disp   = s.offsetY - target
+                    local acc    = (-CONT_SPRING_K * disp) + (-CONT_SPRING_C * s.velocityY)
+                    s.velocityY  = s.velocityY + acc * dt
+                    s.offsetY    = s.offsetY   + s.velocityY * dt
+                    if math.abs(s.offsetY - target) < CONT_BOUNCE_STOP_D and
+                       math.abs(s.velocityY) < CONT_BOUNCE_STOP_V then
+                        s.offsetY = target;  s.velocityY = 0;  s.phase = "idle"
+                    end
+                    _applyPageScroll(activePage)
+                end
+            end
         end
-        _applyPageScroll(activePage)
+    end
 
-    elseif s.phase == "bouncing" then
-        local target  = math.max(minOff, math.min(maxOff, s.offsetY))
-        local disp    = s.offsetY - target
-        local acc     = (-CONT_SPRING_K * disp) + (-CONT_SPRING_C * s.velocityY)
-        s.velocityY   = s.velocityY + acc * dt
-        s.offsetY     = s.offsetY   + s.velocityY * dt
-
-        if math.abs(s.offsetY - target) < CONT_BOUNCE_STOP_D and
-           math.abs(s.velocityY) < CONT_BOUNCE_STOP_V then
-            s.offsetY   = target
-            s.velocityY = 0
-            s.phase     = "idle"
+    -- ── Horizontal scroll for pageHeader / pageFooter containers ────────────
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == activePage and cont.hScroll then
+            local hs = cont.hScroll
+            if not (hs.isDragging or hs.phase == "idle") then
+                local minOff, maxOff = _hScrollLimits(cont)
+                if minOff < -0.5 then
+                    if hs.phase == "coasting" then
+                        hs.velocityX = hs.velocityX * math.exp(-CONT_FRICTION * dt)
+                        hs.offsetX   = hs.offsetX   + hs.velocityX * dt
+                        if hs.offsetX < minOff or hs.offsetX > maxOff then
+                            hs.phase = "bouncing"
+                        elseif math.abs(hs.velocityX) < CONT_COAST_STOP_VEL then
+                            hs.phase = "idle";  hs.velocityX = 0
+                        end
+                        _applyHScroll(cont)
+                    elseif hs.phase == "bouncing" then
+                        local target = math.max(minOff, math.min(maxOff, hs.offsetX))
+                        local disp   = hs.offsetX - target
+                        local acc    = (-CONT_SPRING_K * disp) + (-CONT_SPRING_C * hs.velocityX)
+                        hs.velocityX = hs.velocityX + acc * dt
+                        hs.offsetX   = hs.offsetX   + hs.velocityX * dt
+                        if math.abs(hs.offsetX - target) < CONT_BOUNCE_STOP_D and
+                           math.abs(hs.velocityX) < CONT_BOUNCE_STOP_V then
+                            hs.offsetX = target;  hs.velocityX = 0;  hs.phase = "idle"
+                        end
+                        _applyHScroll(cont)
+                    end
+                end
+            end
         end
-        _applyPageScroll(activePage)
     end
 end
 
@@ -696,61 +842,116 @@ function gdsGui_container_touchScroll(id, x, y, dx, dy)
     if not isGestureActive then return end
 
     local activePage = gdsGui_page_currentName()
-    local state      = globApp.objects.pageScrollStates[activePage]
-    if not state or not state.scroll.touchStartedInside then return end
+    local frameDt    = love.timer.getDelta()
 
-    local s              = state.scroll
-    local minOff, maxOff = _pageScrollLimits(state)
-    if minOff >= -0.5 then return end
-
-    s.isDragging = true
-    s.phase      = "coasting"
-
-    local newOff = s.offsetY + dy
-    if newOff < minOff then
-        newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
-    elseif newOff > maxOff then
-        newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
+    -- ── Vertical page scroll ─────────────────────────────────────────────────
+    local state = globApp.objects.pageScrollStates[activePage]
+    if state and state.scroll.touchStartedInside then
+        local s              = state.scroll
+        local minOff, maxOff = _pageScrollLimits(state)
+        if minOff < -0.5 then
+            s.isDragging = true
+            s.phase      = "coasting"
+            local newOff = s.offsetY + dy
+            if newOff < minOff then
+                newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
+            elseif newOff > maxOff then
+                newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
+            end
+            s.offsetY = newOff
+            if frameDt > 0 then
+                s.velocityY = s.velocityY * 0.5 + (dy / frameDt) * 0.5
+            end
+            _applyPageScroll(activePage)
+        end
     end
-    s.offsetY = newOff
 
-    local frameDt = love.timer.getDelta()
-    if frameDt > 0 then
-        local rawVel = dy / frameDt
-        s.velocityY  = s.velocityY * 0.5 + rawVel * 0.5
+    -- ── Horizontal scroll for pageHeader / pageFooter containers ─────────────
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == activePage and cont.hScroll and cont.hScroll.touchStarted then
+            local hs = cont.hScroll
+            local minOff, maxOff = _hScrollLimits(cont)
+            if minOff < -0.5 then
+                hs.isDragging = true
+                hs.phase      = "coasting"
+                local newOff = hs.offsetX + dx
+                if newOff < minOff then
+                    newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
+                elseif newOff > maxOff then
+                    newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
+                end
+                hs.offsetX = newOff
+                if frameDt > 0 then
+                    hs.velocityX = hs.velocityX * 0.5 + (dx / frameDt) * 0.5
+                end
+                _applyHScroll(cont)
+            end
+        end
     end
-
-    _applyPageScroll(activePage)
 end
 
 function gdsGui_container_touchReleased(x, y)
     local activePage = gdsGui_page_currentName()
-    local state      = globApp.objects.pageScrollStates[activePage]
-    if not state then return end
 
-    local s = state.scroll
-    if s.isDragging then
-        s.isDragging         = false
+    -- ── Vertical page scroll release ─────────────────────────────────────────
+    local state = globApp.objects.pageScrollStates[activePage]
+    if state then
+        local s = state.scroll
+        if s.isDragging then
+            s.isDragging         = false
+            s.touchStartedInside = false
+            local minOff, maxOff = _pageScrollLimits(state)
+            if s.offsetY < minOff or s.offsetY > maxOff then
+                s.phase = "bouncing"
+            elseif math.abs(s.velocityY) > CONT_COAST_STOP_VEL then
+                s.phase = "coasting"
+            else
+                s.phase = "idle";  s.velocityY = 0
+            end
+        end
         s.touchStartedInside = false
-        local minOff, maxOff = _pageScrollLimits(state)
+    end
 
-        if s.offsetY < minOff or s.offsetY > maxOff then
-            s.phase = "bouncing"
-        elseif math.abs(s.velocityY) > CONT_COAST_STOP_VEL then
-            s.phase = "coasting"
-        else
-            s.phase     = "idle"
-            s.velocityY = 0
+    -- ── Horizontal scroll release for pageHeader / pageFooter ────────────────
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == activePage and cont.hScroll then
+            local hs = cont.hScroll
+            if hs.isDragging then
+                hs.isDragging = false
+                local minOff, maxOff = _hScrollLimits(cont)
+                if hs.offsetX < minOff or hs.offsetX > maxOff then
+                    hs.phase = "bouncing"
+                elseif math.abs(hs.velocityX) > CONT_COAST_STOP_VEL then
+                    hs.phase = "coasting"
+                else
+                    hs.phase = "idle";  hs.velocityX = 0
+                end
+            end
+            hs.touchStarted = false
         end
     end
-    s.touchStartedInside = false
 end
 
--- Mark page-level scroll as started when the touch lands in the body area on
--- empty space (not on any widget inside a body container).
+-- Mark scroll-start state when a touch/mouse-press lands.
+-- • Body area  → marks vertical page scroll touchStartedInside (suppressed if on a widget).
+-- • Header/Footer zone → marks horizontal scroll touchStarted for that container.
 function gdsGui_container_markTouchStart(x, y)
     local activePage = gdsGui_page_currentName()
-    local state      = globApp.objects.pageScrollStates[activePage]
+
+    -- ── Header / footer horizontal scroll start ──────────────────────────────
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == activePage and cont.hScroll then
+            local f = cont.frame
+            if x >= f.x and x <= f.x + f.width and
+               y >= f.y and y <= f.y + f.height then
+                cont.hScroll.touchStarted = true
+                cont.hScroll.velocityX    = 0
+            end
+        end
+    end
+
+    -- ── Body vertical page scroll start ─────────────────────────────────────
+    local state = globApp.objects.pageScrollStates[activePage]
     if not state then return end
 
     local ba = state.bodyArea
@@ -772,6 +973,28 @@ function gdsGui_container_markTouchStart(x, y)
 
     state.scroll.touchStartedInside = true
     state.scroll.velocityY          = 0
+end
+
+-- ---------------------------------------------------------------------------
+--  PUBLIC API — programmatic scroll-to-panel
+-- ---------------------------------------------------------------------------
+
+-- Instantly scrolls the body so that the named container is at the top of the
+-- body area.  Useful for navigation buttons in a fixed footer.
+function gdsGui_container_scrollToBody(pageName, containerName)
+    local state = globApp.objects.pageScrollStates[pageName]
+    if not state then return end
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.page == pageName and cont.pageRole == "body" and cont.name == containerName then
+            local minOff = math.min(0, state.bodyArea.height - state.contentHeight)
+            local target = math.max(minOff, math.min(0, state.bodyArea.y - cont.frameNaturalY))
+            state.scroll.offsetY   = target
+            state.scroll.phase     = "idle"
+            state.scroll.velocityY = 0
+            _applyPageScroll(pageName)
+            return
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------

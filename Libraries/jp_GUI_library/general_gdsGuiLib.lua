@@ -947,7 +947,11 @@ end
 function gdsGui_general_mousemoved (x, y, button, istouch, presses)
 	-- NOTE: in LÖVE's love.mousemoved signature, the 3rd/4th params are dx/dy.
 	-- The existing code names them 'button' and 'istouch' — preserved as-is.
-	-- So here: button = dx, istouch = dy.
+	-- So here: button = dx, istouch = dy, presses = actual LÖVE istouch boolean.
+
+	-- On mobile, love.mousemoved fires for touch events (istouch=true) in addition
+	-- to love.touchmoved. Skip here to avoid applying scroll deltas twice.
+	if presses then return end
 
 	gdsGui_scrollBar_holdAndDrag ("mouse", x, y, button, istouch)
 
