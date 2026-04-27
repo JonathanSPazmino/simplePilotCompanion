@@ -591,8 +591,13 @@ local function _isTouchOnWidget(obj, x, y)
     if ot == "button" then
         return x >= obj.myx and x <= obj.myMaxx and y >= obj.myy and y <= obj.myMaxy
     elseif ot == "outputTextBox" then
-        return x >= obj.frame.x and x <= obj.frame.x + obj.frame.width and
-               y >= obj.frame.y and y <= obj.frame.y + obj.frame.height
+        if not (x >= obj.frame.x and x <= obj.frame.x + obj.frame.width and
+                y >= obj.frame.y and y <= obj.frame.y + obj.frame.height) then
+            return false
+        end
+        -- Only suppress page scroll if the text content actually overflows the frame
+        local contentH = obj.text and obj.text.combinedTxtHeight or 0
+        return obj.frame.height - contentH < -0.5
     elseif ot == "scrollBar" then
         local top    = obj.upButton   and obj.upButton.y                          or obj.frame.y
         local bottom = obj.downButton and (obj.downButton.y + obj.downButton.height) or (obj.frame.y + obj.frame.height)

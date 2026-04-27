@@ -29,8 +29,6 @@ local lastSavedCountDownTime = 0
 local font
 
 -- Pre-defined colors to avoid creating tables in love.update
-local colorRed = {1, 0, 0, 1}
-local colorGray = {0.2, 0.2, 0.2, 1}
 local colorYellow = {1, 1, 0, 1}
 
 -- Timer object
@@ -53,7 +51,7 @@ local _prevWindGust      = -1
 local _prevKnobPos       = -1
 
 -- Countdown finished blink state
-local blink = {active = false, timer = 0, state = false}
+local blink = {active = false, timer = 0, state = false, navSent = false}
 
 -- Load beep sound
 local beepSound
@@ -306,23 +304,64 @@ function love.load()
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     ---------------------------------------------------------------------------
-    -- LEARN PAGE PLACEHOLDER
+    -- LEARN PAGE CONTAINERS
     ---------------------------------------------------------------------------
-    gdsGui_outputTxtBox_create("learnContent", "Learn", "Sprites/invisibleBox.png",
-        .5, .5, "CC",
-        math.floor(globApp.safeScreenArea.w * 0.80), math.floor(globApp.safeScreenArea.h * 0.30),
-        {1, 1, 1, 1}, "LEARN\nCOMING SOON",
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    local learnFontSize = math.floor(gdsGui_general_smartFontScaling(0.035, 0.045))
+    local learnTxtW     = math.floor(globApp.safeScreenArea.w * 0.85)
+    local learnTxtX     = math.floor(globApp.safeScreenArea.w * 0.5)
+
+    gdsGui_container_create("timerLearn", "Learn", "UTC / TIMER", 32, 0)
+    gdsGui_outputTxtBox_create("timerLearnContent", "Learn", "Sprites/invisibleBox.png",
+        learnTxtX, 10, "CT",
+        learnTxtW, 180,
+        {1, 1, 1, 1},
+        "UTC CLOCK\nShows current UTC time and date, updated each second.\n\nTIMER MODE\nPress the mode button to switch between COUNT UP and COUNT DOWN.\n\nCOUNT DOWN\nUse the +/- buttons to set minutes (left pair) and seconds (right pair). Press play to start. The app navigates here 3 seconds before zero. Alarm sounds and screen flashes at zero. Press ACK to dismiss.\n\nCOUNT UP\nPress play to start counting from zero.\n\nRESET\nReturns COUNT DOWN to the last saved time, or COUNT UP to zero.",
+        learnFontSize, "timerLearn"
+    )
+
+    gdsGui_container_create("windLearn", "Learn", "RUNWAY / WIND", 32, 0)
+    gdsGui_outputTxtBox_create("windLearnContent", "Learn", "Sprites/invisibleBox.png",
+        learnTxtX, 10, "CT",
+        learnTxtW, 180,
+        {1, 1, 1, 1},
+        "CROSSWIND CALCULATOR\nCalculates headwind and crosswind components from runway and wind data.\n\nRUNWAY HEADING\nRotate the outer knob ring to set runway heading in 10 degree steps.\n\nWIND DIRECTION\nRotate the inner knob ring to set the reported wind direction in 10 degree steps.\n\nWIND SPEED & GUST\nLeft scrollbar sets wind speed (kt). Right scrollbar sets wind gust (kt).\n\nRESULT\nHeadwind and crosswind components are shown below the knob.",
+        learnFontSize, "windLearn"
+    )
+
+    gdsGui_container_create("calcLearn", "Learn", "CALCULATIONS", 32, 0)
+    gdsGui_outputTxtBox_create("calcLearnContent", "Learn", "Sprites/invisibleBox.png",
+        learnTxtX, 10, "CT",
+        learnTxtW, 180,
+        {1, 1, 1, 1},
+        "DESCENT CALCULATOR\nCalculates required vertical rate and distance to begin descent.\n\nTIME\nLeft scrollbar sets time to reach target altitude (minutes).\n\nALTITUDE\nCenter scrollbar sets target altitude to lose (feet).\n\nANGLE\nRight scrollbar sets desired descent angle (degrees).\n\nRESULTS\nRequired descent rate (FPM) and start-of-descent distance (nm) are displayed.",
+        learnFontSize, "calcLearn"
     )
 
     ---------------------------------------------------------------------------
-    -- SETTINGS PAGE PLACEHOLDER
+    -- SETTINGS PAGE CONTAINERS
     ---------------------------------------------------------------------------
-    gdsGui_outputTxtBox_create("settingsContent", "Settings", "Sprites/invisibleBox.png",
-        .5, .5, "CC",
-        math.floor(globApp.safeScreenArea.w * 0.80), math.floor(globApp.safeScreenArea.h * 0.30),
-        {1, 1, 1, 1}, "SETTINGS\nCOMING SOON",
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    gdsGui_container_create("displaySettings", "Settings", "DISPLAY", 32, 0)
+    gdsGui_outputTxtBox_create("displaySettingsContent", "Settings", "Sprites/invisibleBox.png",
+        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
+        math.floor(globApp.safeScreenArea.w * 0.70), 40,
+        {1, 1, 1, 1}, "COMING SOON",
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "displaySettings"
+    )
+
+    gdsGui_container_create("soundsSettings", "Settings", "SOUNDS", 32, 0)
+    gdsGui_outputTxtBox_create("soundsSettingsContent", "Settings", "Sprites/invisibleBox.png",
+        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
+        math.floor(globApp.safeScreenArea.w * 0.70), 40,
+        {1, 1, 1, 1}, "COMING SOON",
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "soundsSettings"
+    )
+
+    gdsGui_container_create("hapticsSettings", "Settings", "HAPTICS", 32, 0)
+    gdsGui_outputTxtBox_create("hapticsSettingsContent", "Settings", "Sprites/invisibleBox.png",
+        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
+        math.floor(globApp.safeScreenArea.w * 0.70), 40,
+        {1, 1, 1, 1}, "COMING SOON",
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "hapticsSettings"
     )
 
     ---------------------------------------------------------------------------
@@ -439,11 +478,19 @@ function love.update(dt)
         else -- COUNT DOWN
             timer.t = math.max(0, timer.t - dt)
 
+            if timer.t <= 3 and timer.t > 0 and not blink.navSent and gdsGui_page_currentName() ~= "MainMenu" then
+                blink.navSent = true
+                gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
+            end
+
             if timer.t == 0 then
                 timer.running = false
                 blink.active = true
                 gdsGui_button_setState("acknowlegeAlarm", "released")
                 alarmButtonsDeactivation()
+                if gdsGui_page_currentName() ~= "MainMenu" then
+                    gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
+                end
                 for _, btn in ipairs(globApp.objects.buttons) do
                     if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
                         btn.state = globApp.BUTTON_STATES.RELEASED
@@ -453,25 +500,23 @@ function love.update(dt)
         end
     end
 
-    -- Handle blinking background with vibration and beep
+    -- Handle blinking overlay with vibration and beep
     if blink.active then
-        blink.timer = blink.timer + dt
-        if blink.timer > 0.5 then
-            blink.timer = 0
-            blink.state = not blink.state
-
-            if blink.state then
-                globApp.appColor = colorRed -- red
-                -- Vibrate device if capable
-                if love.system.vibrate then
-                    love.system.vibrate(0.1) -- short vibration
+        if gdsGui_page_currentName() ~= "MainMenu" then
+            acknowlegeAlarm()
+        else
+            blink.timer = blink.timer + dt
+            if blink.timer > 0.5 then
+                blink.timer = 0
+                blink.state = not blink.state
+                if blink.state then
+                    if love.system.vibrate then
+                        love.system.vibrate(0.1)
+                    end
+                    if beepSound then
+                        love.audio.play(beepSound)
+                    end
                 end
-                -- Play beep sound
-                if beepSound then
-                    love.audio.play(beepSound)
-                end
-            else
-                globApp.appColor = colorGray -- normal gray
             end
         end
     end
@@ -488,8 +533,8 @@ end
 
 function love.draw()
     drawPages()
-    gdsGui_draw ()
-    
+    gdsGui_draw()
+    drawAlarmOverlay()
 end
 
 -------------------------------------------------------------------------------
@@ -499,20 +544,32 @@ function drawPages()
     gdsGui_page_drawBackground()
 end
 
+function drawAlarmOverlay()
+    if not blink.active or not blink.state then return end
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.name == "timerPanel" then
+            local f = cont.frame
+            love.graphics.setColor(1, 0, 0, 0.45)
+            love.graphics.rectangle("fill", f.x, f.y, f.width, f.height)
+            love.graphics.setColor(1, 1, 1, 1)
+            return
+        end
+    end
+end
+
 -------------------------------------------------------------------------------
 -- TIMER CONTROL FUNCTIONS
 -------------------------------------------------------------------------------
 
 function acknowlegeAlarm()
     if blink.active then
-        blink.active = false       -- stop blinking
-        blink.state = false        -- reset blink state
-        globApp.appColor = {0.2, 0.2, 0.2, 1} -- restore normal background
+        blink.active = false
+        blink.state = false
         if beepSound then
-            love.audio.stop(beepSound)  -- stop any currently playing beep
+            love.audio.stop(beepSound)
         end
     end
-    alarmAcklgBtnsActiation ()
+    alarmAcklgBtnsActiation()
 end
 
 
@@ -549,8 +606,8 @@ function resetRHTopTimer()
     else
         timer.t = 0
     end
-    blink.active = false -- stop blink
-    globApp.appColor = {0.2, 0.2, 0.2, 1} -- keep normal color
+    blink.active = false
+    blink.navSent = false
     for _, btn in ipairs(globApp.objects.buttons) do
         if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
 btn.state = globApp.BUTTON_STATES.RELEASED
