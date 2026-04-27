@@ -3,7 +3,7 @@
 -- Created by Jonathan Pazmino
 -- Last Modified 7/20/2021
 
-MAIN_GDSGUI_VERSION = "0.7.2"
+MAIN_GDSGUI_VERSION = "0.8.0"
 
 -- Nearest-neighbour filtering for all subsequently loaded images and fonts;
 -- prevents bilinear blur when sprites are drawn at non-1:1 scale on PC.

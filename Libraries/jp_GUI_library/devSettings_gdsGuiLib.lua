@@ -40,11 +40,11 @@ local devDataDisplay = {}
 				devDataDisplay.topRow.winDimensions.textWidht = math.floor(globApp.safeScreenArea.w)
 				devDataDisplay.topRow.winDimensions.textHeight = math.floor(globApp.safeScreenArea.h)
 				devDataDisplay.topRow.winDimensions.density = math.floor(globApp.appScale)
-				devDataDisplay.topRow.winDimensions.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * .3)
+				devDataDisplay.topRow.winDimensions.x = globApp.safeScreenArea.x + 2
 				devDataDisplay.topRow.winDimensions.text = (devDataDisplay.topRow.winDimensions.textWidht .. "x" .. devDataDisplay.topRow.winDimensions.textHeight .. "/d:".. devDataDisplay.topRow.winDimensions.density)
 			-- TOP ROW FPS DISPLAY
 			devDataDisplay.topRow.fpsData = {}
-				devDataDisplay.topRow.fpsData.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * 0.92) - 45
+				devDataDisplay.topRow.fpsData.x = globApp.safeScreenArea.xw - (devDataDisplay.font.size * 7)
 				devDataDisplay.topRow.fpsData.fps = love.timer.getFPS()
 				devDataDisplay.topRow.fpsData.display = "FPS: ".. devDataDisplay.topRow.fpsData.fps
 				devDataDisplay.topRow.fpsData.period = 0.01715
@@ -57,14 +57,14 @@ local devDataDisplay = {}
 			--BOTTOM ROW PAGE ID
 			devDataDisplay.bottomRow.pageID = {}
 				devDataDisplay.bottomRow.pageID.text = gdsGui_page_currentName ()
-				devDataDisplay.bottomRow.pageID.x = globApp.safeScreenArea.x + devDataDisplay.font.size 
+				devDataDisplay.bottomRow.pageID.x = globApp.safeScreenArea.x + 2
 			--BOTTOM ROW OBJECT COUNT DISPLAY
 			devDataDisplay.bottomRow.dsplydOjCount = {}
-				devDataDisplay.bottomRow.dsplydOjCount.x = globApp.safeScreenArea.x + globApp.safeScreenArea.w * 0.45 +3
+				devDataDisplay.bottomRow.dsplydOjCount.x = globApp.safeScreenArea.x + math.floor(globApp.safeScreenArea.w * 0.30)
 				devDataDisplay.bottomRow.dsplydOjCount.text = globApp.numObjectsDisplayed
 			--BOTTOM ROW GUI VERSION
 			devDataDisplay.bottomRow.GUIversion = {}
-				devDataDisplay.bottomRow.GUIversion.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * 0.90) - 45
+				devDataDisplay.bottomRow.GUIversion.x = globApp.safeScreenArea.xw - (devDataDisplay.font.size * 9)
 				devDataDisplay.bottomRow.GUIversion.text = guiVersion
 
 function gdsGui_dev_updateDisplays (dt)
@@ -81,20 +81,20 @@ function gdsGui_dev_updateDisplays (dt)
 			devDataDisplay.topRow.winDimensions.textWidht = math.floor(globApp.safeScreenArea.w)
 			devDataDisplay.topRow.winDimensions.textHeight = math.floor(globApp.safeScreenArea.h)
 			devDataDisplay.topRow.winDimensions.density = math.floor(globApp.appScale)
-			devDataDisplay.topRow.winDimensions.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * .3)
+			devDataDisplay.topRow.winDimensions.x = globApp.safeScreenArea.x + 2
 			devDataDisplay.topRow.winDimensions.text = (devDataDisplay.topRow.winDimensions.textWidht .. "x" .. devDataDisplay.topRow.winDimensions.textHeight .. "/d:".. devDataDisplay.topRow.winDimensions.density)
 			--FPS DATA
-			devDataDisplay.topRow.fpsData.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * 0.92) - 45
-		
+			devDataDisplay.topRow.fpsData.x = globApp.safeScreenArea.xw - (devDataDisplay.font.size * 7)
+
 		--BOTTOM_ROW
 			--BOTTOM ROW GENERAL
 			devDataDisplay.bottomRow.y = (globApp.safeScreenArea.y + globApp.safeScreenArea.h ) - (devDataDisplay.font.size * 2)
 			--PAGE ID
-			devDataDisplay.bottomRow.pageID.x = globApp.safeScreenArea.x + devDataDisplay.font.size 
+			devDataDisplay.bottomRow.pageID.x = globApp.safeScreenArea.x + 2
 			--DISPLAY OBJECTS COUNT
-			devDataDisplay.bottomRow.dsplydOjCount.x = globApp.safeScreenArea.x + globApp.safeScreenArea.w * 0.45 +3
+			devDataDisplay.bottomRow.dsplydOjCount.x = globApp.safeScreenArea.x + math.floor(globApp.safeScreenArea.w * 0.30)
 			--GUI VERSION
-			devDataDisplay.bottomRow.GUIversion.x = globApp.safeScreenArea.x + (globApp.safeScreenArea.w * 0.90) - 45
+			devDataDisplay.bottomRow.GUIversion.x = globApp.safeScreenArea.xw - (devDataDisplay.font.size * 9)
 	end
 
 	--RUNS CONTINUOUSLY

@@ -16,6 +16,8 @@ APP_VERSION = "1.0.0"
 globApp.appColor = {.2, .2, .2, 1} --initializes bg color
 gdsGui_page_create(3, "MainMenu",           false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
 gdsGui_page_create(4, "TermsAndConditions", false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
+gdsGui_page_create(5, "Learn",              false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
+gdsGui_page_create(6, "Settings",           false, false, globApp.appColor, 12, 0, {.5, 1, .6, .6, "LT"}, "max")
 
 -------------------------------------------------------------------------------
 -- GLOBAL STATE
@@ -84,67 +86,54 @@ function love.load()
     selectedWindGust      = 0
 
     ---------------------------------------------------------------------------
-    -- PAGE HEADER  (fixed, ~20 % of screen height)
+    -- SHARED HEADER / FOOTER LAYOUT VALUES
     ---------------------------------------------------------------------------
-    local pageHdrH = math.floor(globApp.safeScreenArea.h * 0.10)
-    gdsGui_pageHeader_create("pageHeader", "MainMenu", pageHdrH, {0.15, 0.15, 0.20, 1})
-
-    -- Page title textbox — horizontally centred in the header strip.
-    local hdrCX = math.floor(globApp.safeScreenArea.w * 0.5)
-    local hdrCY = math.floor(pageHdrH * 0.5)
-    gdsGui_outputTxtBox_create("pageTitle", "MainMenu", "Sprites/invisibleBox.png",
-        hdrCX, hdrCY, "CC",
-        math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
-        {1, 1, 1, 1}, "PILOT COMPANION", 16, "pageHeader"
-    )
-
-    ---------------------------------------------------------------------------
-    -- PAGE FOOTER  (fixed, ~20 % of screen height)
-    -- Five navigation buttons; the last one is off-screen to demo h-scroll.
-    ---------------------------------------------------------------------------
+    local pageHdrH  = math.floor(globApp.safeScreenArea.h * 0.10)
     local pageFootH = pageHdrH
-    gdsGui_pageFooter_create("pageFooter", "MainMenu", pageFootH, {0.15, 0.15, 0.20, 1})
-
-    local footBtnW  = math.floor(globApp.safeScreenArea.w * 0.22)  -- ~70 px on 320
+    local hdrCX     = math.floor(globApp.safeScreenArea.w * 0.5)
+    local hdrCY     = math.floor(pageHdrH * 0.5)
+    local footBtnW  = math.floor(globApp.safeScreenArea.w * 0.22)
     local footBtnH  = math.floor(pageFootH * 0.60)
     local footBtnY  = math.floor(pageFootH * 0.50)
-    local footBtnX1 = math.floor(globApp.safeScreenArea.w * 0.15)
-    local footBtnX2 = math.floor(globApp.safeScreenArea.w * 0.38)
-    local footBtnX3 = math.floor(globApp.safeScreenArea.w * 0.62)
-    local footBtnX4 = math.floor(globApp.safeScreenArea.w * 0.85)
-    -- Extra button that requires horizontal scrolling to reach.
-    local footBtnX5 = math.floor(globApp.safeScreenArea.w * 1.08)
+    local footBtnX1 = math.floor(globApp.safeScreenArea.w * (1/6))
+    local footBtnX2 = math.floor(globApp.safeScreenArea.w * (3/6))
+    local footBtnX3 = math.floor(globApp.safeScreenArea.w * (5/6))
 
-    gdsGui_button_create("footNavTimer", "MainMenu", "pushonoff",
-        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-        "Sprites/SettingsButton_deactivated.png",
-        footBtnX1, footBtnY, "CC", footBtnW, footBtnH,
-        "navScrollToTimer", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
-    )
-    gdsGui_button_create("footNavWind", "MainMenu", "pushonoff",
-        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-        "Sprites/SettingsButton_deactivated.png",
-        footBtnX2, footBtnY, "CC", footBtnW, footBtnH,
-        "navScrollToWind", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
-    )
-    gdsGui_button_create("footNavCalc", "MainMenu", "pushonoff",
-        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-        "Sprites/SettingsButton_deactivated.png",
-        footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
-        "navScrollToCalc", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
-    )
-    gdsGui_button_create("footNavSettings", "MainMenu", "pushonoff",
-        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-        "Sprites/SettingsButton_deactivated.png",
-        footBtnX4, footBtnY, "CC", footBtnW, footBtnH,
-        "navScrollToTop", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
-    )
-    gdsGui_button_create("footNavExtra", "MainMenu", "pushonoff",
-        "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-        "Sprites/SettingsButton_deactivated.png",
-        footBtnX5, footBtnY, "CC", footBtnW, footBtnH,
-        "navScrollToTop", globApp.BUTTON_STATES.RELEASED, false, "pageFooter"
-    )
+    -- Creates the shared header + footer for one app page.
+    local function createPageHeaderFooter(pageName, titleText, prefix)
+        -- Header
+        gdsGui_pageHeader_create(prefix .. "_header", pageName, pageHdrH, {0.15, 0.15, 0.20, 1})
+        gdsGui_outputTxtBox_create(prefix .. "_pageTitle", pageName, "Sprites/invisibleBox.png",
+            hdrCX, hdrCY, "CC",
+            math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
+            {1, 1, 1, 1}, titleText, 16, prefix .. "_header"
+        )
+        -- Footer with 3 navigation buttons: mainMenu | learn | settings
+        gdsGui_pageFooter_create(prefix .. "_footer", pageName, pageFootH, {0.15, 0.15, 0.20, 1})
+        gdsGui_button_create(prefix .. "_navMainMenu", pageName, "pushonoff",
+            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+            "Sprites/SettingsButton_deactivated.png",
+            footBtnX1, footBtnY, "CC", footBtnW, footBtnH,
+            "navGoToMainMenu", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
+        )
+        gdsGui_button_create(prefix .. "_navLearn", pageName, "pushonoff",
+            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+            "Sprites/SettingsButton_deactivated.png",
+            footBtnX2, footBtnY, "CC", footBtnW, footBtnH,
+            "navGoToLearn", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
+        )
+        gdsGui_button_create(prefix .. "_navSettings", pageName, "pushonoff",
+            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
+            "Sprites/SettingsButton_deactivated.png",
+            footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
+            "navGoToSettings", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
+        )
+    end
+
+    createPageHeaderFooter("MainMenu", "MAIN MENU", "mainMenu")
+    createPageHeaderFooter("Learn",    "LEARN",     "learn")
+    createPageHeaderFooter("Settings", "SETTINGS",  "settings")
+
 
     ---------------------------------------------------------------------------
     -- TIMER PANEL
@@ -317,9 +306,31 @@ function love.load()
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
 
     ---------------------------------------------------------------------------
+    -- LEARN PAGE PLACEHOLDER
+    ---------------------------------------------------------------------------
+    gdsGui_outputTxtBox_create("learnContent", "Learn", "Sprites/invisibleBox.png",
+        .5, .5, "CC",
+        math.floor(globApp.safeScreenArea.w * 0.80), math.floor(globApp.safeScreenArea.h * 0.30),
+        {1, 1, 1, 1}, "LEARN\nCOMING SOON",
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    )
+
+    ---------------------------------------------------------------------------
+    -- SETTINGS PAGE PLACEHOLDER
+    ---------------------------------------------------------------------------
+    gdsGui_outputTxtBox_create("settingsContent", "Settings", "Sprites/invisibleBox.png",
+        .5, .5, "CC",
+        math.floor(globApp.safeScreenArea.w * 0.80), math.floor(globApp.safeScreenArea.h * 0.30),
+        {1, 1, 1, 1}, "SETTINGS\nCOMING SOON",
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    )
+
+    ---------------------------------------------------------------------------
     -- FINALISE
     ---------------------------------------------------------------------------
     gdsGui_container_finalise("MainMenu")
+    gdsGui_container_finalise("Learn")
+    gdsGui_container_finalise("Settings")
 
     gdsGui_saveLoad_loadFileContents("appSettings.lua")
 
@@ -721,20 +732,16 @@ end
 -- FOOTER NAVIGATION CALLBACKS
 -------------------------------------------------------------------------------
 
-function navScrollToTimer()
-    gdsGui_container_scrollToBody("MainMenu", "timerPanel")
+function navGoToMainMenu()
+    gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
 end
 
-function navScrollToWind()
-    gdsGui_container_scrollToBody("MainMenu", "windPanel")
+function navGoToLearn()
+    gdsGui_page_switch("LoadingLearn", 5, 0.5, false)
 end
 
-function navScrollToCalc()
-    gdsGui_container_scrollToBody("MainMenu", "calcPanel")
-end
-
-function navScrollToTop()
-    gdsGui_container_scrollToBody("MainMenu", "timerPanel")
+function navGoToSettings()
+    gdsGui_page_switch("LoadingSettings", 6, 0.5, false)
 end
 
 -------------------------------------------------------------------------------

@@ -466,7 +466,14 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 
 	if button == 1 or globApp.userInput == "touch pressed" then
 
+		local activePage = gdsGui_page_currentName()
 		for i, sb in ipairs (globApp.objects.scrollBars) do
+
+			-- Only process scrollbars belonging to the active page.
+			if sb.page ~= activePage then goto sb_focus_continue end
+
+			-- Ignore touches that fall outside the scrollbar's owner container clip rect.
+			if sb.ownerContainer and not gdsGui_container_isTouchInOwnerContainer(sb, x, y) then goto sb_focus_continue end
 
 			-- Thumb focus: fire haptic once on initial tap, track which touch owns this scrollbar.
 			if x >= sb.bar.x and x <= (sb.bar.x + sb.bar.width) and y >= sb.bar.y and y <= sb.bar.y + sb.bar.height then
@@ -542,6 +549,7 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 
 			end
 
+			::sb_focus_continue::
 		end
 
 	end

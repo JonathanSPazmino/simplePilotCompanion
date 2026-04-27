@@ -340,6 +340,8 @@ function gdsGui_rotaryKnob_pressed(touchId, x, y)
         if knob.page ~= activePageName then goto continue end
         -- Block new presses while this knob is already owned by a touch.
         if knob.focusTouchId ~= nil       then goto continue end
+        -- Ignore touches outside the knob's owner container clip rect.
+        if knob.ownerContainer and not gdsGui_container_isTouchInOwnerContainer(knob, x, y) then goto continue end
 
         local dx          = x - knob.centerX
         local dy          = y - knob.centerY

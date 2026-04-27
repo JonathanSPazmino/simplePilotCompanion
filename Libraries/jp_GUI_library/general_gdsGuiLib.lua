@@ -131,7 +131,14 @@ function gdsGui_general_handleResize()
     for _, obj in ipairs(globApp.objects.rotaryKnobs) do
         if obj.resize and not obj.ownerContainer then obj:resize() end
     end
-    gdsGui_container_resize(gdsGui_page_currentName())
+    -- Re-layout all pages that have containers so off-screen pages stay correct.
+    local seen = {}
+    for _, cont in ipairs(globApp.objects.containers) do
+        if not seen[cont.page] then
+            seen[cont.page] = true
+            gdsGui_container_resize(cont.page)
+        end
+    end
 end
 
 

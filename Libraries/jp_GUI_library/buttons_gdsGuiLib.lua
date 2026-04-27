@@ -166,7 +166,8 @@ function gdsGui_button_pressed(x, y, button, istouch)
     local activePageName = _getActivePageName()
 
     for _, p in ipairs(globApp.objects.buttons) do
-        if p.page == activePageName and p.state ~= globApp.BUTTON_STATES.DEACTIVATED and _isPressed(p, x, y) then
+        if p.page == activePageName and p.state ~= globApp.BUTTON_STATES.DEACTIVATED and _isPressed(p, x, y) and
+           (not p.ownerContainer or gdsGui_container_isTouchInOwnerContainer(p, x, y)) then
             if p.type == "toggle" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED

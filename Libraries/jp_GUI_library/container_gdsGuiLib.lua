@@ -998,6 +998,35 @@ function gdsGui_container_scrollToBody(pageName, containerName)
 end
 
 -- ---------------------------------------------------------------------------
+--  PUBLIC API — container clip hit-test
+-- ---------------------------------------------------------------------------
+
+-- Returns true when (x,y) is within the visible clip rect of obj's owner container.
+-- • body containers  → clip is the page body area (between fixed header and footer).
+-- • header/footer    → clip is the container's own frame.
+-- • no ownerContainer → always true (standalone widget).
+function gdsGui_container_isTouchInOwnerContainer(obj, x, y)
+    if not obj.ownerContainer then return true end
+    for _, cont in ipairs(globApp.objects.containers) do
+        if cont.name == obj.ownerContainer then
+            if cont.pageRole == "body" then
+                local state = globApp.objects.pageScrollStates[cont.page]
+                if state then
+                    local ba = state.bodyArea
+                    return x >= ba.x and x <= ba.x + ba.width and
+                           y >= ba.y and y <= ba.y + ba.height
+                end
+                return true
+            end
+            local f = cont.frame
+            return x >= f.x and x <= f.x + f.width and
+                   y >= f.y and y <= f.y + f.height
+        end
+    end
+    return true
+end
+
+-- ---------------------------------------------------------------------------
 --  PUBLIC API — resize
 -- ---------------------------------------------------------------------------
 
