@@ -291,6 +291,8 @@ function gdsGui_page_loadingDraw ()
 		for i, lp in ipairs (loadingObjects) do 
 
 			--TITLE:--------------------------------------------------
+			local tc = globApp.themeTextColor or {1, 1, 1, 1}
+			love.graphics.setColor(tc[1], tc[2], tc[3], tc[4] or 1)
 			love.graphics.setFont(lp.coreFontSize)
 			love.graphics.printf(lp.title, lp.titleX, lp.titleY, lp.titleWidth, "center", r, sx, sy, ox, oy, kx, ky)
 				--testing only:

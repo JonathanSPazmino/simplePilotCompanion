@@ -178,6 +178,14 @@ function gdsGui_button_pressed(x, y, button, istouch)
                     if p.hapticEnabled then gdsGui_haptics_vibrate() end
                     _executeCallback(p)
                 end
+            elseif p.type == "stickyToggle" then
+                -- Fires on RELEASED→PRESSED only; PRESSED state ignores all input
+                -- so the button stays locked until externally reset via setState.
+                if p.state == globApp.BUTTON_STATES.RELEASED then
+                    p.state = globApp.BUTTON_STATES.PRESSED
+                    if p.hapticEnabled then gdsGui_haptics_vibrate() end
+                    _executeCallback(p)
+                end
             elseif p.type == "pushonoff" then
                 if p.state == globApp.BUTTON_STATES.RELEASED then
                     p.state = globApp.BUTTON_STATES.PRESSED

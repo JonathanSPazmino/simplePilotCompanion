@@ -67,12 +67,55 @@ appSettings = {}
 -- HELPER FUNCTIONS
 -------------------------------------------------------------------------------
 
+-- Syncs all footer nav buttons so the button matching activeDest is PRESSED
+-- and all others are RELEASED, across every page that has a footer.
+local function _navSyncAll(activeDest)
+    for _, pfx in ipairs({"mainMenu", "learn", "settings"}) do
+        gdsGui_button_setState(pfx .. "_navMainMenu", activeDest == "MainMenu" and "pushed" or "released")
+        gdsGui_button_setState(pfx .. "_navLearn",    activeDest == "Learn"    and "pushed" or "released")
+        gdsGui_button_setState(pfx .. "_navSettings", activeDest == "Settings" and "pushed" or "released")
+    end
+end
+
 -- Format seconds into mm:ss
 function format_time(s)
     if s < 0 then s = 0 end
     local minutes = math.floor(s / 60)
     local seconds = math.floor(s % 60)
     return string.format("%02d:%02d", minutes, seconds)
+end
+
+local _THEME_DARK = {
+    app    = {0.20, 0.20, 0.20, 1},
+    bg     = {0.18, 0.18, 0.18, 1},
+    header = {0.25, 0.25, 0.25, 1},
+    border = {0.35, 0.35, 0.35, 1},
+    text   = {1.00, 1.00, 1.00, 1},
+}
+local _THEME_LIGHT = {
+    app    = {0.88, 0.88, 0.88, 1},
+    bg     = {0.82, 0.82, 0.82, 1},
+    header = {0.72, 0.72, 0.72, 1},
+    border = {0.55, 0.55, 0.55, 1},
+    text   = {0.05, 0.10, 0.25, 1},
+}
+
+local function _saveAppSettings()
+    love.filesystem.write("appSettings.lua", table.show(appSettings, "appSettings"))
+end
+
+local function _applyTheme(isDark)
+    local t = isDark and _THEME_DARK or _THEME_LIGHT
+    for i = 1, 4 do globApp.appColor[i] = t.app[i] end
+    globApp.themeTextColor = { t.text[1], t.text[2], t.text[3], t.text[4] }
+    for _, cont in ipairs(globApp.objects.containers) do
+        cont.bgColor     = { t.bg[1],     t.bg[2],     t.bg[3],     t.bg[4] }
+        cont.headerColor = { t.header[1], t.header[2], t.header[3], t.header[4] }
+        cont.borderColor = { t.border[1], t.border[2], t.border[3], t.border[4] }
+    end
+    for _, obj in ipairs(globApp.objects.outputTextBox) do
+        obj.text.color = { t.text[1], t.text[2], t.text[3], t.text[4] }
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -112,19 +155,19 @@ function love.load()
         )
         -- Footer with 3 navigation buttons: mainMenu | learn | settings
         gdsGui_pageFooter_create(prefix .. "_footer", pageName, pageFootH, {0.15, 0.15, 0.20, 1})
-        gdsGui_button_create(prefix .. "_navMainMenu", pageName, "pushonoff",
+        gdsGui_button_create(prefix .. "_navMainMenu", pageName, "stickyToggle",
             "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
             "Sprites/SettingsButton_deactivated.png",
             footBtnX1, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToMainMenu", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
-        gdsGui_button_create(prefix .. "_navLearn", pageName, "pushonoff",
+        gdsGui_button_create(prefix .. "_navLearn", pageName, "stickyToggle",
             "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
             "Sprites/SettingsButton_deactivated.png",
             footBtnX2, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToLearn", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
-        gdsGui_button_create(prefix .. "_navSettings", pageName, "pushonoff",
+        gdsGui_button_create(prefix .. "_navSettings", pageName, "stickyToggle",
             "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
             "Sprites/SettingsButton_deactivated.png",
             footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
@@ -344,28 +387,49 @@ function love.load()
     ---------------------------------------------------------------------------
     -- SETTINGS PAGE CONTAINERS
     ---------------------------------------------------------------------------
+    local settingsFontSize = math.floor(gdsGui_general_smartFontScaling(0.035, 0.045))
+    local settingsBtnW     = 50
+    local settingsBtnH     = 26
+    -- RT anchor: right edge sits 12 px from the container's right edge at 320 px reference
+    local settingsBtnX     = 308
+    local settingsRowY     = 12
+    local settingsLabelW   = 200
+    local settingsLabelH   = 26
+
     gdsGui_container_create("displaySettings", "Settings", "DISPLAY", 32, 0)
-    gdsGui_outputTxtBox_create("displaySettingsContent", "Settings", "Sprites/invisibleBox.png",
-        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
-        math.floor(globApp.safeScreenArea.w * 0.70), 40,
-        {1, 1, 1, 1}, "COMING SOON",
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "displaySettings"
+    gdsGui_outputTxtBox_create("displayModeLabel", "Settings", "Sprites/invisibleBox.png",
+        12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
+        {1, 1, 1, 1}, "DARK / WHITE MODE", settingsFontSize, "displaySettings"
+    )
+    gdsGui_button_create("darkModeToggle", "Settings", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png",
+        settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
+        "darkModeToggled", globApp.BUTTON_STATES.PRESSED, true, "displaySettings"
     )
 
     gdsGui_container_create("soundsSettings", "Settings", "SOUNDS", 32, 0)
-    gdsGui_outputTxtBox_create("soundsSettingsContent", "Settings", "Sprites/invisibleBox.png",
-        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
-        math.floor(globApp.safeScreenArea.w * 0.70), 40,
-        {1, 1, 1, 1}, "COMING SOON",
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "soundsSettings"
+    gdsGui_outputTxtBox_create("soundsLabel", "Settings", "Sprites/invisibleBox.png",
+        12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
+        {1, 1, 1, 1}, "SOUND ON / OFF", settingsFontSize, "soundsSettings"
+    )
+    gdsGui_button_create("soundToggle", "Settings", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png",
+        settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
+        "soundToggled", globApp.BUTTON_STATES.PRESSED, true, "soundsSettings"
     )
 
     gdsGui_container_create("hapticsSettings", "Settings", "HAPTICS", 32, 0)
-    gdsGui_outputTxtBox_create("hapticsSettingsContent", "Settings", "Sprites/invisibleBox.png",
-        math.floor(globApp.safeScreenArea.w * 0.5), 10, "CT",
-        math.floor(globApp.safeScreenArea.w * 0.70), 40,
-        {1, 1, 1, 1}, "COMING SOON",
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)), "hapticsSettings"
+    gdsGui_outputTxtBox_create("hapticsLabel", "Settings", "Sprites/invisibleBox.png",
+        12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
+        {1, 1, 1, 1}, "HAPTICS ON / OFF", settingsFontSize, "hapticsSettings"
+    )
+    gdsGui_button_create("hapticsToggle", "Settings", "toggle",
+        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/timerModeButton_deactivated.png",
+        settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
+        "hapticsToggled", globApp.BUTTON_STATES.PRESSED, true, "hapticsSettings"
     )
 
     ---------------------------------------------------------------------------
@@ -376,6 +440,17 @@ function love.load()
     gdsGui_container_finalise("Settings")
 
     gdsGui_saveLoad_loadFileContents("appSettings.lua")
+
+    if appSettings.darkMode       == nil then appSettings.darkMode       = true end
+    if appSettings.soundEnabled   == nil then appSettings.soundEnabled   = true end
+    if appSettings.hapticsEnabled == nil then appSettings.hapticsEnabled = true end
+
+    _applyTheme(appSettings.darkMode)
+    gdsGui_button_setState("darkModeToggle", appSettings.darkMode       and "pushed" or "released")
+    gdsGui_button_setState("soundToggle",    appSettings.soundEnabled   and "pushed" or "released")
+    gdsGui_button_setState("hapticsToggle",  appSettings.hapticsEnabled and "pushed" or "released")
+
+    _navSyncAll("MainMenu")
 
     local showTC = (appSettings.tcAcceptedVersion ~= APP_VERSION)
     gdsGui_page_switch("IntialBooting", showTC and 4 or 3, 2, false)
@@ -484,6 +559,7 @@ function love.update(dt)
 
             if timer.t <= 3 and timer.t > 0 and not blink.navSent and gdsGui_page_currentName() ~= "MainMenu" then
                 blink.navSent = true
+                _navSyncAll("MainMenu")
                 gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
             end
 
@@ -514,10 +590,10 @@ function love.update(dt)
                 blink.timer = 0
                 blink.state = not blink.state
                 if blink.state then
-                    if love.system.vibrate then
+                    if love.system.vibrate and appSettings.hapticsEnabled then
                         love.system.vibrate(0.1)
                     end
-                    if beepSound then
+                    if beepSound and appSettings.soundEnabled then
                         love.audio.play(beepSound)
                     end
                 end
@@ -735,6 +811,26 @@ function windKnobChanged(pos)
 end
 
 -------------------------------------------------------------------------------
+-- SETTINGS CALLBACKS
+-------------------------------------------------------------------------------
+
+function darkModeToggled(newState)
+    appSettings.darkMode = (newState == globApp.BUTTON_STATES.PRESSED)
+    _applyTheme(appSettings.darkMode)
+    _saveAppSettings()
+end
+
+function soundToggled(newState)
+    appSettings.soundEnabled = (newState == globApp.BUTTON_STATES.PRESSED)
+    _saveAppSettings()
+end
+
+function hapticsToggled(newState)
+    appSettings.hapticsEnabled = (newState == globApp.BUTTON_STATES.PRESSED)
+    _saveAppSettings()
+end
+
+-------------------------------------------------------------------------------
 -- TERMS AND CONDITIONS PAGE
 -------------------------------------------------------------------------------
 
@@ -786,6 +882,7 @@ end
 function tcContinuePressed()
     appSettings.tcAcceptedVersion = APP_VERSION
     love.filesystem.write("appSettings.lua", table.show(appSettings, "appSettings"))
+    _navSyncAll("MainMenu")
     gdsGui_page_switch("LoadingMainMenu", 3, 1, false)
 end
 
@@ -794,14 +891,17 @@ end
 -------------------------------------------------------------------------------
 
 function navGoToMainMenu()
+    _navSyncAll("MainMenu")
     gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
 end
 
 function navGoToLearn()
+    _navSyncAll("Learn")
     gdsGui_page_switch("LoadingLearn", 5, 0.5, false)
 end
 
 function navGoToSettings()
+    _navSyncAll("Settings")
     gdsGui_page_switch("LoadingSettings", 6, 0.5, false)
 end
 

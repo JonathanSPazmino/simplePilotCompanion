@@ -6,6 +6,7 @@
 ]]
 
 function gdsGui_haptics_vibrate()
+    if appSettings and appSettings.hapticsEnabled == false then return end
     if love.system and love.system.vibrate then
         pcall(love.system.vibrate, 0.5)
     end
