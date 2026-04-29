@@ -57,6 +57,9 @@ local _prevKnobPos       = -1
 -- Countdown finished blink state
 local blink = {active = false, timer = 0, state = false, navSent = false}
 
+-- True once the user has scrolled to the bottom of the T&C text at least once.
+local _tcScrolledToBottom = false
+
 -- Load beep sound
 local beepSound
 
@@ -119,6 +122,27 @@ local function _applyTheme(isDark)
 end
 
 -------------------------------------------------------------------------------
+-- DEV-MENU HOOKS (called by the GUI library after dev actions)
+-------------------------------------------------------------------------------
+
+-- Called by the library after erasing all project data so the app can reset
+-- its own persisted settings and bring the T&C screen back on next leave.
+function gdsGui_dev_onDataErased()
+    appSettings = {}
+    love.filesystem.remove("appSettings.lua")
+    _tcScrolledToBottom = false
+    gdsGui_button_setState("tcAgreementToggle", "deactivated")
+    gdsGui_button_setState("tcContinueButton",  "deactivated")
+    gdsGui_outputTxtBox_resetScrollState("tcText")
+end
+
+-- Called by the library to determine which page to land on when leaving the
+-- dev menu. Returns page 4 (T&C) when settings were wiped, else page 3 (MainMenu).
+function gdsGui_dev_getLeaveDestPage()
+    return (appSettings.tcAcceptedVersion ~= APP_VERSION) and 4 or 3
+end
+
+-------------------------------------------------------------------------------
 -- LOVE CALLBACKS
 -------------------------------------------------------------------------------
 function love.load()
@@ -137,8 +161,8 @@ function love.load()
     local pageFootH = pageHdrH
     local hdrCX     = math.floor(globApp.safeScreenArea.w * 0.5)
     local hdrCY     = math.floor(pageHdrH * 0.5)
-    local footBtnW  = math.floor(globApp.safeScreenArea.w * 0.22)
-    local footBtnH  = math.floor(pageFootH * 0.60)
+    local footBtnW  = 50
+    local footBtnH  = 50
     local footBtnY  = math.floor(pageFootH * 0.50)
     local footBtnX1 = math.floor(globApp.safeScreenArea.w * (1/6))
     local footBtnX2 = math.floor(globApp.safeScreenArea.w * (3/6))
@@ -156,20 +180,20 @@ function love.load()
         -- Footer with 3 navigation buttons: mainMenu | learn | settings
         gdsGui_pageFooter_create(prefix .. "_footer", pageName, pageFootH, {0.15, 0.15, 0.20, 1})
         gdsGui_button_create(prefix .. "_navMainMenu", pageName, "stickyToggle",
-            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-            "Sprites/SettingsButton_deactivated.png",
+            "Sprites/button_calculator_pressed.png", "Sprites/button_calculator_released.png",
+            "Sprites/button_calculator_deactivated.png",
             footBtnX1, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToMainMenu", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
         gdsGui_button_create(prefix .. "_navLearn", pageName, "stickyToggle",
-            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-            "Sprites/SettingsButton_deactivated.png",
+            "Sprites/button_learn_pressed.png", "Sprites/button_learn_released.png",
+            "Sprites/button_learn_deactivated.png",
             footBtnX2, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToLearn", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
         gdsGui_button_create(prefix .. "_navSettings", pageName, "stickyToggle",
-            "Sprites/SettingsButtonPushed.png", "Sprites/SettingsButtonReleased.png",
-            "Sprites/SettingsButton_deactivated.png",
+            "Sprites/settings_pressed.png", "Sprites/settings_released.png",
+            "Sprites/settings_deactivated.png",
             footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToSettings", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
@@ -261,7 +285,7 @@ function love.load()
         16, 29, "LT",
         150,
         36, 0,
-        "Sprites/knob_runway_released.png", "Sprites/runwayNumber_pushed.png",
+        "Sprites/knob_runway_released.png", "Sprites/knob_runway_pressed.png",
         "mainKnobChanged",
         36, 0,
         "Sprites/knob_wind_released.png", "Sprites/knob_wind_pushed.png",
@@ -388,13 +412,13 @@ function love.load()
     -- SETTINGS PAGE CONTAINERS
     ---------------------------------------------------------------------------
     local settingsFontSize = math.floor(gdsGui_general_smartFontScaling(0.035, 0.045))
-    local settingsBtnW     = 50
-    local settingsBtnH     = 26
+    local settingsBtnW     = 40
+    local settingsBtnH     = 40
     -- RT anchor: right edge sits 12 px from the container's right edge at 320 px reference
     local settingsBtnX     = 308
     local settingsRowY     = 12
     local settingsLabelW   = 200
-    local settingsLabelH   = 26
+    local settingsLabelH   = 40
 
     gdsGui_container_create("displaySettings", "Settings", "DISPLAY", 32, 0)
     gdsGui_outputTxtBox_create("displayModeLabel", "Settings", "Sprites/invisibleBox.png",
@@ -402,7 +426,7 @@ function love.load()
         {1, 1, 1, 1}, "DARK / WHITE MODE", settingsFontSize, "displaySettings"
     )
     gdsGui_button_create("darkModeToggle", "Settings", "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/buttons_blkWhtMode_dark_released.png", "Sprites/buttons_blkWhtMode_white_pushed.png",
         "Sprites/timerModeButton_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "darkModeToggled", globApp.BUTTON_STATES.PRESSED, true, "displaySettings"
@@ -414,7 +438,7 @@ function love.load()
         {1, 1, 1, 1}, "SOUND ON / OFF", settingsFontSize, "soundsSettings"
     )
     gdsGui_button_create("soundToggle", "Settings", "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
         "Sprites/timerModeButton_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "soundToggled", globApp.BUTTON_STATES.PRESSED, true, "soundsSettings"
@@ -426,11 +450,16 @@ function love.load()
         {1, 1, 1, 1}, "HAPTICS ON / OFF", settingsFontSize, "hapticsSettings"
     )
     gdsGui_button_create("hapticsToggle", "Settings", "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
+        "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
         "Sprites/timerModeButton_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "hapticsToggled", globApp.BUTTON_STATES.PRESSED, true, "hapticsSettings"
     )
+
+    ---------------------------------------------------------------------------
+    -- TERMS AND CONDITIONS PAGE
+    ---------------------------------------------------------------------------
+    createTermsAndConditionsObjects()
 
     ---------------------------------------------------------------------------
     -- FINALISE
@@ -438,6 +467,7 @@ function love.load()
     gdsGui_container_finalise("MainMenu")
     gdsGui_container_finalise("Learn")
     gdsGui_container_finalise("Settings")
+    gdsGui_container_finalise("TermsAndConditions")
 
     gdsGui_saveLoad_loadFileContents("appSettings.lua")
 
@@ -541,6 +571,12 @@ function love.update(dt)
         gdsGui_outputTxtBox_setText("crosswindData", crosswindText)
         _prevWindDir, _prevWindSpeed, _prevWindGust, _prevKnobPos =
             selectedWindDirection, selectedWindSpeed, selectedWindGust, selectedKnobPos
+    end
+
+    -- Unlock T&C agree toggle once user has scrolled to the bottom at least once.
+    if not _tcScrolledToBottom and gdsGui_outputTxtBox_hasReachedBottom("tcText") then
+        _tcScrolledToBottom = true
+        gdsGui_button_setState("tcAgreementToggle", "released")
     end
 
     -- Update GUI
@@ -836,40 +872,61 @@ end
 
 function createTermsAndConditionsObjects()
     local thisPageName = "TermsAndConditions"
-    local tcText = love.filesystem.read("terms.txt") or "Terms and Conditions text not found."
-    local btnW = gdsGui_general_smartScaling("inverse", 0.36, .54, .080, 0.12, 0.22, "width")
-    local btnH = gdsGui_general_smartScaling("inverse", 0.36, .54, .080, 0.12, 0.22, "height")
+    local tcText     = love.filesystem.read("terms.txt") or "Terms and Conditions text not found."
     local libSprites = "Libraries/jp_GUI_library/librarySprites/"
 
-    gdsGui_outputTxtBox_create("tcText", thisPageName, "Sprites/invisibleBox.png",
-        .5, .44, "CC",
-        globApp.safeScreenArea.w * 0.90, globApp.safeScreenArea.h * 0.72,
-        {1, 1, 1, 1}, tcText,
-        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055))
+    local pageHdrH = math.floor(globApp.safeScreenArea.h * 0.10)
+    local pageFootH = pageHdrH
+    local hdrCX    = math.floor(globApp.safeScreenArea.w * 0.5)
+    local hdrCY    = math.floor(pageHdrH * 0.5)
+    local bodyH    = globApp.safeScreenArea.h - pageHdrH - pageFootH
+    -- tcTxtH fills the body: contentH = topGap(5) + tcTxtH + PADDING(8) = bodyH
+    local tcTxtH   = bodyH - 13
+    local tcTxtW   = math.floor(globApp.safeScreenArea.w * 0.90)
+    local tcTxtX   = math.floor(globApp.safeScreenArea.w * 0.5)
+    local footBtnW = 96
+    local footBtnH = 48
+    local footBtnY = math.floor(pageFootH * 0.50)
+    local tcBtnX1  = math.floor(globApp.safeScreenArea.w * (1/3))
+    local tcBtnX2  = math.floor(globApp.safeScreenArea.w * (2/3))
+
+    -- Header
+    gdsGui_pageHeader_create("tc_header", thisPageName, pageHdrH, {0.15, 0.15, 0.20, 1})
+    gdsGui_outputTxtBox_create("tc_pageTitle", thisPageName, "Sprites/invisibleBox.png",
+        hdrCX, hdrCY, "CC",
+        math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
+        {1, 1, 1, 1}, "TERMS AND CONDITIONS", 16, "tc_header"
     )
 
-    -- Toggle: user acknowledgement of agreement
+    -- Body container housing the scrollable T&C text
+    gdsGui_container_create("tcPanel", thisPageName, "", 0, 0)
+    gdsGui_outputTxtBox_create("tcText", thisPageName, "Sprites/invisibleBox.png",
+        tcTxtX, 5, "CT",
+        tcTxtW, tcTxtH,
+        {1, 1, 1, 1}, tcText,
+        math.floor(gdsGui_general_smartFontScaling(0.04, 0.055)),
+        "tcPanel"
+    )
+
+    -- Footer: agree toggle (locked until scroll-to-bottom) + continue button
+    gdsGui_pageFooter_create("tc_footer", thisPageName, pageFootH, {0.15, 0.15, 0.20, 1})
     gdsGui_button_create("tcAgreementToggle", thisPageName,
         "toggle",
-        "Sprites/timerModeButton_down.png",
-        "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png",
-        0.28, 0.91, "CC",
-        btnW, btnH,
-        "tcAgreementToggled", 1)
-
-    -- PushOnOff: continue to main menu (locked until toggle is acknowledged)
+        "Sprites/button_iAgree_pressed.png",
+        "Sprites/button_iAgree_released.png",
+        "Sprites/button_iAgree_deactivated.png",
+        tcBtnX1, footBtnY, "CC", footBtnW, footBtnH,
+        "tcAgreementToggled", globApp.BUTTON_STATES.DEACTIVATED, false, "tc_footer"
+    )
     gdsGui_button_create("tcContinueButton", thisPageName,
         "pushonoff",
-        (libSprites .. "jpLoveGUI_yesConfirmButton_pushed.png"),
-        (libSprites .. "jpLoveGUI_yesConfirmButton_released.png"),
-        (libSprites .. "jpLoveGUI_yesConfirmButton_deactivated.png"),
-        0.72, 0.91, "CC",
-        btnW, btnH,
-        "tcContinuePressed", globApp.BUTTON_STATES.DEACTIVATED)
+        ("Sprites/button_continue_pressed.png"),
+        ("Sprites/button_continue_released.png"),
+        ("Sprites/button_continue_deactivated.png"),
+        tcBtnX2, footBtnY, "CC", footBtnW, footBtnH,
+        "tcContinuePressed", globApp.BUTTON_STATES.DEACTIVATED, false, "tc_footer"
+    )
 end
-
-createTermsAndConditionsObjects()
 
 function tcAgreementToggled(newState)
     if newState == globApp.BUTTON_STATES.PRESSED then

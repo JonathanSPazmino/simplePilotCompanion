@@ -891,6 +891,8 @@ gdsGui_button_pressed (x,y,button,istouch) --runs when clicked on created button
 
 		gdsGui_scrollBar_focus ("mouse", x,y,button,istouch)
 
+		gdsGui_outputTxtBox_scrollbarPressed("mouse", x, y, button, istouch)
+
 		gdsGui_rotaryKnob_pressed ("mouse", x, y)
 
 		-- Mark tables where mouse press started inside the scrollable area.
@@ -938,7 +940,7 @@ function gdsGui_general_mousereleased (x, y, button, istouch, presses)
 
 			gdsGui_rotaryKnob_released ("mouse")
 
-			gdsGui_outputTxtBox_touchReleased (x, y)
+			gdsGui_outputTxtBox_touchReleased ("mouse", x, y)
 			gui_touchReleasedTableScroll (x, y)
 			gdsGui_container_touchReleased(x, y)
 
@@ -1034,6 +1036,8 @@ function gdsGui_general_touchpressed (id, x, y, dx, dy, pressure)
 
 	gdsGui_scrollBar_focus (id, x,y,1,true)
 
+	gdsGui_outputTxtBox_scrollbarPressed(id, x, y, 1, true)
+
 	gdsGui_rotaryKnob_pressed (id, x, y)
 
 	gdsGui_table_rowSelect (x,y,1,true)
@@ -1122,7 +1126,7 @@ function gdsGui_general_touchreleased (id, x, y, dx, dy, pressure)
 
 	gdsGui_rotaryKnob_released (id)
 
-	gdsGui_outputTxtBox_touchReleased (x, y)
+	gdsGui_outputTxtBox_touchReleased (id, x, y)
 	gui_touchReleasedTableScroll (x, y)
 	gdsGui_container_touchReleased(x, y)
 

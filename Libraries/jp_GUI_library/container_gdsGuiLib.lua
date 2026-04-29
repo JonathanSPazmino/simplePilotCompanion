@@ -58,13 +58,15 @@ local function _setObjDimensions(obj, pixW, pixH)
         obj.factorHeight = pixH / baseImg:getHeight()
 
     elseif obj.objectType == "outputTextBox" then
-        obj.frame.width  = pixW
-        obj.frame.height = pixH
+        local sbW = (obj.scrollbar and obj.scrollbar.width) or 0
+        obj.origTotalWidth = pixW
+        obj.frame.width    = pixW - sbW   -- text area excludes scrollbar strip
+        obj.frame.height   = pixH
         if obj.bgSprite and obj.bgSprite.sprite then
             obj.bgSprite.width  = pixW / obj.bgSprite.sprite:getWidth()
             obj.bgSprite.height = pixH / obj.bgSprite.sprite:getHeight()
         end
-        obj.text.width             = pixW * 0.8
+        obj.text.width             = obj.frame.width * 0.8
         obj.text.maxTextLineCount  = findMaxNumOfLinesNeeded(obj.text.font, obj.text.width, obj.text.text)
         obj.text.height            = gdsGui_general_returnFontInfo(obj.text.font, "height")
         obj.text.combinedTxtHeight = obj.text.height * obj.text.maxTextLineCount
@@ -135,6 +137,7 @@ local function _initObjForContainer(obj, natX, natY)
             line.isVisible = (line.y + line.height > obj.frame.y) and
                              (line.y < obj.frame.y + obj.frame.height)
         end
+        gdsGui_outputTxtBox_syncScrollbarGeometry(obj)
 
     elseif obj.objectType == "scrollBar" then
         local top  = math.floor(natY)
@@ -176,6 +179,7 @@ local function _setObjY(obj, newY)
             line.isVisible = (line.y + line.height > obj.frame.y) and
                              (line.y < obj.frame.y + obj.frame.height)
         end
+        gdsGui_outputTxtBox_syncScrollbarGeometry(obj)
 
     elseif obj.objectType == "scrollBar" then
         local top = math.floor(newY)
@@ -207,6 +211,7 @@ local function _setObjX(obj, newX)
         for _, line in ipairs(obj.text.lines) do
             line.x = obj.text.x
         end
+        gdsGui_outputTxtBox_syncScrollbarGeometry(obj)
 
     elseif obj.objectType == "rotaryKnob" then
         obj.x       = math.floor(newX)
@@ -633,23 +638,12 @@ local function _drawWidget(obj, clip)
     if ot == "button" then
         local img = obj.images[obj.state]
         if img then
+            love.graphics.setColor(1, 1, 1, 1)
             love.graphics.draw(img, obj.myx, obj.myy, 0, obj.factorWidth, obj.factorHeight)
         end
 
     elseif ot == "outputTextBox" then
-        if obj.bgSprite and obj.bgSprite.sprite then
-            love.graphics.draw(obj.bgSprite.sprite, obj.bgSprite.x, obj.bgSprite.y,
-                               0, obj.bgSprite.width, obj.bgSprite.height)
-        end
-        love.graphics.setFont(obj.text.font)
-        for _, line in ipairs(obj.text.lines) do
-            if line.isVisible then
-                love.graphics.setColor(obj.text.color[1], obj.text.color[2],
-                                       obj.text.color[3], obj.text.color[4] or 1)
-                love.graphics.printf(line.text, line.x, line.y, line.width, "center")
-            end
-        end
-        love.graphics.reset()
+        gdsGui_outputTxtBox_drawSingle(obj, clip)
 
     elseif ot == "scrollBar" then
         gdsGui_scrollBar_drawSingle(obj)
@@ -730,7 +724,9 @@ local function _isTouchOnWidget(obj, x, y)
     if ot == "button" then
         return x >= obj.myx and x <= obj.myMaxx and y >= obj.myy and y <= obj.myMaxy
     elseif ot == "outputTextBox" then
-        if not (x >= obj.frame.x and x <= obj.frame.x + obj.frame.width and
+        -- Include the scrollbar strip (right of text frame) in the hit area
+        local sbW = (obj.scrollbar and obj.scrollbar.width) or 0
+        if not (x >= obj.frame.x and x <= obj.frame.x + obj.frame.width + sbW and
                 y >= obj.frame.y and y <= obj.frame.y + obj.frame.height) then
             return false
         end

@@ -465,7 +465,14 @@ function gdsGui_dev_leave ()
 
 	globApp.devTapCounter = 0
 
-	gdsGui_page_switch ("leavingDevPage", 3, safeLoadTimer, false)
+	-- Allow the app to override the destination page (e.g. to show T&C after
+	-- a data-erase). Falls back to page 3 (MainMenu) if no hook is defined.
+	local destPage = 3
+	if _G["gdsGui_dev_getLeaveDestPage"] then
+		destPage = _G["gdsGui_dev_getLeaveDestPage"]() or 3
+	end
+
+	gdsGui_page_switch ("leavingDevPage", destPage, safeLoadTimer, false)
 
 end
 
@@ -694,6 +701,9 @@ function gdsGui_dev_deleteAllProjectData ()
    end
    --ovewrite data file with empty table:
    gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
+
+   -- notify app layer so it can wipe its own settings (T&C, preferences, etc.)
+   if _G["gdsGui_dev_onDataErased"] then _G["gdsGui_dev_onDataErased"]() end
 
    --returns to devMainMenu after deleting all project data:
    gdsGui_dev_openMainMenu ()
