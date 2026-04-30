@@ -263,7 +263,7 @@ function love.load()
 
     -- Text boxes
     gdsGui_outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
-        16, 29, "LT",
+        16, 50, "LT",
         128, 59,
         colorYellow, utcPrintString, 12, "timerPanel"
     )
@@ -296,12 +296,12 @@ function love.load()
     -- Text boxes
     gdsGui_outputTxtBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
         83, 205, "CT",
-        147, 70,
+        150, 90,
         colorYellow, "WIND: 36000KT", 11, "windPanel"
     )
     gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
         250, 211, "CT",
-        90, 41,
+        150, 41,
         colorYellow, "wind:\nspeed  gust", 12, "windPanel"
     )
 
@@ -651,6 +651,7 @@ function love.draw()
     drawPages()
     gdsGui_draw()
     drawAlarmOverlay()
+    gdsGui_page_drawUnsafeAreaOverlay()
 end
 
 -------------------------------------------------------------------------------

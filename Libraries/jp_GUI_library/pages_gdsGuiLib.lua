@@ -439,7 +439,6 @@ function gdsGui_page_drawBackground ()
 		if pg.index == globApp.currentPageIndex then
 
 			love.graphics.setColor(globApp.appColor[1], globApp.appColor[2], globApp.appColor[3], globApp.appColor[4])
-
 			love.graphics.rectangle("fill", globApp.safeScreenArea.x, globApp.safeScreenArea.y, globApp.safeScreenArea.w, globApp.safeScreenArea.h)
 
 			love.graphics.reset ()
@@ -447,6 +446,26 @@ function gdsGui_page_drawBackground ()
 		end
 
 	end
+
+end
+
+-- Painted last so no widget content scrolled into the unsafe margin stays visible.
+function gdsGui_page_drawUnsafeAreaOverlay ()
+
+	local sa = globApp.safeScreenArea
+	if sa.x == 0 and sa.y == 0 then return end
+
+	local ww, wh = love.graphics.getDimensions()
+	love.graphics.setColor(0, 0, 0, 1)
+	if sa.y > 0 then
+		love.graphics.rectangle("fill", 0, 0, ww, sa.y)
+		love.graphics.rectangle("fill", 0, sa.yh, ww, wh - sa.yh)
+	end
+	if sa.x > 0 then
+		love.graphics.rectangle("fill", 0, 0, sa.x, wh)
+		love.graphics.rectangle("fill", sa.xw, 0, ww - sa.xw, wh)
+	end
+	love.graphics.reset ()
 
 end
 

@@ -781,17 +781,19 @@ function gdsGui_table_draw (pageName)
 
 
 
-					--MASKS:
-						love.graphics.setColor(globApp.appColor[1], globApp.appColor[2], globApp.appColor[3], globApp.appColor[4])
-						--TOP
-						love.graphics.rectangle("fill", x.masks.top.x, x.masks.top.y, x.masks.top.width, x.masks.top.height, rx, ry, segments)
-						--LEFT
-						love.graphics.rectangle("fill", x.masks.left.x, x.masks.left.y, x.masks.left.width, x.masks.left.height, rx, ry, segments)
-						--RIGHT
-						love.graphics.rectangle("fill", x.masks.right.x, x.masks.right.y, x.masks.right.width, x.masks.right.height, rx, ry, segments)
-						--BOTTOM
-						love.graphics.rectangle("fill", x.masks.bottom.x, x.masks.bottom.y, x.masks.bottom.width, x.masks.bottom.height, rx, ry, segments)
-						
+					--MASKS (skipped for container-owned tables; the container provides clipping):
+						if not x.ownerContainer then
+							love.graphics.setColor(globApp.appColor[1], globApp.appColor[2], globApp.appColor[3], globApp.appColor[4])
+							--TOP
+							love.graphics.rectangle("fill", x.masks.top.x, x.masks.top.y, x.masks.top.width, x.masks.top.height, rx, ry, segments)
+							--LEFT
+							love.graphics.rectangle("fill", x.masks.left.x, x.masks.left.y, x.masks.left.width, x.masks.left.height, rx, ry, segments)
+							--RIGHT
+							love.graphics.rectangle("fill", x.masks.right.x, x.masks.right.y, x.masks.right.width, x.masks.right.height, rx, ry, segments)
+							--BOTTOM
+							love.graphics.rectangle("fill", x.masks.bottom.x, x.masks.bottom.y, x.masks.bottom.width, x.masks.bottom.height, rx, ry, segments)
+						end
+
 						love.graphics.reset ()
 						
 

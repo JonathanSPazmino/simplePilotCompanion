@@ -574,8 +574,8 @@ function gdsGui_dev_createMenuObjects()
 		"CC"--[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
 		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"width" )--[[width]],
 		gdsGui_general_smartScaling ("inverse", 0.36, .54, .080, 0.12, 0.22,"height" )--[[height]],
-		"gdsGui_dev_openEraseDataPage"--[[callback function]], 
-		screenTestButtonInitialState --[[button initial status]])
+		"gdsGui_dev_openEraseDataPage"--[[callback function]],
+		1--[[button initial status]])
 
 	gdsGui_button_create("aboutAppPage"--[[ButtonLable]], 
 		thisPageName--[[page]], 
@@ -648,48 +648,90 @@ gdsGui_dev_createScreenTestObjects ()
 function gdsGui_dev_createEraseDataObjects ()
 
 	local thisPageName = "devEraseDataConfirmationPage"
+	local devSA        = globApp.safeScreenArea
+	local pageHdrH     = math.floor(devSA.h * 0.10)
+	local pageFootH    = pageHdrH
+	local bodyH        = devSA.h - pageHdrH - pageFootH
+	local contTitleH   = 32   -- container title-strip pixel height
+	local bodyGap      = 8    -- PADDING constant matching container lib
 
-	gdsGui_button_create("returnDevMenu"--[[ButtonLable]], 
-		thisPageName--[[page]],
-		"pushonoff"--[[buttonType]],
-		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_pushed.png")--[[sprite: pushed]],
-		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_released.png")--[[sprite: released]],
-		(devSpritesPath .. "jpLoveGUI_returnPrevPageButton_deactivated.png")--[[sprite:deactivated]],
-		.035--[[x coordinate]],
-		.043--[[y coordinate]],
-		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"width" )--[[width]],
-		gdsGui_general_smartScaling ("inverse", .07, .13, .07, .13, 1,"height" )--[[height]],
-		"gdsGui_dev_openMainMenu"--[[callback function]],
-		1--[[button initial status]])
+	-- ── Page header ─────────────────────────────────────────────────────────
+	gdsGui_pageHeader_create("eraseData_header", thisPageName, pageHdrH, {0.15, 0.15, 0.20, 1})
+	gdsGui_outputTxtBox_create("eraseData_pageTitle", thisPageName, "Sprites/invisibleBox.png",
+		math.floor(devSA.w * 0.5), math.floor(pageHdrH * 0.5), "CC",
+		math.floor(devSA.w * 0.70), math.floor(pageHdrH * 0.5),
+		{1, 1, 1, 1}, "ERASE DATA", 16, "eraseData_header"
+	)
 
-	gdsGui_button_create("yesConfirmation"--[[ButtonLable]], 
-		thisPageName--[[page]],
-		"pushonoff"--[[buttonType]],
-		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_pushed.png")--[[sprite: pushed]],
-		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_released.png")--[[sprite: released]],
-		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_deactivated.png")--[[sprite:deactivated]],
-		.15--[[x coordinate]],
-		.70--[[y coordinate]],
-		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
-		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
-		"gdsGui_dev_deleteAllProjectData"--[[callback function]],
-		1--[[button initial status]])
+	-- ── Data table container ─────────────────────────────────────────────────
+	-- Container 1 holds the data table. A same-size invisible placeholder
+	-- outputTxtBox is added so the container auto-sizes to fit the table area.
+	local tblContH      = math.floor(bodyH * 0.60)
+	local tblInnerH     = tblContH - contTitleH - bodyGap
+	gdsGui_container_create("eraseDataTableCont", thisPageName, "DATA TO BE ERASED", contTitleH, 0)
+	gdsGui_outputTxtBox_create("eraseData_tblSpacer", thisPageName, "Sprites/invisibleBox.png",
+		math.floor(devSA.w * 0.5), bodyGap, "CT",
+		math.floor(devSA.w * 0.90), tblInnerH - bodyGap,
+		{0, 0, 0, 0}, "", 8, "eraseDataTableCont"
+	)
 
-	gdsGui_button_create("noConfirmation"--[[ButtonLable]], 
-		thisPageName--[[page]],
-		"pushonoff"--[[buttonType]],
-		(devSpritesPath .. "jpLoveGUI_noConfirmButton_pushed.png")--[[sprite: pushed]],
-		(devSpritesPath .. "jpLoveGUI_noConfirmButton_released.png")--[[sprite: released]],
-		(devSpritesPath .. "jpLoveGUI_noConfirmButton_deactivated.png")--[[sprite:deactivated]],
-		.60--[[x coordinate]],
-		.70--[[y coordinate]],
-		"LT"--[[anchorPoint string= LT,LC,LB,CT,CC,CB,RT,RC,RB]],
-		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"width" )--[[width]],
-		gdsGui_general_smartScaling ("inverse", 0.20, .30, .044, 0.066, 0.22,"height" )--[[height]],
-		"gdsGui_dev_openMainMenu"--[[callback function]],
-		1--[[button initial status]])
+	-- Data table (fraction-positioned to overlap the container content area)
+	local tblTopPx   = pageHdrH + contTitleH + bodyGap * 2
+	local tblHeightPx = tblInnerH - bodyGap * 2
+	local eraseDataRows = {
+		{ ID="EDR1", ["Data"]="Project saves",  ["Status"]="ERASED" },
+		{ ID="EDR2", ["Data"]="App settings",   ["Status"]="ERASED" },
+		{ ID="EDR3", ["Data"]="T&C acceptance", ["Status"]="RESET"  },
+	}
+	gdsGui_table_create(
+		"eraseDataTable", thisPageName, "static", eraseDataRows,
+		0.5,
+		(tblTopPx + tblHeightPx * 0.5) / devSA.h,
+		0.85,
+		tblHeightPx / devSA.h,
+		"CC",
+		nil, {},
+		gdsGui_general_smartFontScaling(0.025, 0.032),
+		{ [1] = "Data", [2] = "Status" },
+		false,
+		"eraseDataTableCont"
+	)
+
+	-- ── Warning container ────────────────────────────────────────────────────
+	local warnInnerH = math.floor(bodyH * 0.40) - contTitleH - bodyGap
+	gdsGui_container_create("eraseDataWarnCont", thisPageName, "WARNING", contTitleH, 0)
+	gdsGui_outputTxtBox_create("eraseData_warning", thisPageName, "Sprites/invisibleBox.png",
+		math.floor(devSA.w * 0.5), bodyGap, "CT",
+		math.floor(devSA.w * 0.85), warnInnerH - bodyGap,
+		{1, 0.80, 0.10, 1},
+		"All stored data will be permanently erased and app defaults will be applied. This action cannot be undone.",
+		gdsGui_general_smartFontScaling(0.025, 0.030),
+		"eraseDataWarnCont"
+	)
+
+	-- ── Page footer with YES / NO buttons ───────────────────────────────────
+	local footBtnW  = 96
+	local footBtnH  = 48
+	local footBtnY  = math.floor(pageFootH * 0.50)
+	gdsGui_pageFooter_create("eraseData_footer", thisPageName, pageFootH, {0.15, 0.15, 0.20, 1})
+	gdsGui_button_create("yesConfirmation", thisPageName, "pushonoff",
+		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_pushed.png"),
+		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_released.png"),
+		(devSpritesPath .. "jpLoveGUI_yesConfirmButton_deactivated.png"),
+		math.floor(devSA.w * (1/3)), footBtnY, "CC",
+		footBtnW, footBtnH,
+		"gdsGui_dev_deleteAllProjectData", 1, false, "eraseData_footer"
+	)
+	gdsGui_button_create("noConfirmation", thisPageName, "pushonoff",
+		(devSpritesPath .. "jpLoveGUI_noConfirmButton_pushed.png"),
+		(devSpritesPath .. "jpLoveGUI_noConfirmButton_released.png"),
+		(devSpritesPath .. "jpLoveGUI_noConfirmButton_deactivated.png"),
+		math.floor(devSA.w * (2/3)), footBtnY, "CC",
+		footBtnW, footBtnH,
+		"gdsGui_dev_openMainMenu", 1, false, "eraseData_footer"
+	)
+
+	gdsGui_container_finalise(thisPageName)
 end
 
 gdsGui_dev_createEraseDataObjects ()
