@@ -3,8 +3,6 @@
     Description: Core entry file for LÖVE app with timer and GUI integration
 ]]
 
-io.stdout:setvbuf("no")
-
 -------------------------------------------------------------------------------
 -- LIBRARIES LOAD
 -------------------------------------------------------------------------------

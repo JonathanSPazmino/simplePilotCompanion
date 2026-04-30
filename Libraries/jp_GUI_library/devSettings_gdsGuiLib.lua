@@ -418,6 +418,8 @@ end
 
 function gdsGui_dev_openByEightTap (x,y,button,istouch)
 
+	if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then return end
+
 	if globApp.developerMode == true then
 
 		if (button == 1 or globApp.userInput == "tap") and globApp.currentPageIndex == 2 and globApp.devTapCounter < 8 and globApp.fourDevTap == false then
