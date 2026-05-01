@@ -389,15 +389,25 @@ local function _drawScrollbarWidget(tb)
 	local sb = tb.scrollbar
 	if not sb or not sb.visible then return end
 
+	local isDark = not globApp.themeTextColor or globApp.themeTextColor[1] > 0.5
+
 	-- Track background
-	love.graphics.setColor(0.2, 0.2, 0.2, 0.55)
+	if isDark then
+		love.graphics.setColor(0.2, 0.2, 0.2, 0.55)
+	else
+		love.graphics.setColor(0.60, 0.60, 0.60, 0.45)
+	end
 	love.graphics.rectangle("fill", sb.track.x, sb.track.y, sb.track.w, sb.track.h)
 
 	-- Thumb
 	if sb.thumb.isDragging then
-		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.setColor(isDark and 1 or 0.10, isDark and 1 or 0.10, isDark and 1 or 0.10, 1)
 	else
-		love.graphics.setColor(0.65, 0.65, 0.65, 0.9)
+		if isDark then
+			love.graphics.setColor(0.65, 0.65, 0.65, 0.9)
+		else
+			love.graphics.setColor(0.25, 0.25, 0.25, 0.9)
+		end
 	end
 	love.graphics.rectangle("fill", sb.thumb.x, sb.thumb.y, sb.thumb.w, sb.thumb.h, 2, 2)
 

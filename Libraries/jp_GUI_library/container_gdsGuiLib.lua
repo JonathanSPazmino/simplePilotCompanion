@@ -45,6 +45,12 @@ local PADDING    = 8    -- px gap around/between objects inside a container
 local MIN_ITEM_W = 120  -- px: min item width before layout adds a second column
 
 -- ---------------------------------------------------------------------------
+--  PAGE SCROLLBAR CONSTANTS
+-- ---------------------------------------------------------------------------
+local PAGE_SB_WIDTH     = 10  -- px: floating indicator strip on right edge of body
+local PAGE_SB_MIN_THUMB = 16  -- px: minimum thumb height
+
+-- ---------------------------------------------------------------------------
 --  PRIVATE — resize a widget to explicit pixel dimensions
 -- ---------------------------------------------------------------------------
 
@@ -279,6 +285,63 @@ end
 local function _pageScrollLimits(state)
     local minOff = math.min(0, state.bodyArea.height - state.contentHeight)
     return minOff, 0
+end
+
+-- Returns true when the page body content exceeds the body viewport height.
+local function _isPageScrollbarVisible(state)
+    return state ~= nil and
+           math.min(0, state.bodyArea.height - state.contentHeight) < -0.5
+end
+
+-- Returns the scrollbar track and thumb geometry for a page scroll state.
+local function _pageScrollbarGeometry(state)
+    local ba     = state.bodyArea
+    local trackH = ba.height
+    local thumbH = math.max(PAGE_SB_MIN_THUMB,
+                            math.floor(trackH * ba.height / state.contentHeight))
+    local maxScrollDist = state.contentHeight - ba.height
+    local scrollFrac    = (maxScrollDist > 0)
+                          and ((-state.scroll.offsetY) / maxScrollDist) or 0
+    scrollFrac = math.max(0, math.min(1, scrollFrac))
+    return {
+        x      = ba.x + ba.width - PAGE_SB_WIDTH,
+        y      = ba.y,
+        w      = PAGE_SB_WIDTH,
+        h      = trackH,
+        thumbY = ba.y + scrollFrac * (trackH - thumbH),
+        thumbH = thumbH,
+    }
+end
+
+-- Returns true when (x, y) is within the page scrollbar strip.
+local function _isTouchInPageScrollbar(state, x, y)
+    if not _isPageScrollbarVisible(state) then return false end
+    local g = _pageScrollbarGeometry(state)
+    return x >= g.x and x <= g.x + g.w and y >= g.y and y <= g.y + g.h
+end
+
+-- Draws the page-level scrollbar as a floating overlay over the body area.
+local function _drawPageScrollbar(state)
+    if not _isPageScrollbarVisible(state) then return end
+    local g      = _pageScrollbarGeometry(state)
+    local isDark = not globApp.themeTextColor or globApp.themeTextColor[1] > 0.5
+    love.graphics.setScissor()
+    if isDark then
+        love.graphics.setColor(0.15, 0.15, 0.15, 0.45)
+    else
+        love.graphics.setColor(0.60, 0.60, 0.60, 0.45)
+    end
+    love.graphics.rectangle("fill", g.x, g.y, g.w, g.h)
+    local isDragging = state.pageSB and state.pageSB.isDragging
+    if isDragging then
+        love.graphics.setColor(isDark and 1 or 0.05, isDark and 1 or 0.05, isDark and 1 or 0.05, 1)
+    elseif isDark then
+        love.graphics.setColor(0.85, 0.85, 0.85, 0.80)
+    else
+        love.graphics.setColor(0.20, 0.20, 0.20, 0.80)
+    end
+    love.graphics.rectangle("fill", g.x, g.thumbY, g.w, g.thumbH)
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 -- Move all body containers on a page by the current page scroll offset.
@@ -608,6 +671,11 @@ local function _layoutPage(pageName)
                     isDragging         = false,
                     touchStartedInside = false,
                 },
+                pageSB = {
+                    isDragging   = false,
+                    dragStartY   = 0,
+                    dragStartOff = 0,
+                },
             }
         else
             local state = globApp.objects.pageScrollStates[pageName]
@@ -617,6 +685,9 @@ local function _layoutPage(pageName)
             state.scroll.offsetY   = math.max(minOff, math.min(0, state.scroll.offsetY))
             state.scroll.velocityY = 0
             state.scroll.phase     = "idle"
+            if not state.pageSB then
+                state.pageSB = { isDragging = false, dragStartY = 0, dragStartOff = 0 }
+            end
             _applyPageScroll(pageName)
         end
     end
@@ -986,23 +1057,38 @@ function gdsGui_container_touchScroll(id, x, y, dx, dy)
 
     -- ── Vertical page scroll ─────────────────────────────────────────────────
     local state = globApp.objects.pageScrollStates[activePage]
-    if state and state.scroll.touchStartedInside then
-        local s              = state.scroll
+    if state then
         local minOff, maxOff = _pageScrollLimits(state)
-        if minOff < -0.5 then
-            s.isDragging = true
-            s.phase      = "coasting"
-            local newOff = s.offsetY + dy
-            if newOff < minOff then
-                newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
-            elseif newOff > maxOff then
-                newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
+        if state.pageSB and state.pageSB.isDragging then
+            -- Scrollbar thumb drag: convert thumb delta to scroll offset delta.
+            if minOff < -0.5 then
+                local g          = _pageScrollbarGeometry(state)
+                local thumbTrack = g.h - g.thumbH
+                if thumbTrack > 0 then
+                    local ratio  = (state.contentHeight - state.bodyArea.height) / thumbTrack
+                    local newOff = state.scroll.offsetY - dy * ratio
+                    state.scroll.offsetY   = math.max(minOff, math.min(maxOff, newOff))
+                    state.scroll.velocityY = 0
+                    _applyPageScroll(activePage)
+                end
             end
-            s.offsetY = newOff
-            if frameDt > 0 then
-                s.velocityY = s.velocityY * 0.5 + (dy / frameDt) * 0.5
+        elseif state.scroll.touchStartedInside then
+            local s = state.scroll
+            if minOff < -0.5 then
+                s.isDragging = true
+                s.phase      = "coasting"
+                local newOff = s.offsetY + dy
+                if newOff < minOff then
+                    newOff = minOff + (newOff - minOff) * CONT_RUBBER_BAND
+                elseif newOff > maxOff then
+                    newOff = maxOff + (newOff - maxOff) * CONT_RUBBER_BAND
+                end
+                s.offsetY = newOff
+                if frameDt > 0 then
+                    s.velocityY = s.velocityY * 0.5 + (dy / frameDt) * 0.5
+                end
+                _applyPageScroll(activePage)
             end
-            _applyPageScroll(activePage)
         end
     end
 
@@ -1036,6 +1122,7 @@ function gdsGui_container_touchReleased(x, y)
     -- ── Vertical page scroll release ─────────────────────────────────────────
     local state = globApp.objects.pageScrollStates[activePage]
     if state then
+        if state.pageSB then state.pageSB.isDragging = false end
         local s = state.scroll
         if s.isDragging then
             s.isDragging         = false
@@ -1097,6 +1184,15 @@ function gdsGui_container_markTouchStart(x, y)
     local ba = state.bodyArea
     if not (x >= ba.x and x <= ba.x + ba.width and
             y >= ba.y and y <= ba.y + ba.height) then
+        return
+    end
+
+    -- Page scrollbar drag takes priority over content scroll.
+    if _isTouchInPageScrollbar(state, x, y) then
+        state.pageSB.isDragging   = true
+        state.pageSB.dragStartY   = y
+        state.pageSB.dragStartOff = state.scroll.offsetY
+        state.scroll.velocityY    = 0
         return
     end
 
@@ -1189,6 +1285,9 @@ function gdsGui_container_draw(pageName)
             _drawContainer(cont, bodyClip)
         end
     end
+
+    -- Page-level scrollbar overlay: drawn above body content, below fixed zones.
+    if state then _drawPageScrollbar(state) end
 
     -- Pass 2: fixed pageHeader / pageFooter containers (no clip).
     for _, cont in ipairs(globApp.objects.containers) do

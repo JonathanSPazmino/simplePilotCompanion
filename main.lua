@@ -212,44 +212,44 @@ function love.load()
     -- Buttons (26×26 px square; acknowlegeAlarm wider at 96×59)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", 283, 95, "RT",
-        26, 26,
+        "Sprites/resetButton_deactivated.png", 279, 105, "RT",
+        33, 33,
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", 230, 95, "CT",
-        26, 26,
+        "Sprites/pausePlayButton_deactivated.png", 225, 105, "CT",
+        33, 33,
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", 177, 95, "LT",
-        26, 26,
+        "Sprites/timerModeButton_deactivated.png", 170, 105, "LT",
+        33, 33,
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 145, 29, "LT",
-        26, 26,
+        "Sprites/invisibleBox.png", 130, 50, "LT",
+        33, 33,
         "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 145, 95, "LT",
-        26, 26,
+        "Sprites/invisibleBox.png", 130, 105, "LT",
+        33, 33,
         "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 289, 29, "LT",
-        26, 26,
+        "Sprites/invisibleBox.png", 284, 50, "LT",
+        33, 33,
         "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 289, 95, "LT",
-        26, 26,
+        "Sprites/invisibleBox.png", 284, 105, "LT",
+        33, 33,
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
@@ -267,8 +267,8 @@ function love.load()
     )
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
-        278, 29, "RT",
-        96, 59,
+        293, 50, "RT",
+        120, 59,
         colorYellow, text, 12, "timerPanel"
     )
 
@@ -280,8 +280,8 @@ function love.load()
     -- Rotary knob (150×150 px square)
     gdsGui_rotaryKnob_createDual(
         "runwayKnob", "MainMenu",
-        16, 29, "LT",
-        150,
+        16, 100, "LT",
+        160,
         36, 0,
         "Sprites/knob_runway_released.png", "Sprites/knob_runway_pressed.png",
         "mainKnobChanged",
@@ -293,23 +293,23 @@ function love.load()
 
     -- Text boxes
     gdsGui_outputTxtBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
-        83, 205, "CT",
-        150, 90,
-        colorYellow, "WIND: 36000KT", 11, "windPanel"
+        100, 20, "CT",
+        170, 90,
+        colorYellow, "WIND: 36000KT", 12, "windPanel"
     )
     gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
-        250, 211, "CT",
+        253, 20, "CT",
         150, 41,
         colorYellow, "wind:\nspeed  gust", 12, "windPanel"
     )
 
     -- Scrollbars (30×176 px)
     gdsGui_scrollBar_create("windSpeed", "MainMenu",
-        224, 29, 30, 176, "CT", 5, 46, 1,
+        224, 55, 30, 176, "CT", 5, 46, 1,
         "independent", "vertical", 46, "windSpeedChanged",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
     gdsGui_scrollBar_create("windGust", "MainMenu",
-        275, 29, 30, 176, "CT", 5, 61, 1,
+        275, 55, 30, 176, "CT", 5, 61, 1,
         "independent", "vertical", 61, "windGustChanged",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
 
@@ -341,10 +341,10 @@ function love.load()
     if selectedTime > 0 then
         requiredFPM = math.ceil(selectedAltitude / selectedTime)
     end
-    local requiredFPMtext = "req:\n" .. requiredFPM .. " fpm"
+    local requiredFPMtext = "req fpm:\n" .. requiredFPM
     gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
-        106, 146, "CC",
-        64, 59,
+        110, 146, "CC",
+        80, 59,
         colorYellow, requiredFPMtext, 12, "calcPanel"
     )
     local requiredDistance = 0
@@ -354,7 +354,7 @@ function love.load()
     local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
     gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
         211, 146, "CC",
-        64, 59,
+        80, 59,
         colorYellow, requiredDistText, 12, "calcPanel"
     )
 
@@ -433,7 +433,7 @@ function love.load()
     gdsGui_container_create("soundsSettings", "Settings", "SOUNDS", 32, 0)
     gdsGui_outputTxtBox_create("soundsLabel", "Settings", "Sprites/invisibleBox.png",
         12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
-        {1, 1, 1, 1}, "SOUND ON / OFF", settingsFontSize, "soundsSettings"
+        {1, 1, 1, 1}, "TIMER SOUND ON / OFF", settingsFontSize, "soundsSettings"
     )
     gdsGui_button_create("soundToggle", "Settings", "toggle",
         "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
@@ -445,7 +445,7 @@ function love.load()
     gdsGui_container_create("hapticsSettings", "Settings", "HAPTICS", 32, 0)
     gdsGui_outputTxtBox_create("hapticsLabel", "Settings", "Sprites/invisibleBox.png",
         12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
-        {1, 1, 1, 1}, "HAPTICS ON / OFF", settingsFontSize, "hapticsSettings"
+        {1, 1, 1, 1}, "VIBRATION ON / OFF", settingsFontSize, "hapticsSettings"
     )
     gdsGui_button_create("hapticsToggle", "Settings", "toggle",
         "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
@@ -532,7 +532,7 @@ function love.update(dt)
     if altChanged or timeChanged then
         local requiredFPM = 0
         if selectedTime > 0 then requiredFPM = math.ceil(selectedAltitude / selectedTime) end
-        gdsGui_outputTxtBox_setText("requiredFPM", "req:\n" .. requiredFPM .. " fpm")
+        gdsGui_outputTxtBox_setText("requiredFPM", "req fpm:\n" .. requiredFPM)
     end
 
     if altChanged or degreeChanged then
@@ -893,7 +893,7 @@ function createTermsAndConditionsObjects()
     gdsGui_pageHeader_create("tc_header", thisPageName, pageHdrH, {0.15, 0.15, 0.20, 1})
     gdsGui_outputTxtBox_create("tc_pageTitle", thisPageName, "Sprites/invisibleBox.png",
         hdrCX, hdrCY, "CC",
-        math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
+        math.floor(globApp.safeScreenArea.w * 0.90), math.floor(pageHdrH * 0.5),
         {1, 1, 1, 1}, "TERMS AND CONDITIONS", 16, "tc_header"
     )
 
