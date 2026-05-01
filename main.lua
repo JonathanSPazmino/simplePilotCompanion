@@ -53,7 +53,7 @@ local _prevWindGust      = -1
 local _prevKnobPos       = -1
 
 -- Countdown finished blink state
-local blink = {active = false, timer = 0, state = false, navSent = false}
+local blink = {active = false, timer = 0, state = false, navSent = false, navigatingToMain = false}
 
 -- True once the user has scrolled to the bottom of the T&C text at least once.
 local _tcScrolledToBottom = false
@@ -212,62 +212,62 @@ function love.load()
     -- Buttons (26×26 px square; acknowlegeAlarm wider at 96×59)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", 279, 105, "RT",
+        "Sprites/resetButton_deactivated.png", 269, 105, "RT",
         33, 33,
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
         "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", 225, 105, "CT",
+        "Sprites/pausePlayButton_deactivated.png", 215, 105, "CT",
         33, 33,
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
         "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", 170, 105, "LT",
+        "Sprites/timerModeButton_deactivated.png", 160, 105, "LT",
         33, 33,
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 130, 50, "LT",
+        "Sprites/invisibleBox.png", 120, 50, "LT",
         33, 33,
         "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 130, 105, "LT",
+        "Sprites/invisibleBox.png", 120, 105, "LT",
         33, 33,
         "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 284, 50, "LT",
+        "Sprites/invisibleBox.png", 274, 50, "LT",
         33, 33,
         "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 284, 105, "LT",
+        "Sprites/invisibleBox.png", 274, 105, "LT",
         33, 33,
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
         "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 278, 29, "RT",
+        "Sprites/invisibleBox.png", 268, 29, "RT",
         96, 59,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
     -- Text boxes
     gdsGui_outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
-        16, 50, "LT",
+        6, 50, "LT",
         128, 59,
         colorYellow, utcPrintString, 12, "timerPanel"
     )
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
     gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
-        293, 50, "RT",
+        283, 50, "RT",
         120, 59,
         colorYellow, text, 12, "timerPanel"
     )
@@ -298,9 +298,9 @@ function love.load()
         colorYellow, "WIND: 36000KT", 12, "windPanel"
     )
     gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
-        253, 20, "CT",
-        150, 41,
-        colorYellow, "wind:\nspeed  gust", 12, "windPanel"
+        253, 10, "CT",
+        150, 60,
+        colorYellow, "WIND:\n\nSPEED   GUST", 12, "windPanel"
     )
 
     -- Scrollbars (30×176 px)
@@ -319,29 +319,29 @@ function love.load()
     gdsGui_container_create("calcPanel", "MainMenu", "CALCULATIONS", 32, 0)
 
     -- Text boxes
-    local textAltSlctd = "Alt:\n" .. selectedAltitude .. " FT"
+    local textAltSlctd = "SLCTD ALT:\n" .. selectedAltitude .. " FT"
     gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
-        160, 47, "CC",
-        64, 47,
+        164, 47, "CC",
+        90, 47,
         colorYellow, textAltSlctd, 12, "calcPanel"
     )
-    local textTimeSlctd = "time:\n" .. selectedTime .. " min"
+    local textTimeSlctd = "SLCTD TIME:\n" .. selectedTime .. " min"
     gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
-        48, 47, "CC",
-        64, 47,
+        52, 47, "CC",
+        90, 47,
         colorYellow, textTimeSlctd, 12, "calcPanel"
     )
-    local textDegreeSlctd = "deg:\n" .. string.format("%.2f", selectedDegree) .. "°"
+    local textDegreeSlctd = "SLCTD DEG:\n" .. string.format("%.2f", selectedDegree) .. "°"
     gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
-        262, 47, "CC",
-        64, 47,
+        267, 47, "CC",
+        90, 47,
         colorYellow, textDegreeSlctd, 12, "calcPanel"
     )
     local requiredFPM = 0
     if selectedTime > 0 then
         requiredFPM = math.ceil(selectedAltitude / selectedTime)
     end
-    local requiredFPMtext = "req fpm:\n" .. requiredFPM
+    local requiredFPMtext = "REQ FPM:\n" .. requiredFPM
     gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
         110, 146, "CC",
         80, 59,
@@ -351,7 +351,7 @@ function love.load()
     if selectedDegree > 0 and selectedAltitude > 0 then
         requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
     end
-    local requiredDistText = "req dist:\n" .. requiredDistance .. " nm"
+    local requiredDistText = "REQ DIST:\n" .. requiredDistance .. " nm"
     gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
         211, 146, "CC",
         80, 59,
@@ -413,7 +413,7 @@ function love.load()
     local settingsBtnW     = 40
     local settingsBtnH     = 40
     -- RT anchor: right edge sits 12 px from the container's right edge at 320 px reference
-    local settingsBtnX     = 308
+    local settingsBtnX     = 300
     local settingsRowY     = 12
     local settingsLabelW   = 200
     local settingsLabelH   = 40
@@ -451,7 +451,7 @@ function love.load()
         "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
         "Sprites/timerModeButton_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
-        "hapticsToggled", globApp.BUTTON_STATES.PRESSED, true, "hapticsSettings"
+        "hapticsToggled", globApp.BUTTON_STATES.PRESSED, false, "hapticsSettings"
     )
 
     ---------------------------------------------------------------------------
@@ -518,21 +518,21 @@ function love.update(dt)
     local degreeChanged = selectedDegree   ~= _prevDegree
 
     if altChanged then
-        gdsGui_outputTxtBox_setText("selectedAltitudeBox", "Alt:\n" .. selectedAltitude .. " FT")
+        gdsGui_outputTxtBox_setText("selectedAltitudeBox", "SLCTD ALT:\n" .. selectedAltitude .. " FT")
     end
 
     if timeChanged then
-        gdsGui_outputTxtBox_setText("selectedTimeBox", "time:\n" .. selectedTime .. " min")
+        gdsGui_outputTxtBox_setText("selectedTimeBox", "SLCTD TIME\n" .. selectedTime .. " min")
     end
 
     if degreeChanged then
-        gdsGui_outputTxtBox_setText("selectedDegreeBox", "deg:\n" .. string.format("%.2f", selectedDegree) .. "°")
+        gdsGui_outputTxtBox_setText("selectedDegreeBox", "SLCTD DEG:\n" .. string.format("%.2f", selectedDegree) .. "°")
     end
 
     if altChanged or timeChanged then
         local requiredFPM = 0
         if selectedTime > 0 then requiredFPM = math.ceil(selectedAltitude / selectedTime) end
-        gdsGui_outputTxtBox_setText("requiredFPM", "req fpm:\n" .. requiredFPM)
+        gdsGui_outputTxtBox_setText("requiredFPM", "REQ FPM:\n" .. requiredFPM)
     end
 
     if altChanged or degreeChanged then
@@ -540,7 +540,7 @@ function love.update(dt)
         if selectedDegree > 0 and selectedAltitude > 0 then
             requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
         end
-        gdsGui_outputTxtBox_setText("requiredDistance", "req dist:\n" .. requiredDistance .. " nm")
+        gdsGui_outputTxtBox_setText("requiredDistance", "REQ DIST:\n" .. requiredDistance .. " nm")
     end
 
     _prevAltitude, _prevTime, _prevDegree = selectedAltitude, selectedTime, selectedDegree
@@ -591,18 +591,23 @@ function love.update(dt)
         else -- COUNT DOWN
             timer.t = math.max(0, timer.t - dt)
 
-            if timer.t <= 3 and timer.t > 0 and not blink.navSent and gdsGui_page_currentName() ~= "MainMenu" then
-                blink.navSent = true
+            if timer.t <= 3 and timer.t > 0 and not blink.navSent
+               and globApp.currentPageIndex ~= 2
+               and gdsGui_page_currentName() ~= "MainMenu" then
+                blink.navSent          = true
+                blink.navigatingToMain = true
                 _navSyncAll("MainMenu")
                 gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
             end
 
             if timer.t == 0 then
                 timer.running = false
-                blink.active = true
+                blink.active  = true
                 gdsGui_button_setState("acknowlegeAlarm", "released")
                 alarmButtonsDeactivation()
-                if gdsGui_page_currentName() ~= "MainMenu" then
+                if gdsGui_page_currentName() ~= "MainMenu" and globApp.currentPageIndex ~= 2 then
+                    blink.navigatingToMain = true
+                    _navSyncAll("MainMenu")
                     gdsGui_page_switch("LoadingMainMenu", 3, 0.5, false)
                 end
                 for _, btn in ipairs(globApp.objects.buttons) do
@@ -616,9 +621,8 @@ function love.update(dt)
 
     -- Handle blinking overlay with vibration and beep
     if blink.active then
-        if gdsGui_page_currentName() ~= "MainMenu" then
-            acknowlegeAlarm()
-        else
+        if gdsGui_page_currentName() == "MainMenu" then
+            blink.navigatingToMain = false
             blink.timer = blink.timer + dt
             if blink.timer > 0.5 then
                 blink.timer = 0
@@ -632,7 +636,11 @@ function love.update(dt)
                     end
                 end
             end
+        elseif not blink.navigatingToMain then
+            -- User navigated away from MainMenu while alarm was active — dismiss it
+            acknowlegeAlarm()
         end
+        -- if navigatingToMain is true and page is still loading, wait for arrival
     end
 
     --handles play button state during countdown based on timer
@@ -678,8 +686,9 @@ end
 
 function acknowlegeAlarm()
     if blink.active then
-        blink.active = false
-        blink.state = false
+        blink.active          = false
+        blink.state           = false
+        blink.navigatingToMain = false
         if beepSound then
             love.audio.stop(beepSound)
         end
@@ -721,18 +730,19 @@ function resetRHTopTimer()
     else
         timer.t = 0
     end
-    blink.active = false
-    blink.navSent = false
+    blink.active          = false
+    blink.navSent         = false
+    blink.navigatingToMain = false
     for _, btn in ipairs(globApp.objects.buttons) do
         if btn.name == "pauseRHTopTimer" and btn.state == globApp.BUTTON_STATES.PRESSED then
-btn.state = globApp.BUTTON_STATES.RELEASED
+            btn.state = globApp.BUTTON_STATES.RELEASED
         end
     end
-    
 end
 
 function pauseRHTopTimer()
     timer.running = not timer.running
+    if timer.running then blink.navSent = false end
 end
 
 function incrsMinRHTopTimer()
@@ -857,11 +867,17 @@ end
 
 function soundToggled(newState)
     appSettings.soundEnabled = (newState == globApp.BUTTON_STATES.PRESSED)
+    if appSettings.soundEnabled and beepSound then
+        love.audio.play(beepSound)
+    end
     _saveAppSettings()
 end
 
 function hapticsToggled(newState)
     appSettings.hapticsEnabled = (newState == globApp.BUTTON_STATES.PRESSED)
+    if appSettings.hapticsEnabled and love.system.vibrate then
+        love.system.vibrate(0.1)
+    end
     _saveAppSettings()
 end
 

@@ -49,6 +49,22 @@ local MIN_ITEM_W = 120  -- px: min item width before layout adds a second column
 -- ---------------------------------------------------------------------------
 local PAGE_SB_WIDTH     = 10  -- px: floating indicator strip on right edge of body
 local PAGE_SB_MIN_THUMB = 16  -- px: minimum thumb height
+local PAGE_SB_STEP      = 60  -- px scrolled per arrow button click
+
+-- Arrow-button sprites (desktop only); loaded lazily on first draw.
+local _pageSBImgs
+
+local function _ensurePageSBImgs()
+    if _pageSBImgs then return end
+    if globApp.OperatingSystem == "iOS" or globApp.OperatingSystem == "Android" then return end
+    local p = "Libraries/jp_GUI_library/librarySprites/"
+    _pageSBImgs = {
+        upActive     = love.graphics.newImage(p .. "jpLoveGUI_UpArrowButton_pushed.png"),
+        upInactive   = love.graphics.newImage(p .. "jpLoveGUI_UpArrowButton_released.png"),
+        downActive   = love.graphics.newImage(p .. "jpLoveGUI_downArrowButton_pushed.png"),
+        downInactive = love.graphics.newImage(p .. "jpLoveGUI_downArrowButton_released.png"),
+    }
+end
 
 -- ---------------------------------------------------------------------------
 --  PRIVATE — resize a widget to explicit pixel dimensions
@@ -295,21 +311,28 @@ end
 
 -- Returns the scrollbar track and thumb geometry for a page scroll state.
 local function _pageScrollbarGeometry(state)
-    local ba     = state.bodyArea
-    local trackH = ba.height
-    local thumbH = math.max(PAGE_SB_MIN_THUMB,
-                            math.floor(trackH * ba.height / state.contentHeight))
+    local ba        = state.bodyArea
+    local isDesktop = globApp.OperatingSystem ~= "iOS" and globApp.OperatingSystem ~= "Android"
+    local btnH      = isDesktop and PAGE_SB_WIDTH or 0
+    local trackH    = ba.height - 2 * btnH
+    local thumbH    = math.max(PAGE_SB_MIN_THUMB,
+                               math.floor(trackH * ba.height / state.contentHeight))
     local maxScrollDist = state.contentHeight - ba.height
     local scrollFrac    = (maxScrollDist > 0)
                           and ((-state.scroll.offsetY) / maxScrollDist) or 0
     scrollFrac = math.max(0, math.min(1, scrollFrac))
+    local trackY = ba.y + btnH
     return {
-        x      = ba.x + ba.width - PAGE_SB_WIDTH,
-        y      = ba.y,
-        w      = PAGE_SB_WIDTH,
-        h      = trackH,
-        thumbY = ba.y + scrollFrac * (trackH - thumbH),
-        thumbH = thumbH,
+        x         = ba.x + ba.width - PAGE_SB_WIDTH,
+        y         = ba.y,
+        w         = PAGE_SB_WIDTH,
+        h         = ba.height,
+        trackY    = trackY,
+        trackH    = trackH,
+        thumbY    = trackY + scrollFrac * (trackH - thumbH),
+        thumbH    = thumbH,
+        btnH      = btnH,
+        isDesktop = isDesktop,
     }
 end
 
@@ -326,12 +349,16 @@ local function _drawPageScrollbar(state)
     local g      = _pageScrollbarGeometry(state)
     local isDark = not globApp.themeTextColor or globApp.themeTextColor[1] > 0.5
     love.graphics.setScissor()
+
+    -- Track
     if isDark then
         love.graphics.setColor(0.15, 0.15, 0.15, 0.45)
     else
         love.graphics.setColor(0.60, 0.60, 0.60, 0.45)
     end
-    love.graphics.rectangle("fill", g.x, g.y, g.w, g.h)
+    love.graphics.rectangle("fill", g.x, g.trackY, g.w, g.trackH)
+
+    -- Thumb
     local isDragging = state.pageSB and state.pageSB.isDragging
     if isDragging then
         love.graphics.setColor(isDark and 1 or 0.05, isDark and 1 or 0.05, isDark and 1 or 0.05, 1)
@@ -341,6 +368,24 @@ local function _drawPageScrollbar(state)
         love.graphics.setColor(0.20, 0.20, 0.20, 0.80)
     end
     love.graphics.rectangle("fill", g.x, g.thumbY, g.w, g.thumbH)
+
+    -- Arrow buttons (desktop only)
+    if g.isDesktop then
+        _ensurePageSBImgs()
+        if _pageSBImgs then
+            local sb   = state.pageSB
+            local upAct  = sb and sb.upBtn   and sb.upBtn.isActive
+            local dnAct  = sb and sb.downBtn and sb.downBtn.isActive
+            local upImg  = upAct  and _pageSBImgs.upActive   or _pageSBImgs.upInactive
+            local dnImg  = dnAct  and _pageSBImgs.downActive or _pageSBImgs.downInactive
+            local upW, upH = upImg:getDimensions()
+            local dnW, dnH = dnImg:getDimensions()
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.draw(upImg, g.x, g.y,             0, g.w / upW, g.btnH / upH)
+            love.graphics.draw(dnImg, g.x, g.y + g.h - g.btnH, 0, g.w / dnW, g.btnH / dnH)
+        end
+    end
+
     love.graphics.setColor(1, 1, 1, 1)
 end
 
@@ -675,6 +720,8 @@ local function _layoutPage(pageName)
                     isDragging   = false,
                     dragStartY   = 0,
                     dragStartOff = 0,
+                    upBtn        = { isActive = false },
+                    downBtn      = { isActive = false },
                 },
             }
         else
@@ -686,7 +733,13 @@ local function _layoutPage(pageName)
             state.scroll.velocityY = 0
             state.scroll.phase     = "idle"
             if not state.pageSB then
-                state.pageSB = { isDragging = false, dragStartY = 0, dragStartOff = 0 }
+                state.pageSB = {
+                    isDragging = false, dragStartY = 0, dragStartOff = 0,
+                    upBtn = { isActive = false }, downBtn = { isActive = false },
+                }
+            elseif not state.pageSB.upBtn then
+                state.pageSB.upBtn  = { isActive = false }
+                state.pageSB.downBtn = { isActive = false }
             end
             _applyPageScroll(pageName)
         end
@@ -1063,7 +1116,7 @@ function gdsGui_container_touchScroll(id, x, y, dx, dy)
             -- Scrollbar thumb drag: convert thumb delta to scroll offset delta.
             if minOff < -0.5 then
                 local g          = _pageScrollbarGeometry(state)
-                local thumbTrack = g.h - g.thumbH
+                local thumbTrack = g.trackH - g.thumbH
                 if thumbTrack > 0 then
                     local ratio  = (state.contentHeight - state.bodyArea.height) / thumbTrack
                     local newOff = state.scroll.offsetY - dy * ratio
@@ -1122,7 +1175,11 @@ function gdsGui_container_touchReleased(x, y)
     -- ── Vertical page scroll release ─────────────────────────────────────────
     local state = globApp.objects.pageScrollStates[activePage]
     if state then
-        if state.pageSB then state.pageSB.isDragging = false end
+        if state.pageSB then
+            state.pageSB.isDragging = false
+            if state.pageSB.upBtn   then state.pageSB.upBtn.isActive   = false end
+            if state.pageSB.downBtn then state.pageSB.downBtn.isActive  = false end
+        end
         local s = state.scroll
         if s.isDragging then
             s.isDragging         = false
@@ -1187,12 +1244,31 @@ function gdsGui_container_markTouchStart(x, y)
         return
     end
 
-    -- Page scrollbar drag takes priority over content scroll.
+    -- Page scrollbar drag/click takes priority over content scroll.
     if _isTouchInPageScrollbar(state, x, y) then
-        state.pageSB.isDragging   = true
-        state.pageSB.dragStartY   = y
-        state.pageSB.dragStartOff = state.scroll.offsetY
-        state.scroll.velocityY    = 0
+        local g      = _pageScrollbarGeometry(state)
+        local minOff = math.min(0, state.bodyArea.height - state.contentHeight)
+        if g.isDesktop and y < g.trackY then
+            -- Up button: scroll up one step
+            state.pageSB.upBtn.isActive = true
+            state.scroll.offsetY   = math.min(0, state.scroll.offsetY + PAGE_SB_STEP)
+            state.scroll.velocityY = 0
+            state.scroll.phase     = "idle"
+            _applyPageScroll(activePage)
+        elseif g.isDesktop and y >= g.trackY + g.trackH then
+            -- Down button: scroll down one step
+            state.pageSB.downBtn.isActive = true
+            state.scroll.offsetY   = math.max(minOff, state.scroll.offsetY - PAGE_SB_STEP)
+            state.scroll.velocityY = 0
+            state.scroll.phase     = "idle"
+            _applyPageScroll(activePage)
+        else
+            -- Track: start thumb drag
+            state.pageSB.isDragging   = true
+            state.pageSB.dragStartY   = y
+            state.pageSB.dragStartOff = state.scroll.offsetY
+            state.scroll.velocityY    = 0
+        end
         return
     end
 
