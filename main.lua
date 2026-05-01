@@ -384,7 +384,7 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "UTC CLOCK\nShows current UTC time and date, updated each second.\n\nTIMER MODE\nPress the mode button to switch between COUNT UP and COUNT DOWN.\n\nCOUNT DOWN\nUse the +/- buttons to set minutes (left pair) and seconds (right pair). Press play to start. The app navigates here 3 seconds before zero. Alarm sounds and screen flashes at zero. Press ACK to dismiss.\n\nCOUNT UP\nPress play to start counting from zero.\n\nRESET\nReturns COUNT DOWN to the last saved time, or COUNT UP to zero.",
+        "UTC CLOCK\nShows current UTC date and time, updated each second.\n\nNAVIGATION\nUse the tab bar at the bottom to switch between Main Menu, Learn, and Settings.\n\nTIMER MODE\nPress the mode button to switch between COUNT UP and COUNT DOWN.\n\nCOUNT DOWN\nUse the +/- buttons to set minutes (left pair) and seconds (right pair). Press play/pause to start. The app navigates here automatically 3 seconds before zero. Alarm sounds and the screen flashes red at zero. Press ACK to dismiss.\n\nCOUNT UP\nPress play/pause to start counting from zero.\n\nRESET\nStops the timer. In COUNT DOWN, returns to the last set time. In COUNT UP, returns to zero.",
         learnFontSize, "timerLearn"
     )
 
@@ -393,7 +393,7 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "CROSSWIND CALCULATOR\nCalculates headwind and crosswind components from runway and wind data.\n\nRUNWAY HEADING\nRotate the outer knob ring to set runway heading in 10 degree steps.\n\nWIND DIRECTION\nRotate the inner knob ring to set the reported wind direction in 10 degree steps.\n\nWIND SPEED & GUST\nLeft scrollbar sets wind speed (kt). Right scrollbar sets wind gust (kt).\n\nRESULT\nHeadwind and crosswind components are shown below the knob.",
+        "CROSSWIND CALCULATOR\nCalculates headwind and crosswind components from runway heading and wind data.\n\nRUNWAY HEADING\nRotate the outer knob ring to select runway (RWY 01-36) one increment at a time.\n\nWIND DIRECTION\nRotate the inner knob ring to set reported wind direction in 10 degree steps (010-360).\n\nWIND SPEED\nLeft scrollbar sets steady wind speed from 0 to 45 kt.\n\nWIND GUST\nRight scrollbar sets gust speed. Range adjusts dynamically from current speed up to 60 kt.\n\nRESULT\nShows runway, sustained crosswind and headwind/tailwind components. When a gust is set, also shows gust crosswind components and gust factor.",
         learnFontSize, "windLearn"
     )
 
@@ -402,8 +402,17 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "DESCENT CALCULATOR\nCalculates required vertical rate and distance to begin descent.\n\nTIME\nLeft scrollbar sets time to reach target altitude (minutes).\n\nALTITUDE\nCenter scrollbar sets target altitude to lose (feet).\n\nANGLE\nRight scrollbar sets desired descent angle (degrees).\n\nRESULTS\nRequired descent rate (FPM) and start-of-descent distance (nm) are displayed.",
+        "DESCENT CALCULATOR\nCalculates required vertical rate and horizontal distance to begin descent.\n\nTIME\nLeft scrollbar sets time to lose altitude (0-25 min).\n\nALTITUDE\nCenter scrollbar sets altitude to lose (0-51,000 ft in 1,000 ft steps).\n\nANGLE\nRight scrollbar sets desired descent angle (0-8.00 degrees in 0.25 degree steps).\n\nRESULTS\nREQ FPM — required descent rate in feet per minute.\nREQ DIST — start-of-descent distance in nautical miles.",
         learnFontSize, "calcLearn"
+    )
+
+    gdsGui_container_create("settingsLearn", "Learn", "SETTINGS", 32, 0)
+    gdsGui_outputTxtBox_create("settingsLearnContent", "Learn", "Sprites/invisibleBox.png",
+        learnTxtX, 10, "CT",
+        learnTxtW, 180,
+        {1, 1, 1, 1},
+        "ACCESS\nTap the gear icon in the navigation bar to open Settings.\n\nDARK / LIGHT MODE\nToggle between dark background with white text and light background with dark text. Your preference is saved between sessions.\n\nTIMER SOUND\nEnable or disable the beep that sounds when the countdown timer reaches zero.\n\nHAPTICS\nEnable or disable vibration on button taps and at timer alarm.",
+        learnFontSize, "settingsLearn"
     )
 
     ---------------------------------------------------------------------------
@@ -658,6 +667,7 @@ function love.draw()
     gdsGui_draw()
     drawAlarmOverlay()
     gdsGui_page_drawUnsafeAreaOverlay()
+    gdsGui_container_drawFixed(gdsGui_page_currentName())
 end
 
 -------------------------------------------------------------------------------

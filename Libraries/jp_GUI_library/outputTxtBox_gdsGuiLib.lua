@@ -445,10 +445,10 @@ function gdsGui_outputTxtBox_drawSingle(tb, outerClip)
 	love.graphics.setFont(tb.text.font)
 	love.graphics.setScissor(tb.frame.x, tb.frame.y, tb.frame.width, tb.frame.height)
 
+	love.graphics.setColor(tb.text.color[1], tb.text.color[2],
+	                       tb.text.color[3], tb.text.color[4] or 1)
 	for _, line in ipairs(tb.text.lines) do
 		if line.isVisible then
-			love.graphics.setColor(tb.text.color[1], tb.text.color[2],
-			                       tb.text.color[3], tb.text.color[4] or 1)
 			love.graphics.printf(line.text, line.x, line.y, line.width, "center")
 		end
 	end

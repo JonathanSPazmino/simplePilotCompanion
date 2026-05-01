@@ -1365,12 +1365,18 @@ function gdsGui_container_draw(pageName)
     -- Page-level scrollbar overlay: drawn above body content, below fixed zones.
     if state then _drawPageScrollbar(state) end
 
-    -- Pass 2: fixed pageHeader / pageFooter containers (no clip).
+    love.graphics.reset()
+end
+
+-- Draws only the fixed header/footer containers for a page.
+-- Called from love.draw() AFTER gdsGui_page_drawUnsafeAreaOverlay() so the
+-- header/footer always renders on top of the unsafe-area mask, covering the
+-- overlap pixels and eliminating any gap at the safe-area boundary.
+function gdsGui_container_drawFixed(pageName)
     for _, cont in ipairs(globApp.objects.containers) do
         if cont.page == pageName and cont.pageRole ~= "body" then
             _drawContainer(cont, nil)
         end
     end
-
     love.graphics.reset()
 end

@@ -450,21 +450,27 @@ function gdsGui_page_drawBackground ()
 end
 
 -- Painted last so no widget content scrolled into the unsafe margin stays visible.
+-- Each edge is checked independently so landscape mode (sa.y==0 but sa.yh<wh)
+-- still gets a bottom bar covering the home-indicator strip.
+-- Each bar bleeds OVERLAY_OVERLAP pixels into the safe area so there is no
+-- sub-pixel gap at the header/footer boundary; gdsGui_container_drawFixed()
+-- redraws the header/footer on top, covering the overlap.
+local OVERLAY_OVERLAP = 4
+
 function gdsGui_page_drawUnsafeAreaOverlay ()
 
 	local sa = globApp.safeScreenArea
-	if sa.x == 0 and sa.y == 0 then return end
-
 	local ww, wh = love.graphics.getDimensions()
+
+	-- Desktop: safe area fills the whole window — nothing to mask.
+	if sa.x == 0 and sa.y == 0 and sa.xw >= ww and sa.yh >= wh then return end
+
+	local ov = OVERLAY_OVERLAP
 	love.graphics.setColor(0, 0, 0, 1)
-	if sa.y > 0 then
-		love.graphics.rectangle("fill", 0, 0, ww, sa.y)
-		love.graphics.rectangle("fill", 0, sa.yh, ww, wh - sa.yh)
-	end
-	if sa.x > 0 then
-		love.graphics.rectangle("fill", 0, 0, sa.x, wh)
-		love.graphics.rectangle("fill", sa.xw, 0, ww - sa.xw, wh)
-	end
+	if sa.y > 0    then love.graphics.rectangle("fill", 0,          0,           ww,              sa.y + ov)       end
+	if sa.yh < wh  then love.graphics.rectangle("fill", 0,          sa.yh - ov,  ww,              wh - sa.yh + ov) end
+	if sa.x > 0    then love.graphics.rectangle("fill", 0,          0,           sa.x + ov,       wh)              end
+	if sa.xw < ww  then love.graphics.rectangle("fill", sa.xw - ov, 0,           ww - sa.xw + ov, wh)              end
 	love.graphics.reset ()
 
 end

@@ -141,11 +141,11 @@ end
     Draws all buttons that belong to the specified page.
 ]]
 function gdsGui_button_draw(pageName)
+    love.graphics.setColor(1, 1, 1, 1)
     for _, button in ipairs(globApp.objects.buttons) do
         if button.page == pageName and not button.ownerContainer then
             local imageToDraw = button.images[button.state]
             if imageToDraw then
-                love.graphics.setColor(1, 1, 1, 1)
                 love.graphics.draw(imageToDraw, button.myx, button.myy, 0, button.factorWidth, button.factorHeight)
             end
         end

@@ -95,6 +95,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 					t.upButton.factorWidth = t.upButton.width / t.imgButtonUpArrow_active:getWidth ()
 					t.upButton.factorHeight = t.upButton.height / t.imgButtonUpArrow_active:getHeight ()
 					t.upButton.isActive = false
+				t.upButton.centeredX = t.upButton.x + (t.upButton.width  - t._dimUpW   * t.upButton.factorWidth)  / 2
+				t.upButton.centeredY = t.upButton.y + (t.upButton.height - t._dimUpH   * t.upButton.factorHeight) / 2
 
 				t.downButton = {}
 					t.downButton.width = t.frame.width
@@ -104,6 +106,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 					t.downButton.factorWidth = t.downButton.width / t.imgButtonDownArrow_active:getWidth ()
 					t.downButton.factorHeight = t.downButton.height / t.imgButtonDownArrow_active:getHeight ()
 					t.downButton.isActive = false
+				t.downButton.centeredX = t.downButton.x + (t.downButton.width  - t._dimDownW * t.downButton.factorWidth)  / 2
+				t.downButton.centeredY = t.downButton.y + (t.downButton.height - t._dimDownH * t.downButton.factorHeight) / 2
 
 				t.frame.y = t.upButton.y + t.upButton.height
 					t.frame.height = t.downButton.y - t.frame.y
@@ -127,6 +131,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 					t.leftButton.factorWidth = t.leftButton.width / t.imgButtonLeftArrow_active:getWidth ()
 					t.leftButton.factorHeight = t.leftButton.height / t.imgButtonLeftArrow_active:getHeight ()
 					t.leftButton.isActive = false
+				t.leftButton.centeredX = t.leftButton.x + (t.leftButton.width  - t._dimLeftW  * t.leftButton.factorWidth)  / 2
+				t.leftButton.centeredY = t.leftButton.y + (t.leftButton.height - t._dimLeftH  * t.leftButton.factorHeight) / 2
 
 				t.rightButton = {}
 					t.rightButton.width = t.frame.height
@@ -136,6 +142,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 					t.rightButton.factorWidth = t.rightButton.width / t.imgButtonRightArrow_active:getWidth ()
 					t.rightButton.factorHeight = t.rightButton.height / t.imgButtonRightArrow_active:getHeight ()
 					t.rightButton.isActive = false
+				t.rightButton.centeredX = t.rightButton.x + (t.rightButton.width  - t._dimRightW * t.rightButton.factorWidth)  / 2
+				t.rightButton.centeredY = t.rightButton.y + (t.rightButton.height - t._dimRightH * t.rightButton.factorHeight) / 2
 
 					t.frame.x = t.leftButton.x + t.leftButton.width
 				t.frame.width = t.rightButton.x - t.frame.x
@@ -202,7 +210,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 				self.upButton.factorWidth = self.upButton.width / self.imgButtonUpArrow_active:getWidth ()
 				self.upButton.factorHeight = self.upButton.height / self.imgButtonUpArrow_active:getHeight ()
 				self.upButton.isActive = false
-
+				self.upButton.centeredX = self.upButton.x + (self.upButton.width  - self._dimUpW   * self.upButton.factorWidth)  / 2
+				self.upButton.centeredY = self.upButton.y + (self.upButton.height - self._dimUpH   * self.upButton.factorHeight) / 2
 
 				self.downButton.width = self.frame.width
 				self.downButton.height = self.frame.width
@@ -211,6 +220,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 				self.downButton.factorWidth = self.downButton.width / self.imgButtonDownArrow_active:getWidth ()
 				self.downButton.factorHeight = self.downButton.height / self.imgButtonDownArrow_active:getHeight ()
 				self.downButton.isActive = false
+				self.downButton.centeredX = self.downButton.x + (self.downButton.width  - self._dimDownW * self.downButton.factorWidth)  / 2
+				self.downButton.centeredY = self.downButton.y + (self.downButton.height - self._dimDownH * self.downButton.factorHeight) / 2
 
 				self.frame.y = self.upButton.y + self.upButton.height
 				self.frame.height = self.downButton.y - self.frame.y
@@ -224,6 +235,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 				self.leftButton.factorWidth = self.leftButton.width / self.imgButtonLeftArrow_active:getWidth ()
 				self.leftButton.factorHeight = self.leftButton.height / self.imgButtonLeftArrow_active:getHeight ()
 				self.leftButton.isActive = false
+				self.leftButton.centeredX = self.leftButton.x + (self.leftButton.width  - self._dimLeftW  * self.leftButton.factorWidth)  / 2
+				self.leftButton.centeredY = self.leftButton.y + (self.leftButton.height - self._dimLeftH  * self.leftButton.factorHeight) / 2
 
 				self.rightButton.width = self.frame.height
 				self.rightButton.height = self.frame.height
@@ -232,6 +245,8 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 				self.rightButton.factorWidth = self.rightButton.width / self.imgButtonRightArrow_active:getWidth ()
 				self.rightButton.factorHeight = self.rightButton.height / self.imgButtonRightArrow_active:getHeight ()
 				self.rightButton.isActive = false
+				self.rightButton.centeredX = self.rightButton.x + (self.rightButton.width  - self._dimRightW * self.rightButton.factorWidth)  / 2
+				self.rightButton.centeredY = self.rightButton.y + (self.rightButton.height - self._dimRightH * self.rightButton.factorHeight) / 2
 
 				self.frame.x = self.leftButton.x + self.leftButton.width
 				self.frame.width = self.rightButton.x - self.frame.x
@@ -284,7 +299,6 @@ function gdsGui_scrollBar_drawSingle(x)
 		love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
 	end
 	if x.bar.img then
-		love.graphics.setColor(1, 1, 1, 1)
 		love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
 	else
 		love.graphics.setColor(x.isFocused and {0, 0, 1, 1} or {0, 1, 0, 1})
@@ -294,19 +308,13 @@ function gdsGui_scrollBar_drawSingle(x)
 	if x.orientation == "vertical" then
 		if x.upButton then
 			love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
-			local imgW, imgH = x._dimUpW, x._dimUpH
 			local img = x.upButton.isActive and x.imgButtonUpArrow_active or x.imgButtonUpArrow_inactive
-			local cx = x.upButton.x + (x.upButton.width  - imgW * x.upButton.factorWidth)  / 2
-			local cy = x.upButton.y + (x.upButton.height - imgH * x.upButton.factorHeight) / 2
-			love.graphics.draw(img, cx, cy, 0, x.upButton.factorWidth, x.upButton.factorHeight)
+			love.graphics.draw(img, x.upButton.centeredX, x.upButton.centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight)
 		end
 		if x.downButton then
 			love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
-			local imgW, imgH = x._dimDownW, x._dimDownH
 			local img = x.downButton.isActive and x.imgButtonDownArrow_active or x.imgButtonDownArrow_inactive
-			local cx = x.downButton.x + (x.downButton.width  - imgW * x.downButton.factorWidth)  / 2
-			local cy = x.downButton.y + (x.downButton.height - imgH * x.downButton.factorHeight) / 2
-			love.graphics.draw(img, cx, cy, 0, x.downButton.factorWidth, x.downButton.factorHeight)
+			love.graphics.draw(img, x.downButton.centeredX, x.downButton.centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight)
 		end
 	end
 	love.graphics.reset()
@@ -338,14 +346,9 @@ function gdsGui_scrollBar_draw (pageName)
 											--BAR
 					---------------------------------------------------------------------------
 					if x.bar.img then
-						love.graphics.setColor(1, 1, 1, 1)
 						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
 					else
-						if x.isFocused == true then
-							love.graphics.setColor(0, 0, 1, 1)
-						else
-							love.graphics.setColor(0, 1, 0, 1)
-						end
+						love.graphics.setColor(x.isFocused and {0, 0, 1, 1} or {0, 1, 0, 1})
 						love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
 					end
 					
@@ -356,57 +359,25 @@ function gdsGui_scrollBar_draw (pageName)
 					if x.orientation == "vertical" then
 						if x.upButton then
 							love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
-							local imgW, imgH = x._dimUpW, x._dimUpH
-							if x.upButton.isActive == false then
-								local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
-								local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonUpArrow_inactive, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
-							else
-								local centeredX = x.upButton.x + (x.upButton.width - (imgW * x.upButton.factorWidth)) / 2
-								local centeredY = x.upButton.y + (x.upButton.height - (imgH * x.upButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonUpArrow_active, centeredX, centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight, 0, 0)
-							end
+							local img = x.upButton.isActive and x.imgButtonUpArrow_active or x.imgButtonUpArrow_inactive
+							love.graphics.draw(img, x.upButton.centeredX, x.upButton.centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight)
 						end
 
 						if x.downButton then
 							love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
-							local imgW, imgH = x._dimDownW, x._dimDownH
-							if x.downButton.isActive == false then
-								local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
-								local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonDownArrow_inactive, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
-							else
-								local centeredX = x.downButton.x + (x.downButton.width - (imgW * x.downButton.factorWidth)) / 2
-								local centeredY = x.downButton.y + (x.downButton.height - (imgH * x.downButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonDownArrow_active, centeredX, centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight, 0, 0)
-							end
+							local img = x.downButton.isActive and x.imgButtonDownArrow_active or x.imgButtonDownArrow_inactive
+							love.graphics.draw(img, x.downButton.centeredX, x.downButton.centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight)
 						end
 					elseif x.orientation == "horizontal" then
 						if x.leftButton then
 							love.graphics.rectangle("fill", x.leftButton.x, x.leftButton.y, x.leftButton.width, x.leftButton.height)
-							local imgW, imgH = x._dimLeftW, x._dimLeftH
-							if x.leftButton.isActive == false then
-								local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
-								local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonLeftArrow_inactive, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
-							else
-								local centeredX = x.leftButton.x + (x.leftButton.width - (imgW * x.leftButton.factorWidth)) / 2
-								local centeredY = x.leftButton.y + (x.leftButton.height - (imgH * x.leftButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonLeftArrow_active, centeredX, centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight, 0, 0)
-							end
+							local img = x.leftButton.isActive and x.imgButtonLeftArrow_active or x.imgButtonLeftArrow_inactive
+							love.graphics.draw(img, x.leftButton.centeredX, x.leftButton.centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight)
 						end
 						if x.rightButton then
 							love.graphics.rectangle("fill", x.rightButton.x, x.rightButton.y, x.rightButton.width, x.rightButton.height)
-							local imgW, imgH = x._dimRightW, x._dimRightH
-							if x.rightButton.isActive == false then
-								local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
-								local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonRightArrow_inactive, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
-							else
-								local centeredX = x.rightButton.x + (x.rightButton.width - (imgW * x.rightButton.factorWidth)) / 2
-								local centeredY = x.rightButton.y + (x.rightButton.height - (imgH * x.rightButton.factorHeight)) / 2
-								love.graphics.draw(x.imgButtonRightArrow_active, centeredX, centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight, 0, 0)
-							end
+							local img = x.rightButton.isActive and x.imgButtonRightArrow_active or x.imgButtonRightArrow_inactive
+							love.graphics.draw(img, x.rightButton.centeredX, x.rightButton.centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight)
 						end
 					end
 					love.graphics.reset()
