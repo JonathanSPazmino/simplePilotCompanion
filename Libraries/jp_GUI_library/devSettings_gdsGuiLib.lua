@@ -934,7 +934,6 @@ end
 function gdsGui_dev_createSwitchScreenObjects ()
 
 	local thisPageName = "switchScreenSize"
-print ("running")
 	gdsGui_dev_screenSimulatorsInit ()
 	gdsGui_table_create (
 		"screenSizesTable", --[spreadsheet name]

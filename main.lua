@@ -58,8 +58,13 @@ local blink = {active = false, timer = 0, state = false, navSent = false, naviga
 -- True once the user has scrolled to the bottom of the T&C text at least once.
 local _tcScrolledToBottom = false
 
--- Load beep sound
+-- Alarm sound (double chime) and settings feedback sound (single chime)
 local beepSound
+local singleChimeSound
+
+-- Ack button images loaded separately so they can be drawn as an overlay on top
+local _ackReleasedImg
+local _ackPushedImg
 
 -- App settings (persisted across sessions): loaded from appSettings.lua if it exists
 appSettings = {}
@@ -67,6 +72,7 @@ appSettings = {}
 -------------------------------------------------------------------------------
 -- HELPER FUNCTIONS
 -------------------------------------------------------------------------------
+
 
 -- Syncs all footer nav buttons so the button matching activeDest is PRESSED
 -- and all others are RELEASED, across every page that has a footer.
@@ -209,7 +215,7 @@ function love.load()
     ---------------------------------------------------------------------------
     gdsGui_container_create("timerPanel", "MainMenu", "UTC / TIMER", 32, 0)
 
-    -- Buttons (26×26 px square; acknowlegeAlarm wider at 96×59)
+    -- Buttons (26×26 px square)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
         "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
         "Sprites/resetButton_deactivated.png", 269, 105, "RT",
@@ -253,9 +259,9 @@ function love.load()
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
-        "Sprites/ackButton_pushed.png", "Sprites/ackButton_released.png",
-        "Sprites/invisibleBox.png", 268, 29, "RT",
-        96, 59,
+        "Sprites/invisibleBox.png", "Sprites/invisibleBox.png",
+        "Sprites/invisibleBox.png", 300, 50, "RT",
+        200, 100,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
@@ -498,8 +504,13 @@ function love.load()
     -- Initialize starting time
     timer.t = 0
 
-    -- Load beep sound
-    beepSound = love.audio.newSource("Sounds/beep.wav", "static")
+    -- Load alarm and UI feedback sounds
+    beepSound        = love.audio.newSource("Sounds/DoubleChime_piano.wav", "static")
+    singleChimeSound = love.audio.newSource("Sounds/SingleChime_piano.wav", "static")
+
+    -- Load ack overlay images (drawn manually on top of all other objects)
+    _ackReleasedImg = love.graphics.newImage("Sprites/ackButton_released.png")
+    _ackPushedImg   = love.graphics.newImage("Sprites/ackButton_pushed.png")
 
     selectedAltitude = 0
     selectedTime = 0
@@ -678,12 +689,32 @@ function drawPages()
 end
 
 function drawAlarmOverlay()
-    if not blink.active or not blink.state then return end
+    if not blink.active then return end
     for _, cont in ipairs(globApp.objects.containers) do
         if cont.name == "timerPanel" then
-            local f = cont.frame
-            love.graphics.setColor(1, 0, 0, 0.45)
-            love.graphics.rectangle("fill", f.x, f.y, f.width, f.height)
+            local hr = cont.headerRect
+
+            -- Flash only the header strip
+            if blink.state then
+                love.graphics.setColor(1, 0, 0, 0.65)
+                love.graphics.rectangle("fill", hr.x, hr.y, hr.width, hr.height)
+            end
+
+            -- Draw ack button image centered within the button's actual bounds
+            for _, btn in ipairs(globApp.objects.buttons) do
+                if btn.name == "acknowlegeAlarm" then
+                    if btn.state ~= globApp.BUTTON_STATES.DEACTIVATED then
+                        local img = (btn.state == globApp.BUTTON_STATES.PRESSED)
+                                    and _ackPushedImg or _ackReleasedImg
+                        local iw, ih = img:getDimensions()
+                        love.graphics.setColor(1, 1, 1, 1)
+                        love.graphics.draw(img, btn.myx, btn.myy,
+                            0, btn.mywidth / iw, btn.myheight / ih)
+                    end
+                    break
+                end
+            end
+
             love.graphics.setColor(1, 1, 1, 1)
             return
         end
@@ -877,8 +908,8 @@ end
 
 function soundToggled(newState)
     appSettings.soundEnabled = (newState == globApp.BUTTON_STATES.PRESSED)
-    if appSettings.soundEnabled and beepSound then
-        love.audio.play(beepSound)
+    if appSettings.soundEnabled and singleChimeSound then
+        love.audio.play(singleChimeSound)
     end
     _saveAppSettings()
 end
