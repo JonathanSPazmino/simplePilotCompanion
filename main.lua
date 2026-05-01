@@ -261,7 +261,7 @@ function love.load()
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
         "Sprites/invisibleBox.png", "Sprites/invisibleBox.png",
         "Sprites/invisibleBox.png", 300, 50, "RT",
-        200, 100,
+        190, 95,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 

@@ -483,11 +483,11 @@ end
 --  PRIVATE — reposition widgets when a container's scroll-rect dimensions change
 -- ---------------------------------------------------------------------------
 -- Repositions widgets when a container's scroll-rect dimensions change.
--- Widget sizes (DIP) are never altered; only positions shift so that each
--- widget maintains its relationship to the container edge it was anchored to:
---   L → fixed left offset      C → tracks the midpoint      R → fixed right offset
---   T → fixed top  offset      C → tracks the midpoint      B → fixed bottom offset
--- Y shifts are suppressed for header/footer-role objects (fixed-height title strip).
+-- Widget sizes (DIP) are never altered; only positions shift.
+-- Horizontal: all objects shift by dW*0.5 regardless of anchor so the group
+-- stays centred in the wider/narrower container and inter-object spacing is
+-- preserved exactly.
+-- Vertical: anchor-aware shift, suppressed for header/footer-role objects.
 local function _layoutObjectsScaled(cont)
     local origW = cont.originalScrollWidth
     local origH = cont.originalScrollHeight
@@ -519,15 +519,10 @@ local function _layoutObjectsScaled(cont)
         local anchorW = pixW
         local anchorH = (obj.objectType == "rotaryKnob") and obj.size or pixH
 
-        -- Horizontal: shift position so the anchored edge stays at the same
-        -- distance from the container edge it was originally anchored to.
-        local ax  = cf0.anchorPoint:sub(1, 1)   -- L / C / R
-        local effX = cf0.x
-        if     ax == "C" then effX = cf0.x + dW * 0.5
-        elseif ax == "R" then effX = cf0.x + dW
-        end
+        -- Horizontal: uniform shift for all objects so spacing between them is preserved.
+        local effX = cf0.x + dW * 0.5
 
-        -- Vertical: same logic, but Y shift is suppressed outside the scroll area.
+        -- Vertical: anchor-aware, but Y shift is suppressed outside the scroll area.
         local ay   = cf0.anchorPoint:sub(2, 2)  -- T / C / B
         local effY = cf0.y
         if entry.role == "scroll" then
