@@ -396,21 +396,17 @@ end
 
 
 function gdsGui_page_currentName ()
-
-	--[[takes page index number and converts it to page name]]
-
-	for i, pg in ipairs(pages) do
-
-		if globApp.currentPageIndex == pg.index then
-
-			pageName = pg.name
-
-			return pageName
-
-		end
-
+	-- Fast path: return the cache maintained by gdsGui_general_draw().
+	if globApp._cachedPageIndex == globApp.currentPageIndex and globApp._cachedPageName then
+		return globApp._cachedPageName
 	end
-
+	for i, pg in ipairs(pages) do
+		if globApp.currentPageIndex == pg.index then
+			globApp._cachedPageIndex = globApp.currentPageIndex
+			globApp._cachedPageName  = pg.name
+			return pg.name
+		end
+	end
 end
 
 

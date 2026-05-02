@@ -46,12 +46,24 @@ end
 -- Recompute every cell's screen position from its natural (unscrolled) position
 -- plus the current scroll offsets.  Header row (row == 1) is X-scrolled only.
 local function _applyTblScrollOffset(tbl)
+	-- Update all cell screen positions first (always needed for correct rendering).
 	for _, cl in ipairs(tbl.cells) do
 		cl.x = cl.naturalX + tbl.scroll.offsetX
 		if cl.row ~= 1 then
 			cl.y = cl.naturalY + tbl.scroll.offsetY
 		end
 	end
+
+	-- Rebuild the visible-cell cache only when offset or cell layout has changed.
+	local sc = tbl.scroll
+	local cellGen = tbl._cellGeneration or 0
+	if sc._lastOffX == sc.offsetX and sc._lastOffY == sc.offsetY
+	   and sc._lastCellGen == cellGen then
+		return
+	end
+	sc._lastOffX    = sc.offsetX
+	sc._lastOffY    = sc.offsetY
+	sc._lastCellGen = cellGen
 
 	-- Rebuild draw caches: header cells (fixed list) and visible data cells (y-culled).
 	local vc = tbl.visibleCells
@@ -100,6 +112,8 @@ local function _tblScrollToOrigin(tbl)
 	tbl.scroll.velocityY = 0
 	tbl.scroll.velocityX = 0
 	tbl.scroll.phase     = "idle"
+	tbl.scroll._lastOffX = nil  -- invalidate dirty flag so _applyTblScrollOffset re-runs
+	tbl.scroll._lastOffY = nil
 	tbl.dataCurrentVertPosition = 0
 	tbl.dataCurrentHorzPosition = 0
 	_applyTblScrollOffset(tbl)
@@ -242,6 +256,7 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 		
 		-- On resize, we must recalculate cell positions. Recreating them is the safest way to implement this now.
 		tbl.cells = {}
+		tbl._cellGeneration = (tbl._cellGeneration or 0) + 1
 		local headerData = original.headerTitles
 		local dataTable = original.dataTable
 		local allTblHeaders = {}
@@ -390,258 +405,19 @@ function gdsGui_table_create (spreadSheetName, strgPage, strgspreadSheetType, da
 	end
 end
 
-------------------------------------------------------------
-			--OBJECT UPDATE
-------------------------------------------------------------
-function gdsGui_table_update (spreadSheetName, strgPage, strgspreadSheetType, dataTable, myX, myY, tableWidth, tableHeight, anchorPoint, strgImgspreadSheetBg, tblCallbackFuncs, fontSize, headerTitles)
 
-	for i, t in ipairs(globApp.objects.tables) do 
-
-		if t.name == spreadSheetName then
-
-			t.rowsCount = determineSizeOfArray (dataTable, "rows")
-			t.collumnsCount = #headerTitles
-
-			t.frame.width = (tableWidth * globApp.safeScreenArea.w)
-			t.frame.height = (tableHeight * globApp.safeScreenArea.h)
-			local framePositions = 
-				gdsGui_general_relativePosition(anchorPoint, 
-								myX, 
-								myY, 
-								t.frame.width, 
-								t.frame.height, 
-								globApp.safeScreenArea.x,
-								globApp.safeScreenArea.y, 
-								globApp.safeScreenArea.w, 
-								globApp.safeScreenArea.h)
-			t.frame.x = framePositions[1]
-			t.frame.y = framePositions[2]
-
-			t.masks = {}
-				t.masks.properties = {}
-					t.masks.properties.color = globApp.appColor --{rgbt}
-				t.masks.top = {}
-					t.masks.top.x = globApp.safeScreenArea.x
-					t.masks.top.y = globApp.safeScreenArea.y
-					t.masks.top.width = globApp.safeScreenArea.w
-					t.masks.top.height = t.frame.y - t.masks.top.y
-				t.masks.left = {}
-					t.masks.left.x = globApp.safeScreenArea.x
-					t.masks.left.y = globApp.safeScreenArea.y + t.masks.top.height
-					t.masks.left.width = t.frame.x - globApp.safeScreenArea.x
-					t.masks.left.height = t.frame.height
-				t.masks.right = {}
-					t.masks.right.x = t.frame.x + t.frame.width
-					t.masks.right.y = globApp.safeScreenArea.y + t.masks.top.height
-					t.masks.right.width = (globApp.safeScreenArea.x + globApp.safeScreenArea.w) - t.masks.right.x
-					t.masks.right.height = t.frame.height
-				t.masks.bottom = {}
-					t.masks.bottom.x = globApp.safeScreenArea.x
-					t.masks.bottom.y = t.frame.y + t.frame.height
-					t.masks.bottom.width = globApp.safeScreenArea.w
-					t.masks.bottom.height = globApp.safeScreenArea.h - t.masks.bottom.y
-
-			t.minCollumnWidth = t.fonts.cells.size * 10
-			t.maxCollumnWidth = t.frame.width - t.fonts.cells.size
-			if t.collumnsCount == 1 then
-				t.collumWidth = t.frame.width - t.fonts.cells.size
-			elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size) / t.collumnsCount) < t.minCollumnWidth then
-				t.collumWidth = t.minCollumnWidth
-			elseif t.collumnsCount > 1 and ((t.frame.width - t.fonts.cells.size )/ t.collumnsCount) > t.minCollumnWidth then
-				t.collumWidth = ((t.frame.width -t.fonts.cells.size) / t.collumnsCount)
-			end
-
-			t.textWrapCellPercentWidth = t.collumWidth * 0.8 
-			t.rowHeight = t.fonts.cells.size + (t.fonts.cells.size * .4)
-
-			t.displayWidth = t.frame.width
-			t.displayHeight = tableHeight * globApp.safeScreenArea.h
-
-			------------------------FUNC CALLBACKS/BUTTONS--------------------
-			t.callbackFuncNames = {}
-			t.fullCallbackFuncs = {}
-			t.buttons = {}
-
-			local numOfCallbackButtons = 0
-
-			for i, cb in pairs(tblCallbackFuncs) do
-				numOfCallbackButtons = numOfCallbackButtons + 1
-			end 
-
-			local iterator1 = 0
-			for i=1, #tblCallbackFuncs, 1 do
-				local index = ""
-				for j, cb in  pairs (tblCallbackFuncs[i]) do 
-					index = j
-
-					iterator1 = iterator1 + 1
-
-					t.callbackFuncNames[index] = cb
-					t.fullCallbackFuncs[index] = ""
-					t.buttons[index] = {}
-					t.buttons[index].text = index
-					t.buttons[index].x = t.frame.x + (iterator1 * (t.displayWidth / #tblCallbackFuncs)) - (t.displayWidth / #tblCallbackFuncs)
-					t.buttons[index].y = t.frame.y + t.displayHeight - t.rowHeight
-					t.buttons[index].width = t.displayWidth / #tblCallbackFuncs
-					t.buttons[index].height = t.rowHeight
-					t.buttons[index].isFocused = false
-				end
-			end
-
-			t.titleBox = {}
-				t.titleBox.x = t.frame.x
-				t.titleBox.y = t.frame.y
-				t.titleBox.width = t.frame.width
-				t.titleBox.height = t.fonts.title.size * 1.3
-
-			t.titleCaption = {}
-				t.titleCaption.x = t.titleBox.x + (t.titleBox.width * .1)
-				t.titleCaption.y = t.titleBox.y + (t.titleBox.height * .1)
-				t.titleCaption.wrapWidth = t.titleBox.width * 0.8
-
-			t.headersBox = {}
-				t.headersBox.x = t.titleBox.x
-				t.headersBox.y = t.titleBox.y + t.titleBox.height
-				t.headersBox.w = t.titleBox.width
-				t.headersBox.h = 0
-
-
-			local headerData = headerTitles
-			local allTblHeaders = {}
-			for i=1, #dataTable, 1 do
-				allTblHeaders[i] = dataTable[i]["ID"]
-			end
-
-			t.cells = {}
-			
-			-- Header cell height: lines needed for header text + one font-size of padding on each side
-			local headerLineCount = math.max(1, findMaxNumOfLinesNeeded(t.fonts.headers.font, t.textWrapCellPercentWidth, headerData))
-			local actualHeaderFontHeight = gdsGui_general_returnFontInfo(t.fonts.headers.font, "height")
-			t.headersBox.h = (actualHeaderFontHeight * headerLineCount) + (2 * t.fonts.headers.size)
-
-			-- Data cell height: sized for the widest data row content only
-			local maxDataLineCount = 1
-			local actualCellFontHeight = gdsGui_general_returnFontInfo(t.fonts.cells.font, "height")
-			for i = 1, t.rowsCount, 1 do
-				local textTable = {}
-				for z=1, #headerData, 1 do
-					textTable[z] = table_lookUp(dataTable, i, headerData[z])
-				end
-				maxDataLineCount = math.max(maxDataLineCount, findMaxNumOfLinesNeeded(t.fonts.cells.font, t.textWrapCellPercentWidth, textTable))
-			end
-			t.uniformCellHeight = (actualCellFontHeight * maxDataLineCount) * (1 + 0.30)
-
-			local cellPositions = {}
-			cellPositions.w = t.collumWidth
-			local previewsRowY = 0
-			local previewsRowH = 0
-			t.combinedRowsHeight = 0
-			
-			for i = 1, t.rowsCount + 1, 1 do
-				for j = 1, #headerData , 1 do
-
-					local cellName = (i .. "," .. j)
-					local cellData = "--empty--"
-					local scrollability = false
-					local cellRercordID = ""
-					
-					cellPositions.x = t.frame.x - t.collumWidth + (t.collumWidth * j )
-
-					if i == 1 then --takes care of the header row data
-
-						cellData = headerData[j]	
-						cellRercordID = "HEADER"
-
-						if j == 1 then
-							cellPositions.y = t.headersBox.y
-							cellPositions.h = t.headersBox.h
-						end
-
-					elseif i > 1 then --takes care of the data rows data
-
-						local textTable = {}
-						
-						for z=1, #headerData, 1 do
-							textTable[z] = table_lookUp (dataTable, i-1,headerData[z])
-						end
-
-						if j == 1 then
-
-							for k, c in pairs(t.cells) do
-								 if c.row == (i - 1) and c.collumn == 1 then
-									previewsRowY = c.y
-									previewsRowH = c.height
-									-- print (c.height)
-								end
-							end
-
-												cellPositions.y = (previewsRowY + previewsRowH)
-												cellPositions.h = t.uniformCellHeight							t.combinedRowsHeight = t.combinedRowsHeight + cellPositions.h
-						end
-					
-						cellRercordID = allTblHeaders[i - 1]
-						
-						cellData = table_lookUp (dataTable, i-1,headerData[j])
-						scrollability = true
-
-					end
-					
-					TableCell_create (cellName, cellPositions.x, cellPositions.y, cellPositions.w, cellPositions.h, i, j, cellData, scrollability, t.cells,cellRercordID)
-
-				end --[[cell objects creation]]
-
-			end
-
-			t.scrollBox = {}
-				t.scrollBox.x = t.frame.x
-				t.scrollBox.y = t.frame.y + t.titleBox.height + t.headersBox.h
-				t.scrollBox.width = t.frame.width - t.fonts.cells.size
-				t.scrollBox.height = (t.displayHeight - (t.scrollBox.y - t.frame.y)) - (t.rowHeight * 2)
-
-			-- Scrollbar positions as fractions of safe area; sizes as direct pixel values (DIP).
-			-- Subtract safeScreenArea offset before dividing to avoid double-add on mobile.
-			t.verticalScrollBar = {
-				name = spreadSheetName .. "_vsb",
-				x = (t.frame.x + t.frame.width - t.fonts.cells.size) / globApp.safeScreenArea.w,
-				y = (t.scrollBox.y - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
-				width = t.fonts.cells.size,
-				height = t.scrollBox.height,
-				ref = t.verticalScrollBar and t.verticalScrollBar.ref
-			}
-
-			t.horizontalScrollBar = {
-				name = spreadSheetName .. "_hsb",
-				x = t.frame.x / globApp.safeScreenArea.w,
-				y = (t.scrollBox.y + t.scrollBox.height - globApp.safeScreenArea.y) / globApp.safeScreenArea.h,
-				width = t.scrollBox.width,
-				height = t.rowHeight,
-				ref = t.horizontalScrollBar and t.horizontalScrollBar.ref
-			}
-
-			if t.rowsCount > 0 then
-				t.avrgRowHeight = t.combinedRowsHeight / t.rowsCount
-			else
-				t.avrgRowHeight = 1
-			end
-			t.numRowsPerDisplay = t.scrollBox.height / t.avrgRowHeight
-
-
-			t.combinedCollumnsWidth = t.collumnsCount * t.collumWidth
-			if t.collumnsCount > 0 then
-				t.avrgCollumnsWidht = t.collumWidth
-			else
-				t.avrgCollumnsWidht = 1
-			end
-			t.numCollumnsPerDisplay = t.scrollBox.width / t.collumWidth
-
-			t.state = 1 --[[0 deactivated, 1 = released, 2 = pressed.]]
-
-			-- Scroll back to origin so freshly-rebuilt cells are in view and thumbs match.
+function gdsGui_table_setData(name, dataTable)
+	for _, t in ipairs(globApp.objects.tables) do
+		if t.name == name then
+			t.original.dataTable = dataTable
+			t.rowsCount = determineSizeOfArray(dataTable, "rows")
+			t:resize()
 			_tblScrollToOrigin(t)
+			return
 		end
-
 	end
 end
+
 
 -- function spreadSheet_delete (spreadSheetName,strgPage)
 
@@ -692,7 +468,7 @@ function gdsGui_table_draw (pageName)
 
 		-- -- end
 
-		for i,x in pairs(globApp.objects.tables) do --[[draws table]]
+		for i,x in ipairs(globApp.objects.tables) do --[[draws table]]
 
 			if x.page == pageName then
 
@@ -773,8 +549,7 @@ function gdsGui_table_draw (pageName)
 							love.graphics.setColor(1, 1, 1, 1)
 						end
 						love.graphics.printf(bt.text, bt.x + (bt.width * .1), bt.y + (bt.height * 0.1), (bt.width * 0.8), "center")
-						love.graphics.reset()
-
+						love.graphics.setColor(1, 1, 1, 1)
 
 					end
 
@@ -794,8 +569,7 @@ function gdsGui_table_draw (pageName)
 							love.graphics.rectangle("fill", x.masks.bottom.x, x.masks.bottom.y, x.masks.bottom.width, x.masks.bottom.height, rx, ry, segments)
 						end
 
-						love.graphics.reset ()
-						
+						love.graphics.setColor(1, 1, 1, 1)
 
 					--UNSAFE AREA MASKS:
 						love.graphics.setColor(0,0,0,1)
@@ -807,9 +581,9 @@ function gdsGui_table_draw (pageName)
 						love.graphics.rectangle("fill", globApp.safeScreenArea.xw, 0, (love.graphics.getWidth()-globApp.safeScreenArea.xw), love.graphics.getHeight(), rx, ry, segments)
 						-- --BOTTOM
 						love.graphics.rectangle("fill", 0, globApp.safeScreenArea.yh, love.graphics.getWidth(), (love.graphics.getHeight()-globApp.safeScreenArea.yh), rx, ry, segments)
-						
-						love.graphics.reset ()
-				
+
+						love.graphics.setColor(1, 1, 1, 1)
+
 				end
 
 			end
@@ -1040,7 +814,7 @@ function gdsGui_table_touchScroll (id, x, y, dx, dy, pressure, button, istouch)
 			local allowV = (tbl.scroll.axisLock == nil) or (tbl.scroll.axisLock == "vertical")
 			local allowH = (tbl.scroll.axisLock == nil) or (tbl.scroll.axisLock == "horizontal")
 
-			local frameDt = love.timer.getDelta()
+			local frameDt = globApp.lastDt or 0
 
 			-- VERTICAL
 			local minY, maxY = _getTblScrollLimitsY(tbl)
@@ -1196,42 +970,6 @@ function gdsGui_table_physicsUpdate (dt)
 	end
 end
 
-function touchedCell (x, y, button, istouch, mySpreadSheet)
-
-	local cell = {x = 0, y = 0, row = 0, collum = 0}
-
-	for i, sp in ipairs (mySpreadSheet) do
-
-		for j, cl in ipairs (sp.cells) do
-
-			if button == 1 or istouch == true  then
-
-				if x >= cl.x and x <= (cl.x + cl.width) and y >= cl.y and y <= (cl.y + cl.height) and cl.focused == false then
-
-					cl.focused = true
-
-					if cl.focused == true then
-
-						cell.cellName = cl.name
-						cell.x = cl.x
-						cell.y = cl.y
-						cell.row = cl.row
-						cell.collum = cl.collum
-
-					end 
-
-					cl.focused = false
-
-				end
-
-			end
-
-		end
-
-	end
-
-	return cell
-end
 
 function gdsGui_table_rowSelect (x,y,button,istouch)
 
@@ -1297,74 +1035,6 @@ function gdsGui_table_rowSelect (x,y,button,istouch)
 	end
 end
 
-function tableCellAddress_find (myTouchedCell, table, outputMode, devMode)
-
-	--[[-------------------------------------------------------------
-	used to determine the row or collum number that the last touched
-	cell belongs to
-
-	INPUT
-	myTouchedCell ---------------string -----------------name of cell x/y 
-	table----------------------table-------------------array data name
-	devMode -------------------boolean ----------------unit test boolean
-	outputMode-----------------string -----------------row or collum
-	
-	OUTPUT:
-	row or collumn numeber-----integer-----------------number representing
-													   a row or collumn
-	-----------------------------------------------------------------]]
-	--mock table for dev
-
-
-	--determine if page has a spreadsheet
-	local spreadSheetExists = false
-
-	if #table >= 1 then
-
-		spreadSheetExists = true
-
-	end
-	
-	local myResult = {}
-
-	for i, tbl in ipairs (table) do 
-
-		for j, cell in pairs (tbl) do
-
-			--isolate touched cell and gather associated row or collumn
-			if cell.name == myTouchedCell then
-				--split result based on selected outputMode
-				if outputMode == "row" then
-
-					myResult[1] = cell.row - 1
-					myResult[2] = cell.collumn
-				
-				elseif outputMode == "collumn" then
-
-					myResult[1] = cell.collumn
-					myResult[2] = cell.row - 1
-
-
-				end
-
-			end 
-
-		end
-
-	end
-
-	--standard unit testing return code
-	if devMode == true then
-		local testResult = {}
-			testResult[1] = myResult[1]
-			testResult[2] = myResult[2]
-			testResult[3] = spreadSheetExists
-			-- print (myResult[1])
-		return testResult
-	end
-
-	return myResult[1]
-end
 
 function tablefuncCallbackToString (strgFuncCallBackName, parameters)
 
@@ -1479,197 +1149,7 @@ function gdsGui_table_buttonsReleased (x,y,button,istouch)
 	end
 end
 
-function tableSelectButton_released (x,y,button,istouch)
 
-	local buttonState = 0
-	local myTable = globApp.objects.tables
-	local selectedRow = 0
-	local myResult = {}
-	local buttonTouched = false
-	local isDataSelected = false
-
-	--determine if button has been touched
-	for i, tbl in ipairs (myTable) do 
-
-		if (button == 1 or istouch == true) and tbl.selectButtonFocused == true then
-
-			buttonTouched = true
-
-		end
-
-	end
-
-	--run code only if button is pressed
-	if buttonTouched == true then
-
-		--determine the row of the focused cell
-		for i, tbl in ipairs (myTable) do 
-
-			for j, cell in ipairs(tbl.cells) do
-
-				if cell.focused == true then
-
-					isDataSelected = true
-
-					selectedRow = cell.row
-
-				end
-
-			end
-
-		end
-
-		--run code only if data is selected
-
-		if isDataSelected == true then
-			--gather selected row data
-			for i, tbl in ipairs (myTable) do
-
-				for j, cell in ipairs(tbl.cells) do
-
-					if cell.row  == selectedRow and cell.focused == true then
-
-						table.insert(myResult, cell.content)
-
-					end
-
-				end
-
-			end
-
-			--pass parameters to table callback function
-			for i, tbl in ipairs (myTable) do
-
-				tbl.fullCallbackFuncs = loadstring(tablefuncCallbackToString (tbl.callbackFuncNames, myResult))
-
-				tbl.fullCallbackFuncs ()
-				tbl.fullCallbackFuncs = ""
-
-				if tbl.selectButtonFocused == true then
-
-					tbl.selectButtonFocused = false
-
-				end
-
-			end
-
-		elseif isDataSelected == false then
-
-			for i, tbl in ipairs (myTable) do
-
-				if tbl.selectButtonFocused == true then
-
-					tbl.selectButtonFocused = false
-
-				end
-
-			end
-
-
-		end
-
-		myResult = nil
-		
-	end
-end
-
-function tableDeleteButton_released (x,y,button,istouch)
-
-	local buttonState = 0
-	local myTable = globApp.objects.tables
-	local selectedRow = 0
-	local myResult = {}
-	local buttonTouched = false
-	local isDataSelected = false
-
-	--determine if button has been touched
-	for i, tbl in ipairs (myTable) do 
-
-		if (button == 1 or istouch == true) and tbl.deleteButtonFocused == true then
-
-			buttonTouched = true
-
-		end
-
-	end
-
-	--run code only if button is pressed
-	if buttonTouched == true then
-
-		--determine the row of the focused cell
-		for i, tbl in ipairs (myTable) do 
-
-			for j, cell in ipairs(tbl.cells) do
-
-				if cell.focused == true then
-
-					isDataSelected = true
-
-					selectedRow = cell.row
-
-				end
-
-			end
-
-		end
-
-		--run code only if data is selected
-
-		if isDataSelected == true then
-			--gather selected row data
-			for i, tbl in ipairs (myTable) do
-
-				for j, cell in ipairs(tbl.cells) do
-
-					if cell.row  == selectedRow and cell.focused == true then
-
-						table.insert(myResult, cell.content)
-
-					end
-
-				end
-
-			end
-
-			local selectProjIndex = gdsGui_saveLoad_findIndexByID (globApp.projects, "NTI",myResult[2], 23)
-
-			--pass parameters to table callback function
-			gdsGui_saveLoad_deleteProject (globApp.projects, selectProjIndex)
-			gdsGui_saveLoad_saveProject ("savedProjectData.lua", globApp.projects, "globApp.projects")
-			recordErased = true
-			print (recordErased)
-
-			for i, tbl in ipairs (myTable) do --deselect delete button"
-
-				print ("deleteButtonReleased")
-
-				if tbl.deleteButtonFocused == true then
-
-					tbl.deleteButtonFocused = false
-
-				end
-
-			end
-
-		elseif isDataSelected == false then
-
-			for i, tbl in ipairs (myTable) do
-
-				if tbl.deleteButtonFocused == true then
-
-					tbl.deleteButtonFocused = false
-
-				end
-
-			end
-
-
-		end
-
-		myResult = nil
-		
-	end
-end
 
 function spreadSheetScrollbarVertCallback (position)
 	for _, t in ipairs(globApp.objects.tables) do

@@ -2,6 +2,10 @@
 
 local librarySpritesPath = "Libraries/jp_GUI_library/librarySprites/"
 
+-- Pre-allocated colour tables to avoid creating a new table every draw call.
+local _COLOR_BAR_FOCUSED   = {0, 0, 1, 1}
+local _COLOR_BAR_UNFOCUSED = {0, 1, 0, 1}
+
 -- scrollbars = {}
 globApp.objects.scrollBars = {}
 
@@ -31,6 +35,7 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 		t.numVisValues = visibleValues
 		t.numTotalValues = totalValues
 		t.callbackString = callback
+		t.callbackFn     = callback and _G[callback] or nil  -- resolved once; avoids _G lookup per event
 		t.hapticEnabled = (hapticEnabled == true)
 		t._prevSnapIndex = -1
 		t._hapticFiredOnFocus = false
@@ -150,7 +155,13 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 
 			end
 		end
-				
+
+		-- Pre-compute frame draw scale (updated in resize() after each geometry change).
+		if t.frame.img then
+			t.frame.scaleX = t.frame.width  / t._dimFrameW
+			t.frame.scaleY = t.frame.height / t._dimFrameH
+		end
+
 		t.bar = {}
 		if t.assets.thumb then
 			t.bar.img = love.graphics.newImage(t.assets.thumb)
@@ -167,6 +178,12 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 			t.bar.height = t.frame.height
 			t.bar.x = t.frame.x + (t.bar.position * (t.frame.width - t.bar.width))
 			t.bar.y = t.frame.y
+		end
+
+		-- Pre-compute bar draw scale (updated in resize() after each geometry change).
+		if t.bar.img then
+			t.bar.scaleX = t.bar.width  / t._dimBarW
+			t.bar.scaleY = t.bar.height / t._dimBarH
 		end
 
 	-- table.insert(scrollBars,t)
@@ -266,6 +283,16 @@ function gdsGui_scrollBar_create (id, strgPage, x, y, width, height, anchorPoint
 			self.bar.x = self.frame.x + (self.bar.position * (self.frame.width - self.bar.width))
 			self.bar.y = self.frame.y
 		end
+
+		-- Refresh pre-computed draw scales after geometry changes.
+		if self.frame.img then
+			self.frame.scaleX = self.frame.width  / self._dimFrameW
+			self.frame.scaleY = self.frame.height / self._dimFrameH
+		end
+		if self.bar.img then
+			self.bar.scaleX = self.bar.width  / self._dimBarW
+			self.bar.scaleY = self.bar.height / self._dimBarH
+		end
 	end
 	t.resize = t.resize
 
@@ -294,35 +321,40 @@ end
 function gdsGui_scrollBar_drawSingle(x)
 	love.graphics.setColor(1, 1, 1, 1)
 	if x.frame.img then
-		love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / x._dimFrameW, x.frame.height / x._dimFrameH)
+		love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.scaleX, x.frame.scaleY)
 	else
 		love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
 	end
 	if x.bar.img then
-		love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
+		love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.scaleX, x.bar.scaleY)
 	else
-		love.graphics.setColor(x.isFocused and {0, 0, 1, 1} or {0, 1, 0, 1})
+		love.graphics.setColor(x.isFocused and _COLOR_BAR_FOCUSED or _COLOR_BAR_UNFOCUSED)
 		love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
 	end
-	love.graphics.setColor(1, 0, 0, 1)
+	local _isDark = not globApp.themeTextColor or globApp.themeTextColor[1] > 0.5
+	local _btnBg  = _isDark and {1, 1, 0, 1} or {0.3, 0.3, 0.3, 1}
 	if x.orientation == "vertical" then
 		if x.upButton then
+			love.graphics.setColor(_btnBg)
 			love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
+			love.graphics.setColor(1, 1, 1, 1)
 			local img = x.upButton.isActive and x.imgButtonUpArrow_active or x.imgButtonUpArrow_inactive
 			love.graphics.draw(img, x.upButton.centeredX, x.upButton.centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight)
 		end
 		if x.downButton then
+			love.graphics.setColor(_btnBg)
 			love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
+			love.graphics.setColor(1, 1, 1, 1)
 			local img = x.downButton.isActive and x.imgButtonDownArrow_active or x.imgButtonDownArrow_inactive
 			love.graphics.draw(img, x.downButton.centeredX, x.downButton.centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight)
 		end
 	end
-	love.graphics.reset()
+	love.graphics.setColor(1, 1, 1, 1)
 end
 
 
 function gdsGui_scrollBar_draw (pageName)
-	for i,x in pairs(globApp.objects.scrollBars) do --[[runs continuously]]
+	for i,x in ipairs(globApp.objects.scrollBars) do --[[runs continuously]]
 			if x.page == pageName and not x.ownerContainer then
 				if x.bar.position ~= dataRelativePosition and dataRelativePosition ~= nil then
 					if x.type == "independent" then
@@ -337,89 +369,64 @@ function gdsGui_scrollBar_draw (pageName)
 					--------------------------------------------------------------------------
 					love.graphics.setColor(1, 1, 1, 1)
 					if x.frame.img then
-						love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.width / x._dimFrameW, x.frame.height / x._dimFrameH)
+						love.graphics.draw(x.frame.img, x.frame.x, x.frame.y, 0, x.frame.scaleX, x.frame.scaleY)
 					else
 						love.graphics.rectangle("fill", x.frame.x, x.frame.y, x.frame.width, x.frame.height)
 					end
-					
+
 					---------------------------------------------------------------------------
 											--BAR
 					---------------------------------------------------------------------------
 					if x.bar.img then
-						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.width / x._dimBarW, x.bar.height / x._dimBarH)
+						love.graphics.draw(x.bar.img, x.bar.x, x.bar.y, 0, x.bar.scaleX, x.bar.scaleY)
 					else
-						love.graphics.setColor(x.isFocused and {0, 0, 1, 1} or {0, 1, 0, 1})
+						love.graphics.setColor(x.isFocused and _COLOR_BAR_FOCUSED or _COLOR_BAR_UNFOCUSED)
 						love.graphics.rectangle("fill", x.bar.x, x.bar.y, x.bar.width, x.bar.height)
 					end
 					
 					---------------------------------------------------------------------------
 											--BUTTONS
 					---------------------------------------------------------------------------
-					love.graphics.setColor(1, 0, 0, 1)
+					local _isDark = not globApp.themeTextColor or globApp.themeTextColor[1] > 0.5
+					local _btnBg  = _isDark and {1, 1, 0, 1} or {0.3, 0.3, 0.3, 1}
 					if x.orientation == "vertical" then
 						if x.upButton then
+							love.graphics.setColor(_btnBg)
 							love.graphics.rectangle("fill", x.upButton.x, x.upButton.y, x.upButton.width, x.upButton.height)
+							love.graphics.setColor(1, 1, 1, 1)
 							local img = x.upButton.isActive and x.imgButtonUpArrow_active or x.imgButtonUpArrow_inactive
 							love.graphics.draw(img, x.upButton.centeredX, x.upButton.centeredY, 0, x.upButton.factorWidth, x.upButton.factorHeight)
 						end
 
 						if x.downButton then
+							love.graphics.setColor(_btnBg)
 							love.graphics.rectangle("fill", x.downButton.x, x.downButton.y, x.downButton.width, x.downButton.height)
+							love.graphics.setColor(1, 1, 1, 1)
 							local img = x.downButton.isActive and x.imgButtonDownArrow_active or x.imgButtonDownArrow_inactive
 							love.graphics.draw(img, x.downButton.centeredX, x.downButton.centeredY, 0, x.downButton.factorWidth, x.downButton.factorHeight)
 						end
 					elseif x.orientation == "horizontal" then
 						if x.leftButton then
+							love.graphics.setColor(_btnBg)
 							love.graphics.rectangle("fill", x.leftButton.x, x.leftButton.y, x.leftButton.width, x.leftButton.height)
+							love.graphics.setColor(1, 1, 1, 1)
 							local img = x.leftButton.isActive and x.imgButtonLeftArrow_active or x.imgButtonLeftArrow_inactive
 							love.graphics.draw(img, x.leftButton.centeredX, x.leftButton.centeredY, 0, x.leftButton.factorWidth, x.leftButton.factorHeight)
 						end
 						if x.rightButton then
+							love.graphics.setColor(_btnBg)
 							love.graphics.rectangle("fill", x.rightButton.x, x.rightButton.y, x.rightButton.width, x.rightButton.height)
+							love.graphics.setColor(1, 1, 1, 1)
 							local img = x.rightButton.isActive and x.imgButtonRightArrow_active or x.imgButtonRightArrow_inactive
 							love.graphics.draw(img, x.rightButton.centeredX, x.rightButton.centeredY, 0, x.rightButton.factorWidth, x.rightButton.factorHeight)
 						end
 					end
-					love.graphics.reset()
+					love.graphics.setColor(1, 1, 1, 1)
 			end
 	    end
 	end
 
 
-function gdsGui_scrollBar_determineSize (numOfVisibleValues, numOfScrollableValues) 
-	--returns size of scrolling size based on number of values to be scrolled
-	--result is expressed on decimal value, percentage of scroll bar total size
-
-	local minBarSize = 0
-	local maxBarSize = 0.2
-
-	if numOfVisibleValues == nil or (type(numOfVisibleValues) == "number" and numOfVisibleValues ~= numOfVisibleValues) then
-		return maxBarSize
-	end
-
-	local result = "no result"
-	local vis2scrollableNumValRatio = (numOfScrollableValues / numOfVisibleValues)
-
-	if numOfVisibleValues >= numOfScrollableValues then --runs if num of values are less than the total amount of visible
-
-		result = 1.0
-
-	elseif numOfVisibleValues < numOfScrollableValues then -- runs if num of values are more than the total amount of visible values
-
-		if (1 / vis2scrollableNumValRatio <= minBarSize) then --runs if result 
-
-			result = minBarSize
-
-		elseif (1 / vis2scrollableNumValRatio > minBarSize) then
-		
-			result = 1 / vis2scrollableNumValRatio
-
-		end
-
-	end
-
-	return result
-end
 
 
 function gdsGui_scrollBar_updatePosition (sb, dataPercPosition)
@@ -468,8 +475,8 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 							-- Discrete step for up arrow
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
-							if sb.callbackString ~= nil then
-								_G[sb.callbackString](sb.bar.position)
+							if sb.callbackFn then
+								sb.callbackFn(sb.bar.position)
 							end
 						end
 					end
@@ -482,8 +489,8 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 							-- Discrete step for down arrow
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
 							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
-							if sb.callbackString ~= nil then
-								_G[sb.callbackString](sb.bar.position)
+							if sb.callbackFn then
+								sb.callbackFn(sb.bar.position)
 							end
 						end
 					end
@@ -497,8 +504,8 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 							-- Discrete step for left arrow
 							sb.bar.position = math.max(0, sb.bar.position - stepSize)
 							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
-							if sb.callbackString ~= nil then
-								_G[sb.callbackString](sb.bar.position)
+							if sb.callbackFn then
+								sb.callbackFn(sb.bar.position)
 							end
 						end
 					end
@@ -511,8 +518,8 @@ function gdsGui_scrollBar_focus (id, x,y,button,istouch)
 							-- Discrete step for right arrow
 							sb.bar.position = math.min(1, sb.bar.position + stepSize)
 							gdsGui_scrollBar_updatePosition(sb, sb.bar.position)
-							if sb.callbackString ~= nil then
-								_G[sb.callbackString](sb.bar.position)
+							if sb.callbackFn then
+								sb.callbackFn(sb.bar.position)
 							end
 						end
 					end
@@ -602,10 +609,8 @@ function gdsGui_scrollBar_holdAndDrag (id, x,y,button,istouch, devMode)
 					gdsGui_scrollBar_updatePosition(sb, sb.bar.position) -- Update physical position after snapping
 				end
 
-				if sb.callbackString ~= nil then
-					_G[sb.callbackString](sb.bar.position)
-				elseif sb.callbackString == nil then
-					print ("no callback assigned to " .. sb.id .. " scrollbar")
+				if sb.callbackFn then
+					sb.callbackFn(sb.bar.position)
 				end
 			end
 		end
@@ -627,17 +632,3 @@ function gdsGui_scrollBar_buttonsPressed (dt)
 end
 
 
-function gdsGui_scrollBar_posToDPI (SBposition, lBound, uBound)
-	--[[converts relative bar position to pixels based on lbound and u bound pixel values
-		INPUT:
-		SBposition--------------FLOAT-------------------0-1 sb position
-		lBound------------------FLOAT-------------------pix representing lbound
-		uBound------------------FLOAT-------------------pix representing ubound
-
-		OUTPUT:
-		dpiEquivalent-----------INT--------------int representing corresponding pixel value relative to SBposition]]
-
-	local dpiEquivalent = lBound + (SBposition * (uBound - lBound))
-
-	return dpiEquivalent
-end

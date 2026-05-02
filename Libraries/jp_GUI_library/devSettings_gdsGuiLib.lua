@@ -808,15 +808,7 @@ function gdsGui_dev_createUnitTestObjects ()
 end
 
 function gdsGui_dev_refreshUnitTestDisplay()
-	gdsGui_table_update(
-		"devUnitTest", "UnitTesting", "static", devTests,
-		.5,
-		gdsGui_general_smartRelocation(.30, 0, .27, .25, .24, .5, .21, 1, "y"),
-		.8, .6, "CT", nil,
-		{ [1]={["INFO"]="gdsGui_dev_openUTInfoCallback"} },
-		gdsGui_general_smartFontScaling(0.025, 0.032),
-		{"name", "result", "failingParameter"}
-	)
+	gdsGui_table_setData("devUnitTest", devTests)
 end
 
 function gdsGui_dev_rerunUnitTests()

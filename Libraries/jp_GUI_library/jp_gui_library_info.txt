@@ -129,6 +129,30 @@ Call these library functions from your LOVE2D callbacks:
   love.touchpressed/moved/released -> same as above with istouch flag
 
 ================================================================================
+PERFORMANCE OPTIMISATIONS
+================================================================================
+
+Three hot-path improvements implemented across the library:
+
+1. Cached active-page lookup (general_gdsGuiLib.lua)
+   gdsGui_general_draw() now caches the active page name and only re-searches
+   the pages array when globApp.currentPageIndex actually changes, eliminating
+   a linear scan that previously ran on every draw call (60+ fps).
+
+2. Dirty-flag visible-cell cache (table_gdsGuiLib.lua, outputTxtBox_gdsGuiLib.lua)
+   _applyTblScrollOffset and _apply_scroll_offset skip their cache-rebuild pass
+   when the scroll offset and layout generation are unchanged. A _cellGeneration
+   counter (table) and _lineGen counter (outputTxtBox) are bumped whenever cells
+   or lines are recreated, ensuring the cache is always rebuilt after data changes
+   or resizes even when the scroll position hasn't moved.
+
+3. Pre-computed draw scales + static colour constants (scrollBar_gdsGuiLib.lua)
+   frame.scaleX/Y and bar.scaleX/Y are computed once at creation and refreshed
+   in resize(), replacing per-draw divisions. Two module-level colour tables
+   (_COLOR_BAR_FOCUSED / _COLOR_BAR_UNFOCUSED) replace inline table literals that
+   were heap-allocated on every draw call per scrollbar.
+
+================================================================================
 VERSION HISTORY
 ================================================================================
 

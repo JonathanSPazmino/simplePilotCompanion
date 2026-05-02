@@ -59,11 +59,6 @@ gdsGui_unitTests_registerSuite("gui", function()
 						["funcParameters"]={"CC", .5, .85, 100, 100, 0, 0, 200, 200},
 						["funcExpctOutput"]={50,120}}
 
-		gdsGui_dev_testExecute {["id"]="convert_scrollBarPosToDPI_test",
-						["funcName"]={"gdsGui_scrollBar_posToDPI"},
-						["funcParameters"]={.5, -100, 100},
-						["funcExpctOutput"]={0}}
-
 		gdsGui_dev_testExecute {["id"]="jpGUI_convertSafeAreaPercentToDPI_test_pass500",
 						["funcName"]={"gdsGui_general_convertSafeAreaToDPI"},
 						["funcParameters"]={.5,"width",true},
@@ -79,11 +74,6 @@ gdsGui_unitTests_registerSuite("gui", function()
 						["funcParameters"]={.4,"height6",nil},
 						["funcExpctOutput"]={"error"}}
 
-		gdsGui_dev_testExecute {["id"]="jpGUI_findTriangAngle_testPassWrightTriangle",
-						["funcName"]={"gdsGui_general_findTriangAngle"},
-						["funcParameters"]={1, 1, "degrees"},
-						["funcExpctOutput"]={45}}
-
 		gdsGui_dev_testExecute {["id"]="isTextRemoveCommanded_false",
 						["funcName"]={"gdsGui_general_isTextRemoveCommanded"},
 						["funcParameters"]={"c"},
@@ -98,24 +88,6 @@ gdsGui_unitTests_registerSuite("gui", function()
 						["funcName"]={"gdsGui_general_isTextRemoveCommanded"},
 						["funcParameters"]={"delete"},
 						["funcExpctOutput"]={true}}
-
-	---------------------------------------------------------------------------
-								--TABLES
-	----------------------------------------------------------------------------
-		local devTable = {}
-
-		devTable[1] = {x= {name="1,2", row = 2, collumn=2}, y={name="2,3", row = 3, collumn=3},z={name="2,2", row = 2, collumn=2}}
-
-		gdsGui_dev_testExecute {["id"]="tableCellAddress_find(row)_test",
-						["funcName"]={"tableCellAddress_find"},
-						["funcParameters"]={"2,3", devTable , "row", true},
-						["funcExpctOutput"]={2, 3, true}}
-
-		gdsGui_dev_testExecute {["id"]="tableCellAddress_find(collumn)_test",
-						["funcName"]={"tableCellAddress_find"},
-						["funcParameters"]={"2,3", devTable , "collumn", true},
-						["funcExpctOutput"]={3, 2, true}}
-
 
 		gdsGui_dev_testExecute {["id"]="findScreenOrientation_test",
 						["funcName"]={"gdsGui_general_findScreenOrientation"},

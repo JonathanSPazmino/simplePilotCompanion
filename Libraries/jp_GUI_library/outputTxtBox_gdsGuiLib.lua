@@ -92,18 +92,24 @@ end
 -- Recomputes each line's screen Y from its natural (unscrolled) Y plus the
 -- current scroll offset, then refreshes isVisible.
 local function _apply_scroll_offset(tb)
+	-- Skip when neither the scroll offset nor the line layout has changed.
+	local sc = tb.scroll
+	local lineGen = tb.text._lineGen or 0
+	if sc._lastOffY == sc.offsetY and sc._lastLineGen == lineGen then return end
+	sc._lastOffY    = sc.offsetY
+	sc._lastLineGen = lineGen
+
 	for _, line in ipairs(tb.text.lines) do
-		line.y = line.naturalY + tb.scroll.offsetY
+		line.y = line.naturalY + sc.offsetY
 		line.isVisible = gdsGui_outputTxtBox_isTextInFrame(tb.frame, line)
 	end
 	-- Mark as read-to-bottom once (never cleared by scrolling back up).
-	if not tb.scroll.hasReachedBottom then
+	if not sc.hasReachedBottom then
 		local minOff, _ = _getScrollLimits(tb)
 		if minOff >= -0.5 then
-			-- Content fits without scrolling; user can see it all.
-			tb.scroll.hasReachedBottom = true
-		elseif tb.scroll.offsetY <= minOff + BOTTOM_READ_THRESHOLD then
-			tb.scroll.hasReachedBottom = true
+			sc.hasReachedBottom = true
+		elseif sc.offsetY <= minOff + BOTTOM_READ_THRESHOLD then
+			sc.hasReachedBottom = true
 		end
 	end
 	_updateScrollbarThumb(tb)
@@ -255,6 +261,7 @@ local function _recalculate_textBox(updtLbl)
 
 		local _w, wrappedtext = updtLbl.text.font:getWrap(updtLbl.text.text, updtLbl.text.width)
 		updtLbl.text.lines = {}
+		updtLbl.text._lineGen = (updtLbl.text._lineGen or 0) + 1
 		for t, l in ipairs(wrappedtext) do
 			local newLine = {}
 			newLine.text      = l
@@ -355,24 +362,6 @@ function gdsGui_outputTxtBox_update(dt)
 end
 
 
--- ---------------------------------------------------------------------------
---  DELETE
--- ---------------------------------------------------------------------------
-
-function gdsGui_outputTxtBox_delete (id, page)
-
-	for i = #globApp.objects.outputTextBox, 1, -1 do
-
-		local l = globApp.objects.outputTextBox[i]
-
-		if l.name == id and l.page == page then
-			table.remove(globApp.objects.outputTextBox, i)
-			globApp.numObjectsDisplayed = globApp.numObjectsDisplayed - 1
-		end
-
-	end
-
-end
 
 
 -- Public wrapper used by container.lua after repositioning a textbox.
@@ -461,9 +450,9 @@ function gdsGui_outputTxtBox_drawSingle(tb, outerClip)
 	end
 
 	_drawScrollbarWidget(tb)
-	love.graphics.reset()
+	love.graphics.setColor(1, 1, 1, 1)
 
-	-- Re-apply outer clip after reset (container will call _setClip again, but be safe).
+	-- Restore outer clip if present (container will also call _setClip, but be safe).
 	if outerClip then
 		love.graphics.setScissor(outerClip.x, outerClip.y, outerClip.width, outerClip.height)
 	end
@@ -615,7 +604,7 @@ function gdsGui_outputTxtBox_touchScroll (id, x, y, dx, dy, pressure, button, is
 
 				tb.scroll.offsetY = _applyRubberBand(tb.scroll.offsetY + dy, minOff, maxOff)
 
-				local frameDt = love.timer.getDelta()
+				local frameDt = globApp.lastDt or 0
 				if frameDt > 0 then
 					local rawVel = dy / frameDt
 					tb.scroll.velocityY = tb.scroll.velocityY * 0.5 + rawVel * 0.5
@@ -703,6 +692,7 @@ function gdsGui_outputTxtBox_resetScrollState(name)
 			tb.scroll.velocityY  = 0
 			tb.scroll.phase      = "idle"
 			tb.scroll.isDragging = false
+			tb.scroll._lastOffY  = nil  -- invalidate dirty flag so _apply_scroll_offset re-runs
 			_apply_scroll_offset(tb)
 			return
 		end

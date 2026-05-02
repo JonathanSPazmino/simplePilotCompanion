@@ -167,8 +167,12 @@ local function _initObjForContainer(obj, natX, natY)
         if obj.upButton then
             obj.upButton.x   = left
             obj.upButton.y   = top
+            obj.upButton.centeredX = left + (obj.upButton.width  - obj._dimUpW   * obj.upButton.factorWidth)  / 2
+            obj.upButton.centeredY = top  + (obj.upButton.height - obj._dimUpH   * obj.upButton.factorHeight) / 2
             obj.downButton.x = left
             obj.downButton.y = top + obj.original.height - obj.downButton.height
+            obj.downButton.centeredX = left + (obj.downButton.width  - obj._dimDownW * obj.downButton.factorWidth)  / 2
+            obj.downButton.centeredY = obj.downButton.y + (obj.downButton.height - obj._dimDownH * obj.downButton.factorHeight) / 2
             obj.frame.y      = top + obj.upButton.height
         else
             obj.frame.y = top
@@ -207,8 +211,10 @@ local function _setObjY(obj, newY)
         local top = math.floor(newY)
         if obj.upButton then
             obj.upButton.y   = top
+            obj.upButton.centeredY   = top + (obj.upButton.height  - obj._dimUpH   * obj.upButton.factorHeight)  / 2
             obj.frame.y      = top + obj.upButton.height
             obj.downButton.y = top + obj.original.height - obj.downButton.height
+            obj.downButton.centeredY = obj.downButton.y + (obj.downButton.height - obj._dimDownH * obj.downButton.factorHeight) / 2
         else
             obj.frame.y = top
         end

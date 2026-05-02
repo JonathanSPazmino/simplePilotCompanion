@@ -76,23 +76,6 @@ function gdsGui_general_convertSafeAreaToDPI (percArea, reqResult, isDevMode)
 
 end
 
-function gdsGui_general_findTriangAngle (side_oposite, side_adjacent, resultType)
-
-	local hipot = math.sqrt((side_oposite * side_oposite) + (side_adjacent * side_adjacent))
-
-	local result = 0
-
-		result = math.atan(side_oposite / side_adjacent)
-
-	if resultType == "degrees" then
-
-		result = result * (180 / math.pi)
-
-	end
-
-	return result
-
-end
 
 
 function gdsGui_general_getScaledDimensions(originalWidthRatio, originalHeightRatio, aspectRatio)
@@ -143,6 +126,8 @@ end
 
 
 function gdsGui_update (dt)
+
+	globApp.lastDt = dt  -- cached so touch handlers avoid redundant love.timer.getDelta() calls
 
 	--RESIZE TRIGGER CODE MUST GO BEFORE EVERYTHING THAT USES SAFESCREEN AREA TABLE
 	globApp.resizeDetected = gdsGui_general_resizeDetect ()
@@ -201,13 +186,18 @@ function gdsGui_draw ()
 end
 
 function gdsGui_general_draw ()
-	
-	local activePageName = 0
-	for i, pgs in ipairs (pages) do
-		if pgs.index == globApp.currentPageIndex then
-			activePageName = pgs.name
+
+	-- Only re-search when the page index changes; saves a linear scan every draw call.
+	if globApp._cachedPageIndex ~= globApp.currentPageIndex then
+		globApp._cachedPageIndex = globApp.currentPageIndex
+		for _, pgs in ipairs(pages) do
+			if pgs.index == globApp.currentPageIndex then
+				globApp._cachedPageName = pgs.name
+				break
+			end
 		end
 	end
+	local activePageName = globApp._cachedPageName or 0
 
 	gdsGui_container_draw (activePageName)
 	gdsGui_outputTxtBox_draw (activePageName)
@@ -1224,14 +1214,6 @@ function gdsGui_general_readLibraryInfo ()
 end
 
 
--------------------------------------------------------------------------------------
-							--PROJECT SELECTION 
---------------------------------------------------------------------------------------
-
-function gdsGui_general_projectSelect (id)
-	globApp.selectedProject = id
-	print ("globApp.selectedProject is " .. globApp.selectedProject )
-end
 
 --THE FOLLOWING TABLE VARIABLE CONTAINS ALL GUI OBJECTS
 -- gui_objects = {}
