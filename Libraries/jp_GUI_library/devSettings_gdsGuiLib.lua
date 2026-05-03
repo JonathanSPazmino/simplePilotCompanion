@@ -659,7 +659,7 @@ function gdsGui_dev_createEraseDataObjects ()
 
 	-- ── Page header ─────────────────────────────────────────────────────────
 	gdsGui_pageHeader_create("eraseData_header", thisPageName, pageHdrH, {0.15, 0.15, 0.20, 1})
-	gdsGui_outputTxtBox_create("eraseData_pageTitle", thisPageName, "Sprites/invisibleBox.png",
+	gdsGui_outputTxtBox_create("eraseData_pageTitle", thisPageName, nil,
 		math.floor(devSA.w * 0.5), math.floor(pageHdrH * 0.5), "CC",
 		math.floor(devSA.w * 0.70), math.floor(pageHdrH * 0.5),
 		{1, 1, 1, 1}, "ERASE DATA", 16, "eraseData_header"
@@ -671,7 +671,7 @@ function gdsGui_dev_createEraseDataObjects ()
 	local tblContH      = math.floor(bodyH * 0.60)
 	local tblInnerH     = tblContH - contTitleH - bodyGap
 	gdsGui_container_create("eraseDataTableCont", thisPageName, "DATA TO BE ERASED", contTitleH, 0)
-	gdsGui_outputTxtBox_create("eraseData_tblSpacer", thisPageName, "Sprites/invisibleBox.png",
+	gdsGui_outputTxtBox_create("eraseData_tblSpacer", thisPageName, nil,
 		math.floor(devSA.w * 0.5), bodyGap, "CT",
 		math.floor(devSA.w * 0.90), tblInnerH - bodyGap,
 		{0, 0, 0, 0}, "", 8, "eraseDataTableCont"
@@ -702,7 +702,7 @@ function gdsGui_dev_createEraseDataObjects ()
 	-- ── Warning container ────────────────────────────────────────────────────
 	local warnInnerH = math.floor(bodyH * 0.40) - contTitleH - bodyGap
 	gdsGui_container_create("eraseDataWarnCont", thisPageName, "WARNING", contTitleH, 0)
-	gdsGui_outputTxtBox_create("eraseData_warning", thisPageName, "Sprites/invisibleBox.png",
+	gdsGui_outputTxtBox_create("eraseData_warning", thisPageName, nil,
 		math.floor(devSA.w * 0.5), bodyGap, "CT",
 		math.floor(devSA.w * 0.85), warnInnerH - bodyGap,
 		{1, 0.80, 0.10, 1},
@@ -867,7 +867,7 @@ function gdsGui_dev_createUTInfoObjects ()
 
 	-- outputTxtBox_draw ("UnitTestInfo",--[[Label name]]
 	-- 	thisPageName, --[[strg page]]
-	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	-- 	nil, --[[image to be used as bg]]
 	-- 	.5, --[[x percentage of screen]]
 	-- 	.2, --[[y percentage of screen]]
 	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
@@ -880,7 +880,7 @@ function gdsGui_dev_createUTInfoObjects ()
 
 	-- outputTxtBox_draw ("testInfo",--[[Label name]]
 	-- 	thisPageName, --[[strg page]]
-	-- 	"Sprites/invisibleBox.png", --[[image to be used as bg]]
+	-- 	nil, --[[image to be used as bg]]
 	-- 	.5, --[[x percentage of screen]]
 	-- 	.6, --[[y percentage of screen]]
 	-- 	"CC", --[[anchorPoint -- string= LT,LC,LB,CT,CC,CB,RT,RC,RB]]
@@ -1005,7 +1005,7 @@ function gdsGui_dev_createAboutObjects ()
 
 	gdsGui_outputTxtBox_create("libraryInfoContents",
 		thisPageName,
-		"Sprites/invisibleBox.png",
+		nil,
 		.5,
 		.5,
 		"CC",

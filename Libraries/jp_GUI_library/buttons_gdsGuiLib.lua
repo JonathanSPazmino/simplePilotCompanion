@@ -64,9 +64,9 @@ function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, 
 
     -- Store images in a sub-table for cleaner state-based drawing.
     newButton.images = {
-        [globApp.BUTTON_STATES.DEACTIVATED] = love.graphics.newImage(imgDeactivated),
-        [globApp.BUTTON_STATES.RELEASED] = love.graphics.newImage(imgReleased),
-        [globApp.BUTTON_STATES.PRESSED] = love.graphics.newImage(imgPressed)
+        [globApp.BUTTON_STATES.DEACTIVATED] = imgDeactivated and love.graphics.newImage(imgDeactivated),
+        [globApp.BUTTON_STATES.RELEASED]    = imgReleased    and love.graphics.newImage(imgReleased),
+        [globApp.BUTTON_STATES.PRESSED]     = imgPressed     and love.graphics.newImage(imgPressed),
     }
 
     -- Store original relative properties for robust resizing
@@ -91,8 +91,8 @@ function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, 
 
     -- Pre-calculate scaling factors and max coordinates for efficiency.
     local baseImage = newButton.images[globApp.BUTTON_STATES.RELEASED] or newButton.images[globApp.BUTTON_STATES.PRESSED]
-    newButton.factorWidth = newButton.mywidth / baseImage:getWidth()
-    newButton.factorHeight = newButton.myheight / baseImage:getHeight()
+    newButton.factorWidth  = baseImage and (newButton.mywidth  / baseImage:getWidth())  or 1
+    newButton.factorHeight = baseImage and (newButton.myheight / baseImage:getHeight()) or 1
     newButton.myMaxx = newButton.myx + newButton.mywidth
     newButton.myMaxy = newButton.myy + newButton.myheight
 
@@ -122,8 +122,8 @@ function gdsGui_button_create(label, page, buttonType, imgPressed, imgReleased, 
 
         -- Update other derived properties
         local baseImage = self.images[globApp.BUTTON_STATES.RELEASED] or self.images[globApp.BUTTON_STATES.PRESSED]
-        self.factorWidth = self.mywidth / baseImage:getWidth()
-        self.factorHeight = self.myheight / baseImage:getHeight()
+        self.factorWidth  = baseImage and (self.mywidth  / baseImage:getWidth())  or 1
+        self.factorHeight = baseImage and (self.myheight / baseImage:getHeight()) or 1
         self.myMaxx = self.myx + self.mywidth
         self.myMaxy = self.myy + self.myheight
     end

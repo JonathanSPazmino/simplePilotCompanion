@@ -176,7 +176,7 @@ function love.load()
     local function createPageHeaderFooter(pageName, titleText, prefix)
         -- Header
         gdsGui_pageHeader_create(prefix .. "_header", pageName, pageHdrH, {0.15, 0.15, 0.20, 1})
-        gdsGui_outputTxtBox_create(prefix .. "_pageTitle", pageName, "Sprites/invisibleBox.png",
+        gdsGui_outputTxtBox_create(prefix .. "_pageTitle", pageName, nil,
             hdrCX, hdrCY, "CC",
             math.floor(globApp.safeScreenArea.w * 0.70), math.floor(pageHdrH * 0.5),
             {1, 1, 1, 1}, titleText, 16, prefix .. "_header"
@@ -196,8 +196,8 @@ function love.load()
             "navGoToLearn", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
         gdsGui_button_create(prefix .. "_navSettings", pageName, "stickyToggle",
-            "Sprites/settings_pressed.png", "Sprites/settings_released.png",
-            "Sprites/settings_deactivated.png",
+            "Sprites/button_settings_pressed.png", "Sprites/button_settings_released.png",
+            "Sprites/button_settings_deactivated.png",
             footBtnX3, footBtnY, "CC", footBtnW, footBtnH,
             "navGoToSettings", globApp.BUTTON_STATES.RELEASED, false, prefix .. "_footer"
         )
@@ -217,62 +217,62 @@ function love.load()
 
     -- Buttons (26×26 px square)
     gdsGui_button_create("resetRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/resetButton_pushed.png", "Sprites/resetButton_released.png",
-        "Sprites/resetButton_deactivated.png", 269, 105, "RT",
+        "Sprites/button_reset_pressed.png", "Sprites/button_reset_released.png",
+        "Sprites/button_reset_deactivated.png", 269, 105, "RT",
         33, 33,
         "resetRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("pauseRHTopTimer", "MainMenu", "toggle",
-        "Sprites/pausePlayButton_pressed.png", "Sprites/pausePlayButton_released.png",
-        "Sprites/pausePlayButton_deactivated.png", 215, 105, "CT",
+        "Sprites/button_pause_play_pressed.png", "Sprites/button_pause_play_released.png",
+        "Sprites/button_pause_play_deactivated.png", 215, 105, "CT",
         33, 33,
         "pauseRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("modeSelectRHTopTimer", "MainMenu", "toggle",
-        "Sprites/timerModeButton_down.png", "Sprites/timerModeButton_up.png",
-        "Sprites/timerModeButton_deactivated.png", 160, 105, "LT",
+        "Sprites/button_timer_mode_pressed.png", "Sprites/button_timer_mode_released.png",
+        "Sprites/button_timer_mode_deactivated.png", 160, 105, "LT",
         33, 33,
         "modeSelectRHTopTimer", globApp.BUTTON_STATES.RELEASED, true, "timerPanel"
     )
     gdsGui_button_create("incrsMinRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/minIncreaseButton_pressed.png", "Sprites/minIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 120, 50, "LT",
+        "Sprites/button_min_increase_pressed.png", "Sprites/button_min_increase_released.png",
+        nil, 120, 50, "LT",
         33, 33,
         "incrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsMinRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/minDecreaseButton_pressed.png", "Sprites/minDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 120, 105, "LT",
+        "Sprites/button_min_decrease_pressed.png", "Sprites/button_min_decrease_released.png",
+        nil, 120, 105, "LT",
         33, 33,
         "dcrsMinRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("incrsSecRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/secIncreaseButton_pressed.png", "Sprites/secIncreaseButton_released.png",
-        "Sprites/invisibleBox.png", 274, 50, "LT",
+        "Sprites/button_sec_increase_pressed.png", "Sprites/button_sec_increase_released.png",
+        nil, 274, 50, "LT",
         33, 33,
         "incrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("dcrsSecRHTopTimer", "MainMenu", "pushonoff",
-        "Sprites/secDecreaseButton_pressed.png", "Sprites/secDecreaseButton_released.png",
-        "Sprites/invisibleBox.png", 274, 105, "LT",
+        "Sprites/button_sec_decrease_pressed.png", "Sprites/button_sec_decrease_released.png",
+        nil, 274, 105, "LT",
         33, 33,
         "dcrsSecRHTopTimer", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
     gdsGui_button_create("acknowlegeAlarm", "MainMenu", "pushonoff",
-        "Sprites/invisibleBox.png", "Sprites/invisibleBox.png",
-        "Sprites/invisibleBox.png", 300, 50, "RT",
+        nil, nil,
+        nil, 300, 50, "RT",
         190, 95,
         "acknowlegeAlarm", globApp.BUTTON_STATES.DEACTIVATED, true, "timerPanel"
     )
 
     -- Text boxes
-    gdsGui_outputTxtBox_create("utcData", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("utcData", "MainMenu", nil,
         6, 50, "LT",
         128, 59,
         colorYellow, utcPrintString, 12, "timerPanel"
     )
     local text = timer.mode .. "\nTIMER:\nM " .. format_time(timer.t) .. " S"
-    gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("timerTopRight", "MainMenu", nil,
         283, 50, "RT",
         120, 59,
         colorYellow, text, 12, "timerPanel"
@@ -292,18 +292,18 @@ function love.load()
         "Sprites/knob_runway_released.png", "Sprites/knob_runway_pressed.png",
         "mainKnobChanged",
         36, 0,
-        "Sprites/knob_wind_released.png", "Sprites/knob_wind_pushed.png",
+        "Sprites/knob_wind_released.png", "Sprites/knob_wind_pressed.png",
         "windKnobChanged",
         true, "windPanel"
     )
 
     -- Text boxes
-    gdsGui_outputTxtBox_create("crosswindData", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("crosswindData", "MainMenu", nil,
         100, 20, "CT",
         170, 90,
         colorYellow, "WIND: 36000KT", 12, "windPanel"
     )
-    gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", nil,
         253, 10, "CT",
         150, 60,
         colorYellow, "WIND:\n\nSPEED   GUST", 12, "windPanel"
@@ -313,11 +313,11 @@ function love.load()
     gdsGui_scrollBar_create("windSpeed", "MainMenu",
         224, 55, 30, 176, "CT", 5, 46, 1,
         "independent", "vertical", 46, "windSpeedChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "windPanel")
     gdsGui_scrollBar_create("windGust", "MainMenu",
         275, 55, 30, 176, "CT", 5, 61, 1,
         "independent", "vertical", 61, "windGustChanged",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "windPanel")
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "windPanel")
 
     ---------------------------------------------------------------------------
     -- CALCULATIONS PANEL
@@ -326,19 +326,19 @@ function love.load()
 
     -- Text boxes
     local textAltSlctd = "SLCTD ALT:\n" .. selectedAltitude .. " FT"
-    gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("selectedAltitudeBox", "MainMenu", nil,
         164, 47, "CC",
         90, 47,
         colorYellow, textAltSlctd, 12, "calcPanel"
     )
     local textTimeSlctd = "SLCTD TIME:\n" .. selectedTime .. " min"
-    gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("selectedTimeBox", "MainMenu", nil,
         52, 47, "CC",
         90, 47,
         colorYellow, textTimeSlctd, 12, "calcPanel"
     )
     local textDegreeSlctd = "SLCTD DEG:\n" .. string.format("%.2f", selectedDegree) .. "°"
-    gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("selectedDegreeBox", "MainMenu", nil,
         267, 47, "CC",
         90, 47,
         colorYellow, textDegreeSlctd, 12, "calcPanel"
@@ -348,7 +348,7 @@ function love.load()
         requiredFPM = math.ceil(selectedAltitude / selectedTime)
     end
     local requiredFPMtext = "REQ FPM:\n" .. requiredFPM
-    gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("requiredFPM", "MainMenu", nil,
         110, 146, "CC",
         80, 59,
         colorYellow, requiredFPMtext, 12, "calcPanel"
@@ -358,7 +358,7 @@ function love.load()
         requiredDistance = math.floor(selectedAltitude / (math.tan(math.rad(selectedDegree)) * 6076.115) + 0.5)
     end
     local requiredDistText = "REQ DIST:\n" .. requiredDistance .. " nm"
-    gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("requiredDistance", "MainMenu", nil,
         211, 146, "CC",
         80, 59,
         colorYellow, requiredDistText, 12, "calcPanel"
@@ -368,15 +368,15 @@ function love.load()
     gdsGui_scrollBar_create("timeScale", "MainMenu",
         51, 70, 30, 185, "CT", 5, 26, 1,
         "independent", "vertical", 26, "roundSelectedTime",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "calcPanel")
     gdsGui_scrollBar_create("altScale", "MainMenu",
         160, 70, 30, 185, "CT", 5, 52, 1,
         "independent", "vertical", 52, "roundSelectedAltitude",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "calcPanel")
     gdsGui_scrollBar_create("deg", "MainMenu",
         262, 70, 30, 185, "CT", 5, 33, 1,
         "independent", "vertical", 33, "roundSelectedDegree",
-        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb_3.png"}, true, "calcPanel")
+        {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "calcPanel")
 
     ---------------------------------------------------------------------------
     -- LEARN PAGE CONTAINERS
@@ -386,7 +386,7 @@ function love.load()
     local learnTxtX     = math.floor(globApp.safeScreenArea.w * 0.5)
 
     gdsGui_container_create("timerLearn", "Learn", "UTC / TIMER", 32, 0)
-    gdsGui_outputTxtBox_create("timerLearnContent", "Learn", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("timerLearnContent", "Learn", nil,
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
@@ -395,7 +395,7 @@ function love.load()
     )
 
     gdsGui_container_create("windLearn", "Learn", "RUNWAY / WIND", 32, 0)
-    gdsGui_outputTxtBox_create("windLearnContent", "Learn", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("windLearnContent", "Learn", nil,
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
@@ -404,7 +404,7 @@ function love.load()
     )
 
     gdsGui_container_create("calcLearn", "Learn", "CALCULATIONS", 32, 0)
-    gdsGui_outputTxtBox_create("calcLearnContent", "Learn", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("calcLearnContent", "Learn", nil,
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
@@ -413,7 +413,7 @@ function love.load()
     )
 
     gdsGui_container_create("settingsLearn", "Learn", "SETTINGS", 32, 0)
-    gdsGui_outputTxtBox_create("settingsLearnContent", "Learn", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("settingsLearnContent", "Learn", nil,
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
@@ -434,37 +434,37 @@ function love.load()
     local settingsLabelH   = 40
 
     gdsGui_container_create("displaySettings", "Settings", "DISPLAY", 32, 0)
-    gdsGui_outputTxtBox_create("displayModeLabel", "Settings", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("displayModeLabel", "Settings", nil,
         12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
         {1, 1, 1, 1}, "DARK / WHITE MODE", settingsFontSize, "displaySettings"
     )
     gdsGui_button_create("darkModeToggle", "Settings", "toggle",
-        "Sprites/buttons_blkWhtMode_dark_released.png", "Sprites/buttons_blkWhtMode_white_pushed.png",
-        "Sprites/timerModeButton_deactivated.png",
+        "Sprites/button_bwmode_dark_released.png", "Sprites/button_bwmode_white_pressed.png",
+        "Sprites/button_timer_mode_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "darkModeToggled", globApp.BUTTON_STATES.PRESSED, true, "displaySettings"
     )
 
     gdsGui_container_create("soundsSettings", "Settings", "SOUNDS", 32, 0)
-    gdsGui_outputTxtBox_create("soundsLabel", "Settings", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("soundsLabel", "Settings", nil,
         12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
         {1, 1, 1, 1}, "TIMER SOUND ON / OFF", settingsFontSize, "soundsSettings"
     )
     gdsGui_button_create("soundToggle", "Settings", "toggle",
-        "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
-        "Sprites/timerModeButton_deactivated.png",
+        "Sprites/button_onoff_on_released.png", "Sprites/button_onoff_off_pressed.png",
+        "Sprites/button_timer_mode_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "soundToggled", globApp.BUTTON_STATES.PRESSED, true, "soundsSettings"
     )
 
     gdsGui_container_create("hapticsSettings", "Settings", "HAPTICS", 32, 0)
-    gdsGui_outputTxtBox_create("hapticsLabel", "Settings", "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("hapticsLabel", "Settings", nil,
         12, settingsRowY, "LT", settingsLabelW, settingsLabelH,
         {1, 1, 1, 1}, "VIBRATION ON / OFF", settingsFontSize, "hapticsSettings"
     )
     gdsGui_button_create("hapticsToggle", "Settings", "toggle",
-        "Sprites/button_onOff_on_released.png", "Sprites/button_onOff_off_pushed.png",
-        "Sprites/timerModeButton_deactivated.png",
+        "Sprites/button_onoff_on_released.png", "Sprites/button_onoff_off_pressed.png",
+        "Sprites/button_timer_mode_deactivated.png",
         settingsBtnX, settingsRowY, "RT", settingsBtnW, settingsBtnH,
         "hapticsToggled", globApp.BUTTON_STATES.PRESSED, false, "hapticsSettings"
     )
@@ -509,8 +509,8 @@ function love.load()
     singleChimeSound = love.audio.newSource("Sounds/SingleChime_piano.wav", "static")
 
     -- Load ack overlay images (drawn manually on top of all other objects)
-    _ackReleasedImg = love.graphics.newImage("Sprites/ackButton_released.png")
-    _ackPushedImg   = love.graphics.newImage("Sprites/ackButton_pushed.png")
+    _ackReleasedImg = love.graphics.newImage("Sprites/button_ack_released.png")
+    _ackPushedImg   = love.graphics.newImage("Sprites/button_ack_pressed.png")
 
     selectedAltitude = 0
     selectedTime = 0
@@ -948,7 +948,7 @@ function createTermsAndConditionsObjects()
 
     -- Header
     gdsGui_pageHeader_create("tc_header", thisPageName, pageHdrH, {0.15, 0.15, 0.20, 1})
-    gdsGui_outputTxtBox_create("tc_pageTitle", thisPageName, "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("tc_pageTitle", thisPageName, nil,
         hdrCX, hdrCY, "CC",
         math.floor(globApp.safeScreenArea.w * 0.90), math.floor(pageHdrH * 0.5),
         {1, 1, 1, 1}, "TERMS AND CONDITIONS", 16, "tc_header"
@@ -956,7 +956,7 @@ function createTermsAndConditionsObjects()
 
     -- Body container housing the scrollable T&C text
     gdsGui_container_create("tcPanel", thisPageName, "", 0, 0)
-    gdsGui_outputTxtBox_create("tcText", thisPageName, "Sprites/invisibleBox.png",
+    gdsGui_outputTxtBox_create("tcText", thisPageName, nil,
         tcTxtX, 5, "CT",
         tcTxtW, tcTxtH,
         {1, 1, 1, 1}, tcText,
@@ -968,9 +968,9 @@ function createTermsAndConditionsObjects()
     gdsGui_pageFooter_create("tc_footer", thisPageName, pageFootH, {0.15, 0.15, 0.20, 1})
     gdsGui_button_create("tcAgreementToggle", thisPageName,
         "toggle",
-        "Sprites/button_iAgree_pressed.png",
-        "Sprites/button_iAgree_released.png",
-        "Sprites/button_iAgree_deactivated.png",
+        "Sprites/button_iagree_pressed.png",
+        "Sprites/button_iagree_released.png",
+        "Sprites/button_iagree_deactivated.png",
         tcBtnX1, footBtnY, "CC", footBtnW, footBtnH,
         "tcAgreementToggled", globApp.BUTTON_STATES.DEACTIVATED, false, "tc_footer"
     )

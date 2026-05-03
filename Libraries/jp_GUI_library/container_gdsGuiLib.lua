@@ -76,8 +76,8 @@ local function _setObjDimensions(obj, pixW, pixH)
         obj.myheight = pixH
         local baseImg = obj.images[globApp.BUTTON_STATES.RELEASED]
                      or obj.images[globApp.BUTTON_STATES.PRESSED]
-        obj.factorWidth  = pixW / baseImg:getWidth()
-        obj.factorHeight = pixH / baseImg:getHeight()
+        obj.factorWidth  = baseImg and (pixW / baseImg:getWidth())  or 1
+        obj.factorHeight = baseImg and (pixH / baseImg:getHeight()) or 1
 
     elseif obj.objectType == "outputTextBox" then
         local sbW = (obj.scrollbar and obj.scrollbar.width) or 0
