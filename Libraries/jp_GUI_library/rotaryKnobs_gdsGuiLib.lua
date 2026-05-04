@@ -274,11 +274,14 @@ end
 ]]
 -- Draw one rotary knob.  Called by the container system for owned knobs.
 function gdsGui_rotaryKnob_drawSingle(knob)
-    love.graphics.setColor(1, 1, 1, 1)
+    local outerAlpha = (knob.isDual and knob.focusedPart == "inner") and 0.3 or 1.0
+    love.graphics.setColor(1, 1, 1, outerAlpha)
     local outerImg = knob.isFocused and knob.imgFocused or knob.imgReleased
     love.graphics.draw(outerImg, knob.centerX, knob.centerY, knob.angle,
                        knob.scaleX, knob.scaleY, knob.imgOriginX, knob.imgOriginY)
     if knob.isDual then
+        local innerAlpha = (knob.focusedPart == "outer") and 0.3 or 1.0
+        love.graphics.setColor(1, 1, 1, innerAlpha)
         local innerImg = knob.inner.isFocused and knob.inner.imgFocused or knob.inner.imgReleased
         love.graphics.draw(innerImg, knob.centerX, knob.centerY, knob.inner.angle,
                            knob.inner.scaleX, knob.inner.scaleY,
@@ -293,9 +296,9 @@ function gdsGui_rotaryKnob_draw(pageName)
         if knob.page ~= pageName then goto continue end
         if knob.ownerContainer      then goto continue end
 
-        love.graphics.setColor(1, 1, 1, 1)
-
         -- Outer (or only) knob
+        local outerAlpha = (knob.isDual and knob.focusedPart == "inner") and 0.3 or 1.0
+        love.graphics.setColor(1, 1, 1, outerAlpha)
         local outerImg = knob.isFocused and knob.imgFocused or knob.imgReleased
         love.graphics.draw(
             outerImg,
@@ -307,6 +310,8 @@ function gdsGui_rotaryKnob_draw(pageName)
 
         -- Inner knob drawn on top (dual only)
         if knob.isDual then
+            local innerAlpha = (knob.focusedPart == "outer") and 0.3 or 1.0
+            love.graphics.setColor(1, 1, 1, innerAlpha)
             local innerImg = knob.inner.isFocused and knob.inner.imgFocused or knob.inner.imgReleased
             love.graphics.draw(
                 innerImg,

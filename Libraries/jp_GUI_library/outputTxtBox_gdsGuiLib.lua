@@ -117,6 +117,56 @@ end
 
 
 -- ---------------------------------------------------------------------------
+--  TEXT SEGMENT HELPERS
+-- ---------------------------------------------------------------------------
+
+-- Converts text + defaultColor into a uniform {text, color}[] segment list.
+-- A plain string becomes one segment; a table of {text, color} pairs is used as-is.
+local function _normalizeText(text, defaultColor)
+	if type(text) == "string" then
+		return { { text = text, color = defaultColor } }
+	end
+	local out = {}
+	for _, seg in ipairs(text) do
+		out[#out + 1] = { text = seg.text or "", color = seg.color or defaultColor }
+	end
+	return out
+end
+
+-- Builds tb.text.lines from tb.text.text (string or segment table).
+-- Sets maxTextLineCount, combinedTxtHeight, and _lineGen.
+-- Requires tb.text.{font, width, height, x, baseY, color} to already be set.
+local function _buildLines(tb)
+	local segments = _normalizeText(tb.text.text, tb.text.color)
+	local allLines = {}
+	for _, seg in ipairs(segments) do
+		local _w, wrapped = tb.text.font:getWrap(seg.text, tb.text.width)
+		for _, l in ipairs(wrapped) do
+			allLines[#allLines + 1] = { text = l, color = seg.color }
+		end
+	end
+	local n = #allLines
+	tb.text.maxTextLineCount  = n
+	tb.text.combinedTxtHeight = tb.text.height * n
+	tb.text._lineGen          = (tb.text._lineGen or 0) + 1
+	tb.text.lines = {}
+	for i, item in ipairs(allLines) do
+		local line = {}
+		line.text      = item.text
+		line.x         = tb.text.x
+		line.width     = tb.text.width
+		line.naturalY  = tb.text.baseY + (tb.text.height * (i - 1))
+		line.y         = line.naturalY
+		line.height    = tb.text.height
+		line.color     = item.color
+		line.alignement= "center"
+		line.isVisible = gdsGui_outputTxtBox_isTextInFrame(tb.frame, line)
+		tb.text.lines[i] = line
+	end
+end
+
+
+-- ---------------------------------------------------------------------------
 --  CREATION
 -- ---------------------------------------------------------------------------
 
@@ -167,29 +217,11 @@ function gdsGui_outputTxtBox_create (id, page, bgSprite, x, y, anchorPoint, widt
 				tb.text.lastText = "txtOutputBox Error"
 			end
 
-			tb.text.width            = tb.frame.width * 0.8
-			tb.text.maxTextLineCount = findMaxNumOfLinesNeeded(tb.text.font, tb.text.width, tb.text.text)
-			tb.text.height           = gdsGui_general_returnFontInfo(tb.text.font, "height")
-			tb.text.combinedTxtHeight= tb.text.height * tb.text.maxTextLineCount
-			tb.text.x                = tb.frame.x + ((tb.frame.width - tb.text.width) / 2)
-			tb.text.baseY            = tb.frame.y
-
-			local _w, wrappedtext = tb.text.font:getWrap(tb.text.text, tb.text.width)
-
-			tb.text.lines = {}
-			for t, l in ipairs(wrappedtext) do
-				local newLine = {}
-				newLine.text      = l
-				newLine.x         = tb.text.x
-				newLine.width     = tb.text.width
-				newLine.naturalY  = tb.text.baseY + ((tb.text.height * t) - tb.text.height)
-				newLine.y         = newLine.naturalY
-				newLine.height    = tb.text.height
-				newLine.color     = tb.text.color
-				newLine.alignement= "center"
-				newLine.isVisible = gdsGui_outputTxtBox_isTextInFrame(tb.frame, newLine)
-				table.insert(tb.text.lines, newLine)
-			end
+			tb.text.width  = tb.frame.width * 0.8
+			tb.text.height = gdsGui_general_returnFontInfo(tb.text.font, "height")
+			tb.text.x      = tb.frame.x + ((tb.frame.width - tb.text.width) / 2)
+			tb.text.baseY  = tb.frame.y
+			_buildLines(tb)
 
 		-- Momentum scroll physics state
 		tb.scroll = {
@@ -252,29 +284,11 @@ local function _recalculate_textBox(updtLbl)
 			updtLbl.bgSprite.height = updtLbl.frame.height / updtLbl.bgSprite.sprite:getHeight()
 		end
 
-		updtLbl.text.width             = updtLbl.frame.width * 0.8
-		updtLbl.text.maxTextLineCount  = findMaxNumOfLinesNeeded(updtLbl.text.font, updtLbl.text.width, updtLbl.text.text)
-		updtLbl.text.height            = gdsGui_general_returnFontInfo(updtLbl.text.font, "height")
-		updtLbl.text.combinedTxtHeight = updtLbl.text.height * updtLbl.text.maxTextLineCount
-		updtLbl.text.x                 = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width) / 2)
-		updtLbl.text.baseY             = updtLbl.frame.y
-
-		local _w, wrappedtext = updtLbl.text.font:getWrap(updtLbl.text.text, updtLbl.text.width)
-		updtLbl.text.lines = {}
-		updtLbl.text._lineGen = (updtLbl.text._lineGen or 0) + 1
-		for t, l in ipairs(wrappedtext) do
-			local newLine = {}
-			newLine.text      = l
-			newLine.x         = updtLbl.text.x
-			newLine.width     = updtLbl.text.width
-			newLine.naturalY  = updtLbl.text.baseY + ((updtLbl.text.height * t) - updtLbl.text.height)
-			newLine.y         = newLine.naturalY
-			newLine.height    = updtLbl.text.height
-			newLine.color     = updtLbl.text.color
-			newLine.alignement= "center"
-			newLine.isVisible = gdsGui_outputTxtBox_isTextInFrame(updtLbl.frame, newLine)
-			table.insert(updtLbl.text.lines, newLine)
-		end
+		updtLbl.text.width  = updtLbl.frame.width * 0.8
+		updtLbl.text.height = gdsGui_general_returnFontInfo(updtLbl.text.font, "height")
+		updtLbl.text.x      = updtLbl.frame.x + ((updtLbl.frame.width - updtLbl.text.width) / 2)
+		updtLbl.text.baseY  = updtLbl.frame.y
+		_buildLines(updtLbl)
 
 		-- Clamp scroll to new limits and re-apply offset
 		if updtLbl.scroll then
@@ -434,11 +448,26 @@ function gdsGui_outputTxtBox_drawSingle(tb, outerClip)
 	love.graphics.setFont(tb.text.font)
 	love.graphics.setScissor(tb.frame.x, tb.frame.y, tb.frame.width, tb.frame.height)
 
-	love.graphics.setColor(tb.text.color[1], tb.text.color[2],
-	                       tb.text.color[3], tb.text.color[4] or 1)
-	for _, line in ipairs(tb.text.lines) do
-		if line.isVisible then
-			love.graphics.printf(line.text, line.x, line.y, line.width, "center")
+	if type(tb.text.text) == "string" then
+		-- Single-colour path: honour tb.text.color so _applyTheme changes take effect immediately.
+		love.graphics.setColor(tb.text.color[1], tb.text.color[2],
+		                       tb.text.color[3], tb.text.color[4] or 1)
+		for _, line in ipairs(tb.text.lines) do
+			if line.isVisible then
+				love.graphics.printf(line.text, line.x, line.y, line.width, "center")
+			end
+		end
+	else
+		-- Segmented path: each line carries its own developer-specified colour.
+		local curColor = nil
+		for _, line in ipairs(tb.text.lines) do
+			if line.isVisible then
+				if line.color ~= curColor then
+					love.graphics.setColor(line.color[1], line.color[2], line.color[3], line.color[4] or 1)
+					curColor = line.color
+				end
+				love.graphics.printf(line.text, line.x, line.y, line.width, "center")
+			end
 		end
 	end
 

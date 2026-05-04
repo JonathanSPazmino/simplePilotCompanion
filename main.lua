@@ -283,10 +283,17 @@ function love.load()
     ---------------------------------------------------------------------------
     gdsGui_container_create("windPanel", "MainMenu", "RUNWAY / WIND", 32, 0)
 
+    -- Compass background: inserted first so it renders under the knob
+    gdsGui_outputTxtBox_create("compassBg", "MainMenu", "Sprites/bg_compass_visible.png",
+        160, 180, "CC",
+        208, 208,
+        {1, 1, 1, 1}, "", 1, "windPanel"
+    )
+
     -- Rotary knob (150×150 px square)
     gdsGui_rotaryKnob_createDual(
         "runwayKnob", "MainMenu",
-        16, 100, "LT",
+        80, 100, "LT",
         160,
         36, 0,
         "Sprites/knob_runway_released.png", "Sprites/knob_runway_pressed.png",
@@ -299,30 +306,35 @@ function love.load()
 
     -- Text boxes
     gdsGui_outputTxtBox_create("crosswindData", "MainMenu", nil,
-        100, 20, "CT",
-        170, 90,
+        160, 10, "CT",
+        200, 90,
         colorYellow, "WIND: 36000KT", 12, "windPanel"
     )
-    gdsGui_outputTxtBox_create("windSpeedGustLabel", "MainMenu", nil,
-        253, 10, "CT",
-        150, 60,
-        colorYellow, "WIND:\n\nSPEED   GUST", 12, "windPanel"
+    gdsGui_outputTxtBox_create("windSpeedLabel", "MainMenu", nil,
+        30, 10, "CT",
+        60, 40,
+        colorYellow, "WIND\nSPD", 12, "windPanel"
+    )
+    gdsGui_outputTxtBox_create("windGustLabel", "MainMenu", nil,
+        290, 10, "CT",
+        60, 40,
+        colorYellow, "WIND\nGST", 12, "windPanel"
     )
 
-    -- Scrollbars (30×176 px)
+    -- Scrollbars (30×176 px): speed left of knob, gust right of knob
     gdsGui_scrollBar_create("windSpeed", "MainMenu",
-        224, 55, 30, 176, "CT", 5, 46, 1,
+        30, 55, 30, 176, "CT", 5, 46, 1,
         "independent", "vertical", 46, "windSpeedChanged",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "windPanel")
     gdsGui_scrollBar_create("windGust", "MainMenu",
-        275, 55, 30, 176, "CT", 5, 61, 1,
+        290, 55, 30, 176, "CT", 5, 61, 1,
         "independent", "vertical", 61, "windGustChanged",
         {frame = "Sprites/scrollbar_bg.png", thumb = "Sprites/scrollbar_thumb.png"}, true, "windPanel")
 
     ---------------------------------------------------------------------------
     -- CALCULATIONS PANEL
     ---------------------------------------------------------------------------
-    gdsGui_container_create("calcPanel", "MainMenu", "CALCULATIONS", 32, 0)
+    gdsGui_container_create("calcPanel", "MainMenu", "ASCEND / DESCEND", 32, 0)
 
     -- Text boxes
     local textAltSlctd = "SLCTD ALT:\n" .. selectedAltitude .. " FT"
@@ -390,7 +402,20 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "UTC CLOCK\nShows current UTC date and time, updated each second.\n\nNAVIGATION\nUse the tab bar at the bottom to switch between Main Menu, Learn, and Settings.\n\nTIMER MODE\nPress the mode button to switch between COUNT UP and COUNT DOWN.\n\nCOUNT DOWN\nUse the +/- buttons to set minutes (left pair) and seconds (right pair). Press play/pause to start. The app navigates here automatically 3 seconds before zero. Alarm sounds and the screen flashes red at zero. Press ACK to dismiss.\n\nCOUNT UP\nPress play/pause to start counting from zero.\n\nRESET\nStops the timer. In COUNT DOWN, returns to the last set time. In COUNT UP, returns to zero.",
+        {
+            { text = "UTC CLOCK",   color = {1, 0, 0, 1} },
+            { text = "Shows current UTC date and time, updated each second.\n",     color = {1, 1, 1, 1} },
+            { text = "NAVIGATION",  color = {1, 0, 0, 1} },
+            { text = "Use the tab bar at the bottom to switch between Main Menu, Learn, and Settings.\n", color = {1, 1, 1, 1} },
+            { text = "TIMER MODE",  color = {1, 0, 0, 1} },
+            { text = "Press the mode button to switch between COUNT UP and COUNT DOWN.\n", color = {1, 1, 1, 1} },
+            { text = "COUNT DOWN",  color = {1, 0, 0, 1} },
+            { text = "Use the +/- buttons to set minutes (left pair) and seconds (right pair). Press play/pause to start. The app navigates here automatically 3 seconds before zero. Alarm sounds and the screen flashes red at zero. Press ACK to dismiss.\n", color = {1, 1, 1, 1} },
+            { text = "COUNT UP",    color = {1, 0, 0, 1} },
+            { text = "Press play/pause to start counting from zero.\n",             color = {1, 1, 1, 1} },
+            { text = "RESET",       color = {1, 0, 0, 1} },
+            { text = "Stops the timer. In COUNT DOWN, returns to the last set time. In COUNT UP, returns to zero.", color = {1, 1, 1, 1} },
+        },
         learnFontSize, "timerLearn"
     )
 
@@ -399,16 +424,40 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "CROSSWIND CALCULATOR\nCalculates headwind and crosswind components from runway heading and wind data.\n\nRUNWAY HEADING\nRotate the outer knob ring to select runway (RWY 01-36) one increment at a time.\n\nWIND DIRECTION\nRotate the inner knob ring to set reported wind direction in 10 degree steps (010-360).\n\nWIND SPEED\nLeft scrollbar sets steady wind speed from 0 to 45 kt.\n\nWIND GUST\nRight scrollbar sets gust speed. Range adjusts dynamically from current speed up to 60 kt.\n\nRESULT\nShows runway, sustained crosswind and headwind/tailwind components. When a gust is set, also shows gust crosswind components and gust factor.",
+        {
+            { text = "CROSSWIND CALCULATOR",  color = {1, 0, 0, 1} },
+            { text = "Calculates headwind and crosswind components from runway heading and wind data.\n", color = {1, 1, 1, 1} },
+            { text = "RUNWAY HEADING",        color = {1, 0, 0, 1} },
+            { text = "Rotate the outer knob ring to select runway (RWY 01-36) one increment at a time.\n", color = {1, 1, 1, 1} },
+            { text = "WIND DIRECTION",        color = {1, 0, 0, 1} },
+            { text = "Rotate the inner knob ring to set reported wind direction in 10 degree steps (010-360).\n", color = {1, 1, 1, 1} },
+            { text = "WIND SPEED",            color = {1, 0, 0, 1} },
+            { text = "Left scrollbar sets steady wind speed from 0 to 45 kt.\n",   color = {1, 1, 1, 1} },
+            { text = "WIND GUST",             color = {1, 0, 0, 1} },
+            { text = "Right scrollbar sets gust speed. Range adjusts dynamically from current speed up to 60 kt.\n", color = {1, 1, 1, 1} },
+            { text = "RESULT",                color = {1, 0, 0, 1} },
+            { text = "Shows runway, sustained crosswind and headwind/tailwind components. When a gust is set, also shows gust crosswind components and gust factor.", color = {1, 1, 1, 1} },
+        },
         learnFontSize, "windLearn"
     )
 
-    gdsGui_container_create("calcLearn", "Learn", "CALCULATIONS", 32, 0)
+    gdsGui_container_create("calcLearn", "Learn", "ASCEND / DESCEND", 32, 0)
     gdsGui_outputTxtBox_create("calcLearnContent", "Learn", nil,
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "DESCENT CALCULATOR\nCalculates required vertical rate and horizontal distance to begin descent.\n\nTIME\nLeft scrollbar sets time to lose altitude (0-25 min).\n\nALTITUDE\nCenter scrollbar sets altitude to lose (0-51,000 ft in 1,000 ft steps).\n\nANGLE\nRight scrollbar sets desired descent angle (0-8.00 degrees in 0.25 degree steps).\n\nRESULTS\nREQ FPM — required descent rate in feet per minute.\nREQ DIST — start-of-descent distance in nautical miles.",
+        {
+            { text = "ASCENT / DESCENT CALCULATOR", color = {1, 0, 0, 1} },
+            { text = "Calculates required vertical rate and start-of-descent distance.\n", color = {1, 1, 1, 1} },
+            { text = "TIME",     color = {1, 0, 0, 1} },
+            { text = "Left scrollbar sets time to change altitude (0-25 min).\n",   color = {1, 1, 1, 1} },
+            { text = "ALTITUDE", color = {1, 0, 0, 1} },
+            { text = "Center scrollbar sets altitude change (0-51,000 ft in 1,000 ft steps).\n", color = {1, 1, 1, 1} },
+            { text = "ANGLE",    color = {1, 0, 0, 1} },
+            { text = "Right scrollbar sets desired descent angle (0-8.00 degrees in 0.25 degree steps).\n", color = {1, 1, 1, 1} },
+            { text = "RESULTS",  color = {1, 0, 0, 1} },
+            { text = "REQ FPM — required vertical rate in feet per minute.\nREQ DIST — start-of-descent distance in nautical miles.", color = {1, 1, 1, 1} },
+        },
         learnFontSize, "calcLearn"
     )
 
@@ -417,7 +466,16 @@ function love.load()
         learnTxtX, 10, "CT",
         learnTxtW, 180,
         {1, 1, 1, 1},
-        "ACCESS\nTap the gear icon in the navigation bar to open Settings.\n\nDARK / LIGHT MODE\nToggle between dark background with white text and light background with dark text. Your preference is saved between sessions.\n\nTIMER SOUND\nEnable or disable the beep that sounds when the countdown timer reaches zero.\n\nHAPTICS\nEnable or disable vibration on button taps and at timer alarm.",
+        {
+            { text = "ACCESS",           color = {1, 0, 0, 1} },
+            { text = "Tap the gear icon in the navigation bar to open Settings.\n", color = {1, 1, 1, 1} },
+            { text = "DARK / LIGHT MODE", color = {1, 0, 0, 1} },
+            { text = "Toggle between dark background with white text and light background with dark text. Your preference is saved between sessions.\n", color = {1, 1, 1, 1} },
+            { text = "TIMER SOUND",      color = {1, 0, 0, 1} },
+            { text = "Enable or disable the beep that sounds when the countdown timer reaches zero.\n", color = {1, 1, 1, 1} },
+            { text = "HAPTICS",          color = {1, 0, 0, 1} },
+            { text = "Enable or disable vibration on button taps and at timer alarm.", color = {1, 1, 1, 1} },
+        },
         learnFontSize, "settingsLearn"
     )
 
