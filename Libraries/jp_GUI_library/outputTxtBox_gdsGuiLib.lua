@@ -440,6 +440,15 @@ end
 -- Draws one textbox: text (clipped to frame) then the embedded scrollbar.
 -- outerClip: container clip {x,y,width,height} to restore after text scissor; nil for standalone.
 function gdsGui_outputTxtBox_drawSingle(tb, outerClip)
+	if tb.bgCircle then
+		local c  = tb.bgCircle
+		local cx = tb.frame.x + (tb.origTotalWidth or tb.frame.width) * 0.5
+		local cy = tb.frame.y + tb.frame.height * 0.5
+		local r  = (tb.origTotalWidth or tb.frame.width) * 0.5
+		love.graphics.setColor(c[1], c[2], c[3], c[4] or 1)
+		love.graphics.circle("fill", cx, cy, r)
+		love.graphics.setColor(1, 1, 1, 1)
+	end
 	if tb.bgSprite and tb.bgSprite.sprite then
 		love.graphics.draw(tb.bgSprite.sprite, tb.bgSprite.x, tb.bgSprite.y,
 		                   0, tb.bgSprite.width, tb.bgSprite.height)
